@@ -5,12 +5,12 @@ import { siteConfig } from "@/lib/site";
 export default function manifest(): MetadataRoute.Manifest {
   return {
     name: siteConfig.name,
-    short_name: "mpvEx",
+    short_name: "Aura Player",
     description: siteConfig.description,
     start_url: "/",
     display: "standalone",
-    background_color: "#0f172a",
-    theme_color: "#8b5cf6",
+    background_color: "#060709",
+    theme_color: "#00E5FF",
     icons: [
       {
         src: "/icon-192.png",

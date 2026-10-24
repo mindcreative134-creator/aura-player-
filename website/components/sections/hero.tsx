@@ -91,7 +91,7 @@ export function HeroSection({
           className="text-5xl sm:text-7xl lg:text-8xl font-bold tracking-tight mb-6"
         >
           <span className="bg-clip-text text-transparent bg-linear-to-b from-foreground to-foreground/60">
-            mpvExtended
+            Aura Player
           </span>
         </motion.h1>
 
@@ -99,8 +99,7 @@ export function HeroSection({
           variants={itemVariants}
           className="text-xl sm:text-2xl text-muted-foreground mb-10 max-w-2xl mx-auto leading-relaxed"
         >
-          An advanced video player for Android built on libmpv. Experience
-          Material3 design, background playback, and picture-in-picture.
+          Next-generation Android media player with Obsidian design, glowing cinema ambient lighting, 4K/60fps hardware acceleration, and full offline privacy.
         </motion.p>
 
         <motion.div
@@ -109,7 +108,7 @@ export function HeroSection({
         >
           <Button
             size="lg"
-            className="h-12 px-8 text-base bg-primary hover:bg-primary/90 text-primary-foreground rounded-full transition-all duration-300 shadow-[0_0_20px_-5px_rgba(124,58,237,0.5)] hover:shadow-[0_0_30px_-5px_rgba(124,58,237,0.6)] cursor-pointer"
+            className="h-12 px-8 text-base bg-primary hover:bg-primary/90 text-primary-foreground rounded-full transition-all duration-300 shadow-[0_0_20px_-5px_rgba(0,229,255,0.5)] hover:shadow-[0_0_30px_-5px_rgba(0,229,255,0.6)] cursor-pointer"
             onClick={() =>
               window.open(
                 downloadUrl || siteConfig.links.latestRelease,
@@ -134,7 +133,7 @@ export function HeroSection({
        <motion.img
          variants={itemVariants}
          src="/player.png"
-         alt="MpvEx Player Image"
+         alt="Aura Player Interface"
          className="mt-0 max-w-screen-md w-full mx-auto rounded-lg shadow-lg"
        >
      </motion.img>

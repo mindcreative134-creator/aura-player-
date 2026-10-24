@@ -1,12 +1,12 @@
 <div align="center">
-  <img src="public/featureGraphic.png" width="100%" alt="mpvExtended Banner" />
+  <img src="public/featureGraphic.png" width="100%" alt="Aura Player Banner" />
 
-**The Most Powerful, Material3-Powered Video Experience for Android**
+**Next-Generation Obsidian & Ambient Media Experience for Android**
 
-[![GitHub release](https://img.shields.io/github/v/release/marlboro-advance/mpvEx?style=for-the-badge&logo=github&color=7C3AED)](https://github.com/marlboro-advance/mpvEx/releases/latest)
-[![Downloads](https://img.shields.io/github/downloads/marlboro-advance/mpvEx/total?style=for-the-badge&logo=github&color=3B82F6)](https://github.com/marlboro-advance/mpvEx/releases/latest)
-[![Stars](https://img.shields.io/github/stars/marlboro-advance/mpvEx?style=for-the-badge&logo=github&color=F59E0B)](https://github.com/marlboro-advance/mpvEx/stargazers)
-[![License](https://img.shields.io/badge/License-Apache%202.0-green?style=for-the-badge)](LICENSE)
+[![GitHub release](https://img.shields.io/github/v/release/mindcreative134-creator/aura-player-?style=for-the-badge&logo=github&color=00E5FF)](https://github.com/mindcreative134-creator/aura-player-/releases/latest)
+[![Downloads](https://img.shields.io/github/downloads/mindcreative134-creator/aura-player-/total?style=for-the-badge&logo=github&color=00E5FF)](https://github.com/mindcreative134-creator/aura-player-/releases/latest)
+[![Stars](https://img.shields.io/github/stars/mindcreative134-creator/aura-player-?style=for-the-badge&logo=github&color=00E5FF)](https://github.com/mindcreative134-creator/aura-player-/stargazers)
+[![License](https://img.shields.io/badge/License-Apache%202.0-green?style=for-the-badge)](../LICENSE)
 
 </div>
 
@@ -20,19 +20,14 @@ Get the latest stable release directly from GitHub or the IzzyOnDroid repository
 
 | Source              | Link                                                                                                                                                              |
 | :------------------ | :---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **GitHub Releases** | [![Download](https://img.shields.io/badge/Download-Latest%20APK-7C3AED?style=flat-square&logo=github)](https://github.com/marlboro-advance/mpvEx/releases/latest) |
-| **IzzyOnDroid**     | [![IzzyOnDroid](https://img.shields.io/badge/Get%20it%20on-IzzyOnDroid-blue?style=flat-square)](https://apt.izzysoft.de/packages/app.marlboroadvance.mpvex)       |
-
-### Preview Builds
-
-Want to try the cutting-edge features? Download the preview builds (Testing only).
-[![Preview](https://img.shields.io/badge/Download-Preview%20Builds-red?style=for-the-badge)](https://marlboro-advance.github.io/mpvEx/)
+| **GitHub Releases** | [![Download](https://img.shields.io/badge/Download-Latest%20APK-00E5FF?style=flat-square&logo=github)](https://github.com/mindcreative134-creator/aura-player-/releases/latest) |
+| **IzzyOnDroid**     | [![IzzyOnDroid](https://img.shields.io/badge/Get%20it%20on-IzzyOnDroid-blue?style=flat-square)](https://apt.izzysoft.de/packages/com.cmstudio.auraplayer)       |
 
 ---
 
-## 🌐 mpvEx Web
+## 🌐 Aura Player Web
 
-This is the official Next.js website for **mpvExtended** - a powerful Android video player built on mpv. The website showcases features, provides downloads, and serves as the project's online presence.
+This is the official Next.js website for **Aura Player** - a modern, high-contrast Android media player built with Obsidian aesthetics and cinema ambient lighting. The website showcases features, provides downloads, and serves as the project's online home.
 
 ### 🚀 Quick Start
 

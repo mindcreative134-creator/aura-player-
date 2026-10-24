@@ -76,7 +76,7 @@ export function Footer() {
           </p>
           <span className="hidden sm:inline text-muted-foreground/30">•</span>
           <a
-            href="https://github.com/Riteshp2001"
+            href="https://github.com/mindcreative134-creator/aura-player-"
             target="_blank"
             rel="noopener noreferrer"
             className="text-sm text-muted-foreground hover:text-primary transition-colors flex items-center gap-2 justify-center"
@@ -86,7 +86,7 @@ export function Footer() {
           </a>
           <span className="text-muted-foreground/30">•</span>
           <a
-            href="https://marlboro-advance.github.io/mpvEx/privacy-policy.html"
+            href="https://github.com/mindcreative134-creator/aura-player-/blob/main/PRIVACY_POLICY.md"
             target="_blank"
             rel="noopener noreferrer"
             className="text-sm text-muted-foreground hover:text-primary transition-colors"
@@ -95,7 +95,7 @@ export function Footer() {
           </a>
           <span className="text-muted-foreground/30">•</span>
           <p className="text-sm text-muted-foreground">
-            {`© ${currentYear} mpvExtended Project. Apache 2.0 License`}
+            {`© ${currentYear} Aura Player Project. Apache 2.0 License`}
           </p>
         </div>
       </div>

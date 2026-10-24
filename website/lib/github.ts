@@ -18,8 +18,8 @@ export interface GitHubContributor {
   public_repos?: number;
 }
 
-const REPO_OWNER = "marlboro-advance";
-const REPO_NAME = "mpvEx";
+const REPO_OWNER = "mindcreative134-creator";
+const REPO_NAME = "aura-player-";
 const GITHUB_API_URL = "https://api.github.com";
 
 export async function getRepositoryContributors(

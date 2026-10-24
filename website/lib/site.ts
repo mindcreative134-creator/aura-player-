@@ -9,26 +9,26 @@
  * Contains metadata, external links, and author information used throughout the application.
  */
 export const siteConfig = {
-  name: "mpvExtended",
-  version: "v1.2.7",
+  name: "Aura Player",
+  version: "v1.0.0",
   description:
-    "Advanced mpv-based video player for Android with powerful features, seamless playback, and open-source freedom.",
-  url: "https://mpvex.vercel.app",
-  ogImage: "https://mpvex.vercel.app/og.jpg",
+    "Next-generation media player for Android with Obsidian design, cinema ambient lighting, advanced hardware decoding, and pure offline privacy.",
+  url: "https://aura-player.vercel.app",
+  ogImage: "https://aura-player.vercel.app/og.jpg",
   icons: {
     icon: "/icon.svg",
     apple: "/apple-icon.png",
   },
   links: {
-    github: "https://github.com/marlboro-advance/mpvEx",
-    releases: "https://github.com/marlboro-advance/mpvEx/releases",
-    latestRelease: "https://github.com/marlboro-advance/mpvEx/releases/latest",
-    izzyOnAndroid: "https://apt.izzysoft.de/packages/app.marlboroadvance.mpvex",
-    contributors: "https://github.com/marlboro-advance/mpvEx/graphs/contributors",
+    github: "https://github.com/mindcreative134-creator/aura-player-",
+    releases: "https://github.com/mindcreative134-creator/aura-player-/releases",
+    latestRelease: "https://github.com/mindcreative134-creator/aura-player-/releases/latest",
+    izzyOnAndroid: "https://apt.izzysoft.de/packages/com.cmstudio.auraplayer",
+    contributors: "https://github.com/mindcreative134-creator/aura-player-/graphs/contributors",
   },
   author: {
-    name: "marlboro-advance",
-    url: "https://github.com/marlboro-advance",
+    name: "mindcreative134-creator",
+    url: "https://github.com/mindcreative134-creator",
   },
 } as const;
 
