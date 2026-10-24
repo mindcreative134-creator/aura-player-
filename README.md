@@ -10,7 +10,7 @@
 ## 🌟 Key Features
 
 ### 🎬 Video Player
-- **Ultra HD & HDR Hardware Acceleration:** Smooth 4K/60fps playback with zero drop-frames.
+- **Hardware-Accelerated Video Playback:** Smooth playback powered by Android MediaCodec decoders, supporting up to 4K/60fps and HDR on capable hardware.
 - **Ambient Cinema Lighting:** Dynamic, subtle letterbox glow for an immersive theater experience.
 - **Intuitive MX-Style Gestures:**
   - Left side swipe: Brightness control.
@@ -36,19 +36,20 @@
 
 ## 🔒 Privacy & Architecture
 
-- **100% Offline-First:** No accounts, no sign-in, no remote database tracking.
-- **Zero Telemetry:** No Google Firebase, no ad SDKs, no user analytics.
-- **Permission Transparent:** Only requests storage access needed to play local media.
+- **Offline-First for Local Media:** Core video and audio playback operates 100% offline with zero sign-in or cloud requirement.
+- **Optional Cloud Features:** Internet radio, synchronized lyrics (LRCLib), and AI subtitle translation are strictly user-initiated.
+- **Zero Telemetry:** No Google Firebase Analytics, no ad SDKs, no behavioral trackers.
+- **Permission Transparent:** The Google Play flavor uses Android Scoped Storage and strictly excludes All Files Access (`MANAGE_EXTERNAL_STORAGE`).
 
 ---
 
 ## 📜 Open Source & Lineage Acknowledgments
 
-Apna Player is licensed under the [Apache License 2.0](LICENSE). We express our gratitude to the foundational open-source media projects that inspired and contributed to the Android media ecosystem:
+Apna Player is licensed under the [Apache License 2.0](LICENSE). For full details and third-party notices, please see the [NOTICE](NOTICE) file. We express our gratitude to foundational open-source media projects:
 
-- **[mpv-android](https://github.com/mpv-android/mpv-android)** & **[mpvKt](https://github.com/abdallahmehiz/mpvKt)**
-- **[mpvEx](https://github.com/marlboro-advance/mpvEx)**
+- **[mpv-android](https://github.com/mpv-android/mpv-android)** & **[mpvEx](https://github.com/marlboro-advance/mpvEx)**
 - **[AndroidX Media3 / ExoPlayer](https://github.com/androidx/media)**
+- **[MediaInfo](https://mediaarea.net/MediaInfo)**
 - **[Next Player](https://github.com/anilbeesetti/nextplayer)**
 - **[Gramophone](https://github.com/FoedusProgramme/Gramophone)**
 
@@ -58,7 +59,7 @@ Apna Player is licensed under the [Apache License 2.0](LICENSE). We express our 
 
 ```bash
 # Clone the repository
-git clone https://github.com/your-username/apna-player.git
+git clone https://github.com/mindcreative134-creator/aura-player-.git
 
 # Build debug APK
 ./gradlew assembleStandardDebug

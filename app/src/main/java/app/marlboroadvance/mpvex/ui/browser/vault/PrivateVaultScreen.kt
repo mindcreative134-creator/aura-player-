@@ -132,13 +132,18 @@ object PrivateVaultScreen : Screen {
           var addedCount = 0
           uris.forEach { uri ->
             try {
-              // Copy uri stream to a temp file then move to vault
-              val tempFile = copyUriToTempFile(context, uri)
-              if (tempFile != null) {
-                val result = VaultManager.addToVault(context, tempFile)
-                if (result.isSuccess) {
-                  addedCount++
+              var displayName: String? = null
+              context.contentResolver.query(uri, arrayOf(OpenableColumns.DISPLAY_NAME), null, null, null)?.use { cursor ->
+                if (cursor.moveToFirst()) {
+                  val nameIndex = cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME)
+                  if (nameIndex != -1) {
+                    displayName = cursor.getString(nameIndex)
+                  }
                 }
+              }
+              val result = VaultManager.addToVault(context, uri, displayName)
+              if (result.isSuccess) {
+                addedCount++
               }
             } catch (e: Exception) {
               e.printStackTrace()
@@ -147,7 +152,11 @@ object PrivateVaultScreen : Screen {
           withContext(Dispatchers.Main) {
             isLoading = false
             refreshItems()
-            Toast.makeText(context, "Added $addedCount video(s) to Private Vault", Toast.LENGTH_SHORT).show()
+            Toast.makeText(
+              context,
+              "Added $addedCount video(s) to Private Vault.",
+              Toast.LENGTH_SHORT,
+            ).show()
           }
         }
       }

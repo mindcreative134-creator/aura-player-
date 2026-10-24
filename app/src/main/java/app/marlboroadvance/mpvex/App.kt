@@ -60,19 +60,31 @@ class App : Application() {
    */
   private fun triggerMediaScanOnLaunch() {
     try {
-      val externalStorage = android.os.Environment.getExternalStorageDirectory()
+      val scanDirs = mutableListOf<String>()
       
-      android.media.MediaScannerConnection.scanFile(
-        this,
-        arrayOf(externalStorage.absolutePath),
-        null, // Let MediaScanner detect all media types
-      ) { path, uri ->
-        android.util.Log.d("App", "Launch media scan completed for: $path")
-        // Notify the app that media library may have changed
-        MediaLibraryEvents.notifyChanged()
+      // Standard public media directories compatible with Scoped Storage
+      android.os.Environment.getExternalStoragePublicDirectory(android.os.Environment.DIRECTORY_MOVIES)?.let {
+        if (it.exists()) scanDirs.add(it.absolutePath)
+      }
+      android.os.Environment.getExternalStoragePublicDirectory(android.os.Environment.DIRECTORY_DOWNLOADS)?.let {
+        if (it.exists()) scanDirs.add(it.absolutePath)
+      }
+      android.os.Environment.getExternalStoragePublicDirectory(android.os.Environment.DIRECTORY_DCIM)?.let {
+        if (it.exists()) scanDirs.add(it.absolutePath)
+      }
+
+      if (scanDirs.isNotEmpty()) {
+        android.media.MediaScannerConnection.scanFile(
+          this,
+          scanDirs.toTypedArray(),
+          null,
+        ) { path, _ ->
+          android.util.Log.d("App", "Launch media scan completed for: $path")
+          MediaLibraryEvents.notifyChanged()
+        }
       }
       
-      android.util.Log.d("App", "Triggered media scan on app launch")
+      android.util.Log.d("App", "Triggered targeted media scan on app launch")
     } catch (e: Exception) {
       android.util.Log.e("App", "Failed to trigger media scan on launch", e)
     }

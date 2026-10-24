@@ -1,0 +1,43 @@
+Apna Player (Aura Player)
+Copyright (c) 2024-2026 MindCreative / CMStudio
+
+This product includes software developed by third-party open-source projects:
+
+1. Google AndroidX Media3 (ExoPlayer)
+   Copyright (c) 2022-2024 The Android Open Source Project
+   Licensed under the Apache License, Version 2.0.
+   https://github.com/androidx/media
+
+2. mpv-android and mpvEx
+   Copyright (c) 2016-2024 mpv-android contributors
+   Copyright (c) 2023-2024 mpvEx contributors (MarlboroAdvance)
+   Portions of the user interface architecture, controls design, and player bridge concepts
+   are derived from or inspired by mpv-android and mpvEx.
+   https://github.com/mpv-android/mpv-android
+   https://github.com/marlboro-advance/mpvEx
+
+3. MediaInfo (mediainfo-android)
+   Copyright (c) 2002-2024 MediaArea.net SARL
+   MediaInfo library is licensed under the GNU Lesser General Public License (LGPL), version 2.1 or later.
+   ZenLib library is licensed under the BSD 2-Clause License.
+   https://mediaarea.net/MediaInfo
+
+4. NanoHTTPD
+   Copyright (c) 2012-2013 by Paul S. Hawke, 2001-2013 by Jarno Elonen, 2010 by Konstantinos Togias
+   Licensed under the BSD 3-Clause License.
+   https://github.com/NanoHttpd/nanohttpd
+
+5. Jetpack Compose & Android Support Libraries
+   Copyright (c) 2005-2024 The Android Open Source Project
+   Licensed under the Apache License, Version 2.0.
+   https://developer.android.com/jetpack
+
+6. Koin Dependency Injection
+   Copyright (c) 2017-2024 Arnaud Giuliani and Kotzilla
+   Licensed under the Apache License, Version 2.0.
+   https://insert-koin.io/
+
+7. OkHttp
+   Copyright (c) 2019 Square, Inc.
+   Licensed under the Apache License, Version 2.0.
+   https://square.github.io/okhttp/
