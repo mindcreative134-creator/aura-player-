@@ -78,7 +78,7 @@ fun RadioTabContent(
         OutlinedTextField(
             value = customUrl,
             onValueChange = { customUrl = it },
-            label = { Text("Stream / M3U URL paste karein") },
+            label = { Text("Paste Stream or M3U URL") },
             singleLine = true,
             modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Uri, imeAction = ImeAction.Go),

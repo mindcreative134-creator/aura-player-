@@ -35,7 +35,7 @@
   <string name="pref_appearance_watched_threshold_summary">Mark video as watched when playback reaches %d%%</string>
   <string name="video_label_new">NEW</string>
   <!-- Theme names -->
-  <string name="theme_default">Default</string>
+  <string name="theme_default">Aura Obsidian</string>
   <string name="theme_dynamic">Dynamic</string>
   <string name="theme_cloudflare">Cloudflare</string>
   <string name="theme_cotton_candy">Cotton Candy</string>

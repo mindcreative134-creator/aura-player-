@@ -12,6 +12,7 @@ import java.util.Locale
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -32,6 +33,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForwardIos
+import androidx.compose.material.icons.automirrored.filled.QueueMusic
 import androidx.compose.material.icons.automirrored.filled.ViewList
 import androidx.compose.material.icons.filled.Folder
 import androidx.compose.material.icons.filled.GridView
@@ -41,7 +43,6 @@ import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.Movie
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.PlayCircle
-import androidx.compose.material.icons.filled.QueueMusic
 import androidx.compose.material.icons.outlined.FileDownload
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.VideoLibrary
@@ -82,51 +83,52 @@ import app.marlboroadvance.mpvex.domain.thumbnail.ThumbnailRepository
 import app.marlboroadvance.mpvex.preferences.FolderSortType
 import app.marlboroadvance.mpvex.preferences.MediaLayoutMode
 import app.marlboroadvance.mpvex.preferences.SortOrder
+import app.marlboroadvance.mpvex.ui.theme.aura.AuraTokens
 import app.marlboroadvance.mpvex.utils.media.MediaIdentifier
 import app.marlboroadvance.mpvex.utils.media.MediaUtils
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.koin.compose.koinInject
 
-// NextPlayer Design System Palette Tokens
-private val NextBlue = Color(0xFF0D59F2)
-private val NextBlueLight = Color(0xFFEBF2FE)
-private val NextBluePill = Color(0xFFE0EDFF)
-private val NextPurpleBg = Color(0xFFF5F3FF)
-private val NextPurpleIcon = Color(0xFF7C3AED)
-private val NextGreenBg = Color(0xFFDCFCE7)
-private val NextGreenIcon = Color(0xFF16A34A)
-
-private data class NextHeaderTheme(
-  val card: Color,
-  val border: Color,
+/**
+ * Aura Home Theme Palette Tokens
+ */
+private data class AuraHomePalette(
+  val cardBg: Color,
+  val cardBorder: Color,
   val textPrimary: Color,
   val textMuted: Color,
   val chipBg: Color,
+  val accentColor: Color,
+  val accentGlow: Color,
   val isDark: Boolean,
 )
 
 @Composable
-private fun rememberNextHeaderTheme(): NextHeaderTheme {
+private fun rememberAuraHomePalette(): AuraHomePalette {
   val cs = MaterialTheme.colorScheme
   val isDark = cs.background.luminance() < 0.5f
   return remember(isDark, cs) {
     if (isDark) {
-      NextHeaderTheme(
-        card = cs.surfaceContainer,
-        border = cs.outlineVariant.copy(alpha = 0.35f),
-        textPrimary = cs.onSurface,
-        textMuted = cs.onSurfaceVariant,
-        chipBg = cs.surfaceContainerHigh,
+      AuraHomePalette(
+        cardBg = AuraTokens.CarbonElevated,
+        cardBorder = AuraTokens.BorderSubtle,
+        textPrimary = AuraTokens.TextPrimary,
+        textMuted = AuraTokens.TextSecondary,
+        chipBg = AuraTokens.SlateSurface,
+        accentColor = AuraTokens.AuraCyan,
+        accentGlow = AuraTokens.AuraCyanGlow,
         isDark = true,
       )
     } else {
-      NextHeaderTheme(
-        card = cs.surfaceContainerLow,
-        border = cs.outlineVariant.copy(alpha = 0.5f),
+      AuraHomePalette(
+        cardBg = AuraTokens.PureWhite,
+        cardBorder = cs.outlineVariant.copy(alpha = 0.45f),
         textPrimary = cs.onSurface,
         textMuted = cs.onSurfaceVariant,
-        chipBg = cs.surfaceContainerHighest,
+        chipBg = cs.surfaceContainerHighest.copy(alpha = 0.7f),
+        accentColor = cs.primary,
+        accentGlow = cs.primary.copy(alpha = 0.2f),
         isDark = false,
       )
     }
@@ -134,12 +136,12 @@ private fun rememberNextHeaderTheme(): NextHeaderTheme {
 }
 
 /**
- * Next Player style Home Dashboard Header.
- * Features:
- * 1. Hero Continue Watching Card (with real thumbnail, HW+ badge, duration, file size, progress bar, and Resume button).
- * 2. 2x2 Quick Access Grid (All Videos, Folders, Favorites, Playlists) + Online Stream full-width card.
- * 3. Horizontal Recently Played Carousel with real thumbnails and playback progress.
- * 4. Storage Directories Ribbon Header (folder count badge, sort chip, and layout toggle button).
+ * Aura Player Home Dashboard Header
+ * Completely redesigned original experience featuring:
+ * 1. Hero Continue Watching Card with ambient glowing accents, video progress, metadata, and quick resume.
+ * 2. Aura 2x3 Quick Action Grid (All Media, Directories, Favorites, Playlists, Stream URL, Downloads).
+ * 3. Aura Recently Played Carousel with high-fidelity video cards.
+ * 4. Storage Directories Ribbon Header with count badges, sort chips, and responsive layout toggle.
  */
 @Composable
 fun HomeDashboardHeader(
@@ -162,7 +164,7 @@ fun HomeDashboardHeader(
   val recentlyPlayedRepo = koinInject<RecentlyPlayedRepository>()
   val playbackStateRepo = koinInject<PlaybackStateRepository>()
   val thumbnailRepo = koinInject<ThumbnailRepository>()
-  val colors = rememberNextHeaderTheme()
+  val palette = rememberAuraHomePalette()
 
   val recentVideos by recentlyPlayedRepo
     .observeRecentlyPlayed(limit = 10)
@@ -170,7 +172,7 @@ fun HomeDashboardHeader(
 
   val heroVideo = recentVideos.firstOrNull()
 
-  // Calculate real aggregate metrics
+  // Real aggregate statistics
   val totalVideosCount = remember(folders) {
     folders.sumOf { it.videoCount }
   }
@@ -180,72 +182,69 @@ fun HomeDashboardHeader(
     modifier = modifier
       .fillMaxWidth()
       .padding(horizontal = 14.dp, vertical = 6.dp),
-    verticalArrangement = Arrangement.spacedBy(12.dp),
+    verticalArrangement = Arrangement.spacedBy(14.dp),
   ) {
-    // 1. Continue Watching Hero Banner (Real video from recently played)
+    // 1. Hero Continue Watching Card
     if (heroVideo != null) {
-      NextContinueWatchingCard(
+      AuraContinueWatchingHero(
         video = heroVideo,
         playbackStateRepo = playbackStateRepo,
         thumbnailRepo = thumbnailRepo,
         onPlay = { MediaUtils.playFile(heroVideo.filePath, context, "home_continue_watching") },
-        colors = colors,
+        palette = palette,
       )
     }
 
-    // 2. Quick Access 2x2 Grid + Online Stream & Downloads
-    NextQuickAccessGrid(
+    // 2. Aura Quick Action Grid
+    AuraQuickAccessGrid(
       totalVideosCount = totalVideosCount,
       totalFoldersCount = totalFoldersCount,
       pinnedCount = pinnedCount,
       onAllVideosClick = onAllVideosClick,
-      onFoldersClick = {
-        onScrollToFolders?.invoke()
-      },
+      onFoldersClick = { onScrollToFolders?.invoke() },
       onFavoritesClick = onNavigateToFavorites,
       onPlaylistsClick = onNavigateToPlaylists,
       onStreamClick = onStreamClick,
       onDownloadsClick = onDownloadsClick,
-      colors = colors,
+      palette = palette,
     )
 
-    // 3. Recently Played Carousel (if more than 1 recent item)
+    // 3. Recently Played Carousel
     if (recentVideos.size > 1) {
-      NextRecentlyPlayedCarousel(
+      AuraRecentlyPlayedCarousel(
         videos = recentVideos.drop(1),
         thumbnailRepo = thumbnailRepo,
         playbackStateRepo = playbackStateRepo,
         onVideoClick = { entity ->
           MediaUtils.playFile(entity.filePath, context, "home_recent_carousel")
         },
-        colors = colors,
+        palette = palette,
       )
     }
 
-    // 4. Storage Section Ribbon Header
-    NextStorageSectionRibbon(
+    // 4. Storage Directories Ribbon Header
+    AuraStorageSectionRibbon(
       folderCount = totalFoldersCount,
       sortType = sortType,
       sortOrder = sortOrder,
       mediaLayoutMode = mediaLayoutMode,
       onSortClick = onSortClick,
       onToggleLayout = onToggleLayoutMode,
-      colors = colors,
+      palette = palette,
     )
   }
 }
 
 /**
- * Continue Watching Hero Card:
- * Real video from RecentlyPlayedRepository with real thumbnail, progress bar, duration, HW+ badge, and Resume button.
+ * Aura Hero Continue Watching Card
  */
 @Composable
-private fun NextContinueWatchingCard(
+private fun AuraContinueWatchingHero(
   video: RecentlyPlayedEntity,
   playbackStateRepo: PlaybackStateRepository,
   thumbnailRepo: ThumbnailRepository,
   onPlay: () -> Unit,
-  colors: NextHeaderTheme,
+  palette: AuraHomePalette,
 ) {
   val resolvedVideo = remember(video.filePath, video.timestamp) { video.toVideo() }
   var thumbnailBitmap by remember(video.filePath) {
@@ -284,11 +283,12 @@ private fun NextContinueWatchingCard(
   }
 
   Card(
-    shape = RoundedCornerShape(20.dp),
-    colors = CardDefaults.cardColors(containerColor = colors.card),
-    border = BorderStroke(1.dp, colors.border),
+    shape = AuraTokens.ShapeCardLarge,
+    colors = CardDefaults.cardColors(containerColor = palette.cardBg),
+    border = BorderStroke(1.dp, palette.cardBorder),
     modifier = Modifier
       .fillMaxWidth()
+      .clip(AuraTokens.ShapeCardLarge)
       .clickable(onClick = onPlay),
   ) {
     Column(
@@ -305,10 +305,10 @@ private fun NextContinueWatchingCard(
         // Thumbnail Box
         Box(
           modifier = Modifier
-            .width(112.dp)
+            .width(116.dp)
             .aspectRatio(16f / 10f)
-            .clip(RoundedCornerShape(12.dp))
-            .background(colors.chipBg),
+            .clip(AuraTokens.ShapeThumbnail)
+            .background(palette.chipBg),
           contentAlignment = Alignment.Center,
         ) {
           val bmp = thumbnailBitmap
@@ -323,14 +323,14 @@ private fun NextContinueWatchingCard(
             Icon(
               Icons.Filled.Movie,
               contentDescription = null,
-              tint = NextBlue.copy(alpha = 0.6f),
+              tint = palette.accentColor.copy(alpha = 0.6f),
               modifier = Modifier.size(28.dp),
             )
           }
           if (video.duration > 0) {
             Surface(
-              shape = RoundedCornerShape(4.dp),
-              color = Color.Black.copy(alpha = 0.75f),
+              shape = RoundedCornerShape(5.dp),
+              color = Color.Black.copy(alpha = 0.8f),
               modifier = Modifier
                 .align(Alignment.BottomEnd)
                 .padding(4.dp),
@@ -353,43 +353,44 @@ private fun NextContinueWatchingCard(
           verticalArrangement = Arrangement.SpaceBetween,
         ) {
           Row(
-            horizontalArrangement = Arrangement.spacedBy(4.dp),
+            horizontalArrangement = Arrangement.spacedBy(6.dp),
             verticalAlignment = Alignment.CenterVertically,
           ) {
             Surface(
-              shape = RoundedCornerShape(4.dp),
-              color = if (colors.isDark) NextBlue.copy(alpha = 0.2f) else NextBlueLight,
+              shape = RoundedCornerShape(6.dp),
+              color = palette.accentColor.copy(alpha = 0.18f),
             ) {
               Text(
-                text = "HW+",
+                text = "CONTINUE",
                 fontSize = 9.sp,
                 fontWeight = FontWeight.Bold,
-                color = if (colors.isDark) Color(0xFF60A5FA) else NextBlue,
-                modifier = Modifier.padding(horizontal = 5.dp, vertical = 1.dp),
+                color = palette.accentColor,
+                letterSpacing = 0.4.sp,
+                modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
               )
             }
             val ext = video.fileName.substringAfterLast('.', "").uppercase(Locale.getDefault())
             if (ext.isNotBlank()) {
               Surface(
-                shape = RoundedCornerShape(4.dp),
-                color = colors.chipBg,
+                shape = RoundedCornerShape(6.dp),
+                color = palette.chipBg,
               ) {
                 Text(
                   text = ext,
                   fontSize = 9.sp,
                   fontWeight = FontWeight.SemiBold,
-                  color = colors.textMuted,
-                  modifier = Modifier.padding(horizontal = 5.dp, vertical = 1.dp),
+                  color = palette.textMuted,
+                  modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
                 )
               }
             }
           }
 
-          Spacer(modifier = Modifier.height(3.dp))
+          Spacer(modifier = Modifier.height(4.dp))
 
           Text(
             text = video.videoTitle ?: video.fileName,
-            color = colors.textPrimary,
+            color = palette.textPrimary,
             style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
@@ -405,14 +406,14 @@ private fun NextContinueWatchingCard(
             val sizeStr = if (video.fileSize > 0) formatFileSize(video.fileSize) else ""
             Text(
               text = sizeStr,
-              color = colors.textMuted,
+              color = palette.textMuted,
               style = MaterialTheme.typography.labelSmall,
             )
 
-            // Resume Pill Button
+            // Tactile Resume Button with Aura accent
             Surface(
-              shape = RoundedCornerShape(14.dp),
-              color = NextBlue,
+              shape = AuraTokens.ShapePill,
+              color = palette.accentColor,
               modifier = Modifier.clickable(onClick = onPlay),
             ) {
               Row(
@@ -422,13 +423,13 @@ private fun NextContinueWatchingCard(
                 Icon(
                   Icons.Filled.PlayArrow,
                   contentDescription = null,
-                  tint = Color.White,
+                  tint = if (palette.isDark) Color.Black else Color.White,
                   modifier = Modifier.size(14.dp),
                 )
                 Spacer(modifier = Modifier.width(3.dp))
                 Text(
-                  text = "Resume »",
-                  color = Color.White,
+                  text = "Resume",
+                  color = if (palette.isDark) Color.Black else Color.White,
                   fontSize = 11.sp,
                   fontWeight = FontWeight.Bold,
                 )
@@ -438,13 +439,13 @@ private fun NextContinueWatchingCard(
         }
       }
 
-      // Real Progress Bar
+      // Sleek Progress Bar with subtle glowing gradient
       Box(
         modifier = Modifier
           .fillMaxWidth()
           .height(4.dp)
           .clip(CircleShape)
-          .background(colors.chipBg),
+          .background(palette.chipBg),
       ) {
         if (progressFraction > 0f) {
           Box(
@@ -454,7 +455,7 @@ private fun NextContinueWatchingCard(
               .clip(CircleShape)
               .background(
                 Brush.horizontalGradient(
-                  listOf(NextBlue, Color(0xFF38BDF8)),
+                  listOf(palette.accentColor, Color(0xFF38BDF8)),
                 ),
               ),
           )
@@ -465,10 +466,10 @@ private fun NextContinueWatchingCard(
 }
 
 /**
- * Quick Access 2x2 Feature Grid + Online Stream Card
+ * Aura Quick Access Grid (2 columns x 3 rows)
  */
 @Composable
-private fun NextQuickAccessGrid(
+private fun AuraQuickAccessGrid(
   totalVideosCount: Int,
   totalFoldersCount: Int,
   pinnedCount: Int,
@@ -478,43 +479,39 @@ private fun NextQuickAccessGrid(
   onPlaylistsClick: () -> Unit,
   onStreamClick: () -> Unit,
   onDownloadsClick: () -> Unit,
-  colors: NextHeaderTheme,
+  palette: AuraHomePalette,
 ) {
-  val isDark = colors.isDark
-  val blueContainer = if (isDark) NextBlue.copy(alpha = 0.2f) else NextBluePill
-  val indigoContainer = if (isDark) Color(0xFF4F46E5).copy(alpha = 0.2f) else Color(0xFFEEF2FF)
-  val purpleContainer = if (isDark) NextPurpleIcon.copy(alpha = 0.2f) else NextPurpleBg
-  val skyContainer = if (isDark) Color(0xFF0284C7).copy(alpha = 0.2f) else Color(0xFFE0F2FE)
-  val greenContainer = if (isDark) NextGreenIcon.copy(alpha = 0.2f) else NextGreenBg
-  val amberContainer = if (isDark) Color(0xFFFBBF24).copy(alpha = 0.2f) else Color(0xFFFEF3C7)
+  val isDark = palette.isDark
+  val cyanAccent = AuraTokens.AuraCyan
+  val violetAccent = AuraTokens.AuraViolet
+  val emeraldAccent = AuraTokens.AuraEmerald
+  val sunsetAccent = AuraTokens.AuraSunset
 
   Column(
     modifier = Modifier.fillMaxWidth(),
     verticalArrangement = Arrangement.spacedBy(10.dp),
   ) {
-    // Row 1: All Videos | Folders
+    // Row 1: All Videos | Directories
     Row(
       modifier = Modifier.fillMaxWidth(),
       horizontalArrangement = Arrangement.spacedBy(10.dp),
     ) {
-      NextQuickPillCard(
-        title = "All Videos",
+      AuraQuickActionCard(
+        title = "All Media",
         subtitle = "$totalVideosCount files",
         icon = Icons.Filled.VideoLibrary,
-        iconTint = if (isDark) Color(0xFF60A5FA) else NextBlue,
-        containerTint = blueContainer,
+        iconTint = if (isDark) cyanAccent else palette.accentColor,
         onClick = onAllVideosClick,
-        colors = colors,
+        palette = palette,
         modifier = Modifier.weight(1f),
       )
-      NextQuickPillCard(
+      AuraQuickActionCard(
         title = "Folders",
         subtitle = "$totalFoldersCount dirs",
         icon = Icons.Filled.Folder,
-        iconTint = if (isDark) Color(0xFF818CF8) else Color(0xFF4F46E5),
-        containerTint = indigoContainer,
+        iconTint = if (isDark) violetAccent else Color(0xFF6D28D9),
         onClick = onFoldersClick,
-        colors = colors,
+        palette = palette,
         modifier = Modifier.weight(1f),
       )
     }
@@ -524,51 +521,47 @@ private fun NextQuickAccessGrid(
       modifier = Modifier.fillMaxWidth(),
       horizontalArrangement = Arrangement.spacedBy(10.dp),
     ) {
-      NextQuickPillCard(
+      AuraQuickActionCard(
         title = "Favorites",
         subtitle = "$pinnedCount pinned",
         icon = Icons.Filled.Star,
-        iconTint = if (isDark) Color(0xFFA78BFA) else NextPurpleIcon,
-        containerTint = purpleContainer,
+        iconTint = if (isDark) sunsetAccent else Color(0xFFD97706),
         onClick = onFavoritesClick,
-        colors = colors,
+        palette = palette,
         modifier = Modifier.weight(1f),
       )
-      NextQuickPillCard(
+      AuraQuickActionCard(
         title = "Playlists",
         subtitle = "Custom queues",
-        icon = Icons.Filled.QueueMusic,
+        icon = Icons.AutoMirrored.Filled.QueueMusic,
         iconTint = if (isDark) Color(0xFF38BDF8) else Color(0xFF0284C7),
-        containerTint = skyContainer,
         onClick = onPlaylistsClick,
-        colors = colors,
+        palette = palette,
         modifier = Modifier.weight(1f),
       )
     }
 
-    // Row 3: Online Stream | Downloads side-by-side
+    // Row 3: Online Stream | Downloads
     Row(
       modifier = Modifier.fillMaxWidth(),
       horizontalArrangement = Arrangement.spacedBy(10.dp),
     ) {
-      NextQuickPillCard(
-        title = "Online Stream",
-        subtitle = "IPTV & URLs",
+      AuraQuickActionCard(
+        title = "Stream URL",
+        subtitle = "IPTV & Network",
         icon = Icons.Filled.PlayCircle,
-        iconTint = if (isDark) Color(0xFF4ADE80) else NextGreenIcon,
-        containerTint = greenContainer,
+        iconTint = if (isDark) emeraldAccent else Color(0xFF059669),
         onClick = onStreamClick,
-        colors = colors,
+        palette = palette,
         modifier = Modifier.weight(1f),
       )
-      NextQuickPillCard(
+      AuraQuickActionCard(
         title = "Downloads",
         subtitle = "Offline manager",
         icon = Icons.Outlined.FileDownload,
-        iconTint = if (isDark) Color(0xFFFBBF24) else Color(0xFFD97706),
-        containerTint = amberContainer,
+        iconTint = if (isDark) Color(0xFFFF7043) else Color(0xFFE64A19),
         onClick = onDownloadsClick,
-        colors = colors,
+        palette = palette,
         modifier = Modifier.weight(1f),
       )
     }
@@ -576,22 +569,21 @@ private fun NextQuickAccessGrid(
 }
 
 @Composable
-private fun NextQuickPillCard(
+private fun AuraQuickActionCard(
   title: String,
   subtitle: String,
   icon: ImageVector,
   iconTint: Color,
-  containerTint: Color,
   onClick: () -> Unit,
-  colors: NextHeaderTheme,
+  palette: AuraHomePalette,
   modifier: Modifier = Modifier,
 ) {
   Card(
-    shape = RoundedCornerShape(18.dp),
-    colors = CardDefaults.cardColors(containerColor = colors.card),
-    border = BorderStroke(1.dp, colors.border),
+    shape = AuraTokens.ShapeCard,
+    colors = CardDefaults.cardColors(containerColor = palette.cardBg),
+    border = BorderStroke(1.dp, palette.cardBorder),
     modifier = modifier
-      .clip(RoundedCornerShape(18.dp))
+      .clip(AuraTokens.ShapeCard)
       .clickable(onClick = onClick),
   ) {
     Row(
@@ -608,15 +600,15 @@ private fun NextQuickPillCard(
       ) {
         Surface(
           shape = RoundedCornerShape(12.dp),
-          color = containerTint,
-          modifier = Modifier.size(42.dp),
+          color = iconTint.copy(alpha = 0.16f),
+          modifier = Modifier.size(40.dp),
         ) {
           Box(contentAlignment = Alignment.Center) {
             Icon(
               imageVector = icon,
               contentDescription = null,
               tint = iconTint,
-              modifier = Modifier.size(22.dp),
+              modifier = Modifier.size(20.dp),
             )
           }
         }
@@ -624,14 +616,14 @@ private fun NextQuickPillCard(
           Text(
             text = title,
             style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
-            color = colors.textPrimary,
+            color = palette.textPrimary,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
           )
           Text(
             text = subtitle,
             style = MaterialTheme.typography.bodySmall,
-            color = colors.textMuted,
+            color = palette.textMuted,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
           )
@@ -640,24 +632,23 @@ private fun NextQuickPillCard(
       Icon(
         imageVector = Icons.AutoMirrored.Filled.ArrowForwardIos,
         contentDescription = null,
-        tint = colors.textMuted.copy(alpha = 0.6f),
-        modifier = Modifier.size(16.dp),
+        tint = palette.textMuted.copy(alpha = 0.45f),
+        modifier = Modifier.size(14.dp),
       )
     }
   }
 }
 
 /**
- * Recently Played Carousel:
- * Real carousel showing subsequent recently played videos with real thumbnails, HW+ badge, duration, and progress bar.
+ * Aura Recently Played Carousel
  */
 @Composable
-private fun NextRecentlyPlayedCarousel(
+private fun AuraRecentlyPlayedCarousel(
   videos: List<RecentlyPlayedEntity>,
   thumbnailRepo: ThumbnailRepository,
   playbackStateRepo: PlaybackStateRepository,
   onVideoClick: (RecentlyPlayedEntity) -> Unit,
-  colors: NextHeaderTheme,
+  palette: AuraHomePalette,
 ) {
   Column(
     modifier = Modifier.fillMaxWidth(),
@@ -677,7 +668,7 @@ private fun NextRecentlyPlayedCarousel(
         Icon(
           Icons.Filled.History,
           contentDescription = null,
-          tint = NextBlue,
+          tint = palette.accentColor,
           modifier = Modifier.size(18.dp),
         )
         Text(
@@ -686,7 +677,7 @@ private fun NextRecentlyPlayedCarousel(
             fontWeight = FontWeight.ExtraBold,
             letterSpacing = 0.6.sp,
           ),
-          color = colors.textPrimary,
+          color = palette.textPrimary,
         )
       }
       Text(
@@ -696,7 +687,7 @@ private fun NextRecentlyPlayedCarousel(
           fontSize = 10.sp,
           fontWeight = FontWeight.SemiBold,
         ),
-        color = colors.textMuted,
+        color = palette.textMuted,
       )
     }
 
@@ -706,12 +697,12 @@ private fun NextRecentlyPlayedCarousel(
       modifier = Modifier.fillMaxWidth(),
     ) {
       items(videos, key = { it.filePath }) { video ->
-        NextRecentVideoCard(
+        AuraRecentVideoCard(
           video = video,
           thumbnailRepo = thumbnailRepo,
           playbackStateRepo = playbackStateRepo,
           onClick = { onVideoClick(video) },
-          colors = colors,
+          palette = palette,
         )
       }
     }
@@ -719,12 +710,12 @@ private fun NextRecentlyPlayedCarousel(
 }
 
 @Composable
-private fun NextRecentVideoCard(
+private fun AuraRecentVideoCard(
   video: RecentlyPlayedEntity,
   thumbnailRepo: ThumbnailRepository,
   playbackStateRepo: PlaybackStateRepository,
   onClick: () -> Unit,
-  colors: NextHeaderTheme,
+  palette: AuraHomePalette,
 ) {
   val resolvedVideo = remember(video.filePath, video.timestamp) { video.toVideo() }
   var thumbnailBitmap by remember(video.filePath) {
@@ -763,12 +754,12 @@ private fun NextRecentVideoCard(
   }
 
   Card(
-    shape = RoundedCornerShape(14.dp),
-    colors = CardDefaults.cardColors(containerColor = colors.card),
-    border = BorderStroke(1.dp, colors.border),
+    shape = AuraTokens.ShapeThumbnail,
+    colors = CardDefaults.cardColors(containerColor = palette.cardBg),
+    border = BorderStroke(1.dp, palette.cardBorder),
     modifier = Modifier
       .width(170.dp)
-      .clip(RoundedCornerShape(14.dp))
+      .clip(AuraTokens.ShapeThumbnail)
       .clickable(onClick = onClick),
   ) {
     Column(modifier = Modifier.padding(8.dp)) {
@@ -776,8 +767,8 @@ private fun NextRecentVideoCard(
         modifier = Modifier
           .fillMaxWidth()
           .aspectRatio(16f / 9.5f)
-          .clip(RoundedCornerShape(10.dp))
-          .background(colors.chipBg),
+          .clip(RoundedCornerShape(9.dp))
+          .background(palette.chipBg),
         contentAlignment = Alignment.Center,
       ) {
         val bmp = thumbnailBitmap
@@ -792,26 +783,8 @@ private fun NextRecentVideoCard(
           Icon(
             Icons.Filled.Movie,
             contentDescription = null,
-            tint = NextBlue.copy(alpha = 0.5f),
+            tint = palette.accentColor.copy(alpha = 0.5f),
             modifier = Modifier.size(24.dp),
-          )
-        }
-
-        // HW+ chip at top-left
-        Surface(
-          shape = RoundedCornerShape(4.dp),
-          color = Color.Black.copy(alpha = 0.75f),
-          modifier = Modifier
-            .align(Alignment.TopStart)
-            .padding(4.dp),
-        ) {
-          Text(
-            text = "HW+",
-            fontSize = 8.sp,
-            fontWeight = FontWeight.Bold,
-            fontFamily = FontFamily.Monospace,
-            color = Color.White,
-            modifier = Modifier.padding(horizontal = 4.dp, vertical = 1.dp),
           )
         }
 
@@ -819,7 +792,7 @@ private fun NextRecentVideoCard(
         if (video.duration > 0) {
           Surface(
             shape = RoundedCornerShape(4.dp),
-            color = Color.Black.copy(alpha = 0.75f),
+            color = Color.Black.copy(alpha = 0.8f),
             modifier = Modifier
               .align(Alignment.BottomEnd)
               .padding(4.dp),
@@ -842,7 +815,7 @@ private fun NextRecentVideoCard(
               .align(Alignment.BottomStart)
               .fillMaxWidth(progressFraction)
               .height(3.dp)
-              .background(NextBlue),
+              .background(palette.accentColor),
           )
         }
       }
@@ -852,16 +825,16 @@ private fun NextRecentVideoCard(
       Text(
         text = video.videoTitle ?: video.fileName,
         style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Bold),
-        color = colors.textPrimary,
+        color = palette.textPrimary,
         maxLines = 1,
         overflow = TextOverflow.Ellipsis,
       )
 
       val ext = video.fileName.substringAfterLast('.', "").uppercase(Locale.getDefault())
       Text(
-        text = ext.ifBlank { "VIDEO" },
+        text = ext.ifBlank { "MEDIA" },
         style = MaterialTheme.typography.labelSmall.copy(fontFamily = FontFamily.Monospace),
-        color = colors.textMuted,
+        color = palette.textMuted,
         maxLines = 1,
       )
     }
@@ -869,18 +842,17 @@ private fun NextRecentVideoCard(
 }
 
 /**
- * Storage Section Ribbon Header:
- * [Folder Icon] STORAGE DIRECTORIES [Count]       ^ TITLE   [::]
+ * Storage Section Ribbon Header
  */
 @Composable
-private fun NextStorageSectionRibbon(
+private fun AuraStorageSectionRibbon(
   folderCount: Int,
   sortType: FolderSortType,
   sortOrder: SortOrder,
   mediaLayoutMode: MediaLayoutMode,
   onSortClick: () -> Unit,
   onToggleLayout: () -> Unit,
-  colors: NextHeaderTheme,
+  palette: AuraHomePalette,
 ) {
   Row(
     modifier = Modifier
@@ -896,26 +868,26 @@ private fun NextStorageSectionRibbon(
       Icon(
         Icons.Filled.Folder,
         contentDescription = null,
-        tint = colors.textPrimary,
+        tint = palette.accentColor,
         modifier = Modifier.size(18.dp),
       )
       Text(
-        text = "STORAGE DIRECTORIES",
+        text = "DIRECTORIES",
         style = MaterialTheme.typography.labelMedium.copy(
           fontWeight = FontWeight.ExtraBold,
           letterSpacing = 0.6.sp,
         ),
-        color = colors.textPrimary,
+        color = palette.textPrimary,
       )
       Surface(
-        shape = RoundedCornerShape(8.dp),
-        color = if (colors.isDark) NextBlue.copy(alpha = 0.2f) else NextBlueLight,
+        shape = AuraTokens.ShapeChip,
+        color = palette.accentColor.copy(alpha = 0.18f),
       ) {
         Text(
           text = "$folderCount",
           fontSize = 11.sp,
           fontWeight = FontWeight.ExtraBold,
-          color = if (colors.isDark) Color(0xFF60A5FA) else NextBlue,
+          color = palette.accentColor,
           modifier = Modifier.padding(horizontal = 7.dp, vertical = 2.dp),
         )
       }
@@ -929,8 +901,8 @@ private fun NextStorageSectionRibbon(
       // Sort Chip
       Surface(
         shape = RoundedCornerShape(10.dp),
-        color = colors.card,
-        border = BorderStroke(1.dp, colors.border),
+        color = palette.cardBg,
+        border = BorderStroke(1.dp, palette.cardBorder),
         modifier = Modifier.clickable(onClick = onSortClick),
       ) {
         Row(
@@ -941,14 +913,14 @@ private fun NextStorageSectionRibbon(
           Icon(
             if (sortOrder.isAscending) Icons.Filled.KeyboardArrowUp else Icons.Filled.KeyboardArrowDown,
             contentDescription = null,
-            tint = NextBlue,
+            tint = palette.accentColor,
             modifier = Modifier.size(14.dp),
           )
           Text(
             text = sortType.displayName.uppercase(Locale.getDefault()),
             fontSize = 10.sp,
             fontWeight = FontWeight.Bold,
-            color = colors.textPrimary,
+            color = palette.textPrimary,
           )
         }
       }
@@ -956,8 +928,8 @@ private fun NextStorageSectionRibbon(
       // View Mode Toggle Button (List vs Grid)
       Surface(
         shape = RoundedCornerShape(10.dp),
-        color = colors.card,
-        border = BorderStroke(1.dp, colors.border),
+        color = palette.cardBg,
+        border = BorderStroke(1.dp, palette.cardBorder),
         modifier = Modifier.clickable(onClick = onToggleLayout),
       ) {
         Box(
@@ -967,7 +939,7 @@ private fun NextStorageSectionRibbon(
           Icon(
             if (mediaLayoutMode == MediaLayoutMode.GRID) Icons.Filled.GridView else Icons.AutoMirrored.Filled.ViewList,
             contentDescription = "Toggle View",
-            tint = colors.textPrimary,
+            tint = palette.textPrimary,
             modifier = Modifier.size(14.dp),
           )
         }
