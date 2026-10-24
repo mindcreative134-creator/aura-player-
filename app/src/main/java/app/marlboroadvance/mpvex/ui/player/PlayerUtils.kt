@@ -1,4 +1,4 @@
-package app.marlboroadvance.mpvex.ui.player
+﻿package app.marlboroadvance.mpvex.ui.player
 
 import android.annotation.SuppressLint
 import android.content.Context
@@ -7,8 +7,8 @@ import android.provider.DocumentsContract
 import android.provider.MediaStore
 import android.util.Log
 import app.marlboroadvance.mpvex.ui.player.PlayerActivity.Companion.TAG
-import `is`.xyz.mpv.MPVNode
-import `is`.xyz.mpv.Utils
+import com.cmstudio.apnaplayer.engine.PlayerNode
+import com.cmstudio.apnaplayer.engine.PlayerBridgeUtils
 import kotlinx.serialization.json.Json
 import java.io.File
 
@@ -46,7 +46,7 @@ internal fun Uri.openContentFd(context: Context): String? =
 private fun Uri.tryFileDescriptorPath(context: Context): String? =
   runCatching {
     context.contentResolver.openFileDescriptor(this, "r")?.use { pfd ->
-      Utils.findRealPath(pfd.fd)?.also {
+      PlayerBridgeUtils.findRealPath(pfd.fd)?.also {
         Log.d(TAG, "Resolved via file descriptor: $it")
       }
     }
@@ -177,10 +177,10 @@ internal fun Uri.resolveUri(context: Context): String? {
   }
 
   return when (scheme) {
-    "file" -> path
-    "content" -> openContentFd(context)
+    "file" -> toString()
+    "content" -> toString()
     "data" -> "data://$schemeSpecificPart"
-    in Utils.PROTOCOLS -> toString()
+    in PlayerBridgeUtils.PROTOCOLS -> toString()
     else -> {
       Log.e(TAG, "Unsupported URI scheme: $scheme")
       null
@@ -245,11 +245,11 @@ fun sanitizeJsonString(jsonString: String): String {
 
 /**
  * Deserializes MPV's native node structure to Kotlin data classes.
- * MPV uses C-style tree structures (MPVNode) which we convert to typed objects.
+ * MPV uses C-style tree structures (PlayerNode) which we convert to typed objects.
  * 
  * Sanitizes the JSON before parsing to handle invalid escape sequences from MPV.
  */
-inline fun <reified T> MPVNode.toObject(json: Json): T {
+inline fun <reified T> PlayerNode.toObject(json: Json): T {
   val jsonString = toJson()
   val sanitizedJson = sanitizeJsonString(jsonString)
   return json.decodeFromString<T>(sanitizedJson)

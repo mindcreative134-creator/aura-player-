@@ -14,3 +14,5 @@ app/release
 /app/fdroid/
 /app/playstore/
 .kotlin/
+.vscode/
+*.mp4

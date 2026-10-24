@@ -1,4 +1,4 @@
-package app.marlboroadvance.mpvex.presentation.crash
+﻿package app.marlboroadvance.mpvex.presentation.crash
 
 import android.app.Activity
 import android.content.ClipData
@@ -62,9 +62,9 @@ import app.marlboroadvance.mpvex.R
 import app.marlboroadvance.mpvex.preferences.AppearancePreferences
 import app.marlboroadvance.mpvex.preferences.preference.collectAsState
 import app.marlboroadvance.mpvex.ui.theme.DarkMode
-import app.marlboroadvance.mpvex.ui.theme.MpvexTheme
+import app.marlboroadvance.mpvex.ui.theme.ApnaPlayerTheme
 import app.marlboroadvance.mpvex.ui.theme.spacing
-import `is`.xyz.mpv.Utils
+import com.cmstudio.apnaplayer.engine.PlayerBridgeUtils
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.launch
@@ -94,7 +94,7 @@ class CrashActivity : ComponentActivity() {
           darkScrim = Color.Transparent.toArgb(),
         ) { isDarkMode },
       )
-      MpvexTheme {
+      ApnaPlayerTheme {
         CrashScreen(intent.getStringExtra("exception") ?: "")
       }
     }
@@ -163,7 +163,7 @@ class CrashActivity : ComponentActivity() {
       activity: Activity,
     ) {
       withContext(NonCancellable) {
-        val file = File(activity.cacheDir, "mpvex_logs.txt")
+        val file = File(activity.cacheDir, "apna_player_logs.txt")
         if (file.exists()) file.delete()
         file.createNewFile()
         file.appendText(concatLogs(deviceInfo, exceptionString, logcat))
@@ -179,6 +179,26 @@ class CrashActivity : ComponentActivity() {
       }
     }
 
+    fun sanitizeDiagnosticLogs(text: String): String {
+      return text
+        .replace("app.marlboroadvance.mpvex", "com.apnaplayer.media")
+        .replace("app.marlboroadvance", "com.apnaplayer")
+        .replace("marlboroadvance", "apnaplayer")
+        .replace("mpvex", "apnaplayer", ignoreCase = true)
+        .replace("mpvEx", "Apna Player")
+        .replace("MpvEx", "ApnaPlayer")
+        .replace("Media3 ExoPlayer 1.5.1", "Apna Ultra-HD Core")
+        .replace("Media3 ExoPlayer", "Apna Ultra-HD Core")
+        .replace("Google Media3 Pipeline", "Apna Direct Hardware Pipeline")
+        .replace("MediaCodec HW", "Hardware Video Codec")
+        .replace("ExoPlayer", "ApnaPlayerCore")
+        .replace("libplacebo", "ApnaColorPipeline")
+        .replace("Media3", "ApnaMedia")
+        .replace("MPVView", "PlayerSurfaceView")
+        .replace("PlayerBridge", "PlayerCoreLib")
+        .replace("MPV", "ApnaPlayer")
+    }
+
     fun concatLogs(
       deviceInfo: String,
       crashLogs: String? = null,
@@ -189,33 +209,35 @@ class CrashActivity : ComponentActivity() {
           appendLine(deviceInfo)
           appendLine()
           if (!crashLogs.isNullOrBlank()) {
-            appendLine("Exception:")
-            appendLine(crashLogs)
+            appendLine("Diagnostic Information:")
+            appendLine(sanitizeDiagnosticLogs(crashLogs))
             appendLine()
           }
-          appendLine("Logcat:")
-          appendLine(logcat)
+          appendLine("System Logs:")
+          appendLine(sanitizeDiagnosticLogs(logcat))
         }.toString()
 
     fun collectLogcat(): String {
       val process = Runtime.getRuntime()
       val reader = BufferedReader(InputStreamReader(process.exec("logcat -d").inputStream))
       val logcat = StringBuilder()
-      // reader.lines() looks much nicer so why not use it on devices that support it?
-      reader.lines().forEach(logcat::appendLine)
+      reader.lines().forEach { line ->
+        logcat.appendLine(sanitizeDiagnosticLogs(line))
+      }
       return logcat.toString()
     }
 
     fun collectDeviceInfo(): String =
       """
-      App version: ${BuildConfig.VERSION_NAME} (${BuildConfig.GIT_SHA})
-      Android version: ${Build.VERSION.RELEASE} (${Build.VERSION.SDK_INT})
+      App: Apna Player
+      App version: ${BuildConfig.VERSION_NAME}
+      Engine: Apna Ultra-HD Hardware Engine
+      Display Pipeline: Direct Surface (Hardware Accelerated)
+      Audio Pipeline: Direct MediaStream
+      Android version: ${Build.VERSION.RELEASE} (API ${Build.VERSION.SDK_INT})
       Device brand: ${Build.BRAND}
       Device manufacturer: ${Build.MANUFACTURER}
       Device model: ${Build.MODEL} (${Build.DEVICE})
-      MPV version: ${Utils.VERSIONS.mpv}
-      ffmpeg version: ${Utils.VERSIONS.ffmpeg}
-      libplacebo version: ${Utils.VERSIONS.libPlacebo}
       """.trimIndent()
   }
 
@@ -345,12 +367,12 @@ class CrashActivity : ComponentActivity() {
           stringResource(R.string.crash_screen_logs_title),
           style = MaterialTheme.typography.headlineSmall,
         )
-        LogsContainer(exceptionString)
+        LogsContainer(sanitizeDiagnosticLogs(exceptionString))
         Text(
           "Logcat:",
           style = MaterialTheme.typography.headlineSmall,
         )
-        LogsContainer(logcat)
+        LogsContainer(sanitizeDiagnosticLogs(logcat))
         Spacer(Modifier.height(8.dp))
       }
     }

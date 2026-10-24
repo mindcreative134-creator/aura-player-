@@ -27,12 +27,13 @@ object SortUtils {
   }
 
   /**
-   * Sort folders by the specified type and order
+   * Sort folders by the specified type and order, placing pinned folders at the top
    */
   fun sortFolders(
     folders: List<VideoFolder>,
     sortType: FolderSortType,
     sortOrder: SortOrder,
+    pinnedFolders: Set<String> = emptySet(),
   ): List<VideoFolder> {
     val sorted =
       when (sortType) {
@@ -41,7 +42,11 @@ object SortUtils {
         FolderSortType.Size -> folders.sortedBy { it.totalSize }
         FolderSortType.VideoCount -> folders.sortedBy { it.videoCount }
       }
-    return if (sortOrder.isAscending) sorted else sorted.reversed()
+    val ordered = if (sortOrder.isAscending) sorted else sorted.reversed()
+    if (pinnedFolders.isEmpty()) return ordered
+    val pinned = ordered.filter { it.path in pinnedFolders || it.bucketId in pinnedFolders }
+    val unpinned = ordered.filterNot { it.path in pinnedFolders || it.bucketId in pinnedFolders }
+    return pinned + unpinned
   }
 
   /**

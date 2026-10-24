@@ -1,4 +1,4 @@
-package app.marlboroadvance.mpvex.ui.player.controls
+﻿package app.marlboroadvance.mpvex.ui.player.controls
 
 import androidx.activity.compose.LocalActivity
 import androidx.compose.animation.AnimatedVisibility
@@ -31,12 +31,15 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -54,7 +57,7 @@ import androidx.compose.material.icons.filled.SkipPrevious
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
-import androidx.compose.material3.LoadingIndicator
+import app.marlboroadvance.mpvex.presentation.components.ApnaPlayerBufferingIndicator
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.LocalRippleConfiguration
 import androidx.compose.material3.MaterialTheme
@@ -118,8 +121,8 @@ import app.marlboroadvance.mpvex.ui.player.controls.components.sheets.toFixed
 import app.marlboroadvance.mpvex.ui.theme.controlColor
 import app.marlboroadvance.mpvex.ui.theme.playerRippleConfiguration
 import app.marlboroadvance.mpvex.ui.theme.spacing
-import `is`.xyz.mpv.MPVLib
-import `is`.xyz.mpv.Utils
+import com.cmstudio.apnaplayer.engine.PlayerBridge
+import com.cmstudio.apnaplayer.engine.PlayerBridgeUtils
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.delay
@@ -166,22 +169,27 @@ fun PlayerControls(
   val controlsShown by viewModel.controlsShown.collectAsState()
   val areControlsLocked by viewModel.areControlsLocked.collectAsState()
   val seekBarShown by viewModel.seekBarShown.collectAsState()
-  val pausedForCache by MPVLib.propBoolean["paused-for-cache"].collectAsState()
-  val paused by MPVLib.propBoolean["pause"].collectAsState()
-  val duration by MPVLib.propInt["duration"].collectAsState()
-  val position by MPVLib.propInt["time-pos"].collectAsState()
+  val pausedForCache by PlayerBridge.propBoolean["paused-for-cache"].collectAsState()
+  val paused by PlayerBridge.propBoolean["pause"].collectAsState()
+  val duration by PlayerBridge.propInt["duration"].collectAsState()
+  val position by PlayerBridge.propInt["time-pos"].collectAsState()
   val precisePosition by viewModel.precisePosition.collectAsState()
   val preciseDuration by viewModel.preciseDuration.collectAsState()
-  val playbackSpeed by MPVLib.propFloat["speed"].collectAsState()
+  val playbackSpeed by PlayerBridge.propFloat["speed"].collectAsState()
   val doubleTapSeekAmount by viewModel.doubleTapSeekAmount.collectAsState()
   val showDoubleTapOvals by playerPreferences.showDoubleTapOvals.collectAsState()
   val showSeekTime by playerPreferences.showSeekTimeWhileSeeking.collectAsState()
   var isSeeking by remember { mutableStateOf(false) }
   var resetControlsTimestamp by remember { mutableStateOf(0L) }
   val seekText by viewModel.seekText.collectAsState()
-  val currentChapter by MPVLib.propInt["chapter"].collectAsState()
-  val mpvDecoder by MPVLib.propString["hwdec-current"].collectAsState()
-  val decoder by remember { derivedStateOf { getDecoderFromValue(mpvDecoder ?: "auto") } }
+  val currentChapter by PlayerBridge.propInt["chapter"].collectAsState()
+  val mpvDecoder by PlayerBridge.propString["hwdec-current"].collectAsState()
+  val decoder by remember(mpvDecoder) {
+    derivedStateOf {
+      val decValue = mpvDecoder?.takeIf { it.isNotBlank() } ?: "mediacodec"
+      getDecoderFromValue(decValue)
+    }
+  }
   val isSpeedNonOne by remember(playbackSpeed) {
     derivedStateOf { abs((playbackSpeed ?: 1f) - 1f) > 0.001f }
   }
@@ -192,14 +200,24 @@ fun PlayerControls(
     
   val abLoopA by viewModel.abLoopA.collectAsState()
   val abLoopB by viewModel.abLoopB.collectAsState()
+  val isAmbientGlowEnabled by playerPreferences.isAmbientGlowEnabled.collectAsState()
+  val ambientGlowIntensity by playerPreferences.ambientGlowIntensity.collectAsState()
+
+  var isQuickActionDrawerOpen by remember { mutableStateOf(false) }
 
   val onOpenSheet: (Sheets) -> Unit = {
-    viewModel.sheetShown.update { _ -> it }
-    if (it == Sheets.None) {
-      viewModel.showControls()
-    } else {
+    if (it == Sheets.More) {
+      isQuickActionDrawerOpen = true
       viewModel.hideControls()
-      viewModel.panelShown.update { Panels.None }
+    } else {
+      isQuickActionDrawerOpen = false
+      viewModel.sheetShown.update { _ -> it }
+      if (it == Sheets.None) {
+        viewModel.showControls()
+      } else {
+        viewModel.hideControls()
+        viewModel.panelShown.update { Panels.None }
+      }
     }
   }
 
@@ -266,6 +284,10 @@ fun PlayerControls(
 
   DoubleTapToSeekOvals(doubleTapSeekAmount, seekText, showDoubleTapOvals, showSeekTime, showSeekTime, interactionSource)
 
+  if (isAmbientGlowEnabled) {
+    AmbientCinemaLighting(intensity = ambientGlowIntensity)
+  }
+
   CompositionLocalProvider(
     LocalRippleConfiguration provides playerRippleConfiguration,
     LocalPlayerButtonsClickEvent provides { resetControlsTimestamp = System.currentTimeMillis() },
@@ -279,9 +301,10 @@ fun PlayerControls(
         derivedStateOf { configuration.orientation == ORIENTATION_PORTRAIT }
       }
 
-      ConstraintLayout(
-        modifier =
-          modifier
+      Box(modifier = modifier.fillMaxSize()) {
+        ConstraintLayout(
+          modifier =
+            Modifier
             .fillMaxSize()
             .background(
               Brush.verticalGradient(
@@ -300,12 +323,13 @@ fun PlayerControls(
         val playerPauseButton = createRef()
         val seekbar = createRef()
         val (playerUpdates) = createRefs()
+        val bufferingIndicator = createRef()
 
         val isBrightnessSliderShown by viewModel.isBrightnessSliderShown.collectAsState()
         val isVolumeSliderShown by viewModel.isVolumeSliderShown.collectAsState()
         val brightness by viewModel.currentBrightness.collectAsState()
         val volume by viewModel.currentVolume.collectAsState()
-        val mpvVolume by MPVLib.propInt["volume"].collectAsState()
+        val mpvVolume by PlayerBridge.propInt["volume"].collectAsState()
         val swapVolumeAndBrightness by playerPreferences.swapVolumeAndBrightness.collectAsState()
         val reduceMotion by playerPreferences.reduceMotion.collectAsState()
 
@@ -313,7 +337,7 @@ fun PlayerControls(
         val aspect by viewModel.videoAspect.collectAsState()
         val currentZoom by viewModel.videoZoom.collectAsState()
 
-        val rawMediaTitle by MPVLib.propString["media-title"].collectAsState()
+        val rawMediaTitle by PlayerBridge.propString["media-title"].collectAsState()
         val mediaTitle by remember(rawMediaTitle, activity) {
           derivedStateOf {
             rawMediaTitle?.takeIf { it.isNotBlank() }
@@ -609,6 +633,23 @@ fun PlayerControls(
           )
         }
 
+        val showLoadingCircle by playerPreferences.showLoadingCircle.collectAsState()
+
+        // Buffering indicator when controls are hidden
+        AnimatedVisibility(
+          visible = !controlsShown && !areControlsLocked && pausedForCache == true && showLoadingCircle,
+          enter = fadeIn(playerControlsEnterAnimationSpec()),
+          exit = fadeOut(playerControlsExitAnimationSpec()),
+          modifier =
+            Modifier.constrainAs(bufferingIndicator) {
+              centerTo(parent)
+            },
+        ) {
+          ApnaPlayerBufferingIndicator(
+            modifier = Modifier.size(76.dp),
+          )
+        }
+
         AnimatedVisibility(
           visible = controlsShown && !areControlsLocked,
           enter = fadeIn(playerControlsEnterAnimationSpec()),
@@ -625,14 +666,13 @@ fun PlayerControls(
               }
             },
         ) {
-          val showLoadingCircle by playerPreferences.showLoadingCircle.collectAsState()
           val icon = AnimatedImageVector.animatedVectorResource(R.drawable.anim_play_to_pause)
           val interaction = remember { MutableInteractionSource() }
 
           when {
             pausedForCache == true && showLoadingCircle -> {
-              LoadingIndicator(
-                modifier = Modifier.size(96.dp),
+              ApnaPlayerBufferingIndicator(
+                modifier = Modifier.size(76.dp),
               )
             }
 
@@ -1192,9 +1232,29 @@ fun PlayerControls(
             activity = activity,
           )
         }
-
       }
+
+      PlayerEdgeDrawerHandle(
+        visible = controlsShown && !areControlsLocked && !isQuickActionDrawerOpen,
+        onOpen = {
+          resetControlsTimestamp = System.currentTimeMillis()
+          isQuickActionDrawerOpen = true
+        },
+        modifier = Modifier.align(Alignment.CenterEnd),
+      )
+
+      PlayerQuickActionDrawer(
+        isOpen = isQuickActionDrawerOpen,
+        onDismissRequest = {
+          isQuickActionDrawerOpen = false
+          viewModel.showControls()
+        },
+        viewModel = viewModel,
+        onOpenSheet = onOpenSheet,
+        onOpenPanel = onOpenPanel,
+      )
     }
+  }
 
     val sheetShown by viewModel.sheetShown.collectAsState()
     val subtitles by viewModel.subtitleTracks.collectAsState(persistentListOf())
@@ -1213,29 +1273,29 @@ fun PlayerControls(
       audioTracks = audioTracks.toImmutableList(),
       onAddAudio = viewModel::addAudio,
       onSelectAudio = {
-        if (MPVLib.getPropertyInt("aid") == it.id) {
-          MPVLib.setPropertyBoolean("aid", false)
+        if (PlayerBridge.getPropertyInt("aid") == it.id) {
+          PlayerBridge.setPropertyInt("aid", -1)
         } else {
-          MPVLib.setPropertyInt("aid", it.id)
+          PlayerBridge.setPropertyInt("aid", it.id)
         }
       },
       chapter = chapters.getOrNull(currentChapter ?: 0),
       chapters = chapters.toImmutableList(),
       onSeekToChapter = {
-        MPVLib.setPropertyInt("chapter", it)
+        PlayerBridge.setPropertyInt("chapter", it)
         viewModel.unpause()
       },
       decoder = decoder,
-      onUpdateDecoder = { MPVLib.setPropertyString("hwdec", it.value) },
+      onUpdateDecoder = { PlayerBridge.setPropertyString("hwdec", it.value) },
       speed = playbackSpeed ?: playerPreferences.defaultSpeed.get(),
-      onSpeedChange = { MPVLib.setPropertyFloat("speed", it.toFixed(2)) },
+      onSpeedChange = { PlayerBridge.setPropertyFloat("speed", it.toFixed(2)) },
       onMakeDefaultSpeed = { playerPreferences.defaultSpeed.set(it.toFixed(2)) },
       onAddSpeedPreset = { playerPreferences.speedPresets += it.toFixed(2).toString() },
       onRemoveSpeedPreset = { playerPreferences.speedPresets -= it.toFixed(2).toString() },
       onResetSpeedPresets = playerPreferences.speedPresets::delete,
       speedPresets = speedPresets.map { it.toFloat() }.sorted(),
       onResetDefaultSpeed = {
-        MPVLib.setPropertyFloat("speed", playerPreferences.defaultSpeed.deleteAndGet().toFixed(2))
+        PlayerBridge.setPropertyFloat("speed", playerPreferences.defaultSpeed.deleteAndGet().toFixed(2))
       },
       sleepTimerTimeRemaining = sleepTimerTimeRemaining,
       onStartSleepTimer = viewModel::startTimer,
@@ -1251,3 +1311,75 @@ fun PlayerControls(
     )
   }
 }
+
+/**
+ * Cinema Ambient Backlight: Softly illuminates dark letterbox / pillarbox borders
+ * surrounding the video frame without tinting or obscuring the video itself.
+ */
+@Composable
+private fun AmbientCinemaLighting(
+  intensity: Float,
+  modifier: Modifier = Modifier,
+) {
+  val clampedAlpha = (intensity * 0.40f).coerceIn(0f, 0.65f)
+  Box(
+    modifier = modifier.fillMaxSize(),
+  ) {
+    // Top border ambient illumination
+    Box(
+      modifier = Modifier
+        .fillMaxWidth()
+        .height(110.dp)
+        .align(Alignment.TopCenter)
+        .background(
+          Brush.verticalGradient(
+            0.0f to Color(0x55FFFFFF).copy(alpha = clampedAlpha),
+            0.5f to Color(0x22FFFFFF).copy(alpha = clampedAlpha * 0.5f),
+            1.0f to Color.Transparent,
+          )
+        )
+    )
+
+    // Bottom border ambient illumination
+    Box(
+      modifier = Modifier
+        .fillMaxWidth()
+        .height(110.dp)
+        .align(Alignment.BottomCenter)
+        .background(
+          Brush.verticalGradient(
+            0.0f to Color.Transparent,
+            0.5f to Color(0x22FFFFFF).copy(alpha = clampedAlpha * 0.5f),
+            1.0f to Color(0x55FFFFFF).copy(alpha = clampedAlpha),
+          )
+        )
+    )
+
+    // Side edges soft vignette
+    Box(
+      modifier = Modifier
+        .fillMaxHeight()
+        .width(60.dp)
+        .align(Alignment.CenterStart)
+        .background(
+          Brush.horizontalGradient(
+            0.0f to Color(0x33FFFFFF).copy(alpha = clampedAlpha * 0.6f),
+            1.0f to Color.Transparent,
+          )
+        )
+    )
+    Box(
+      modifier = Modifier
+        .fillMaxHeight()
+        .width(60.dp)
+        .align(Alignment.CenterEnd)
+        .background(
+          Brush.horizontalGradient(
+            0.0f to Color.Transparent,
+            1.0f to Color(0x33FFFFFF).copy(alpha = clampedAlpha * 0.6f),
+          )
+        )
+    )
+  }
+}
+

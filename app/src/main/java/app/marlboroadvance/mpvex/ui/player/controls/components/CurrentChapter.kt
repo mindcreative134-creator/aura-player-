@@ -1,4 +1,4 @@
-package app.marlboroadvance.mpvex.ui.player.controls.components
+﻿package app.marlboroadvance.mpvex.ui.player.controls.components
 
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.SizeTransform
@@ -40,7 +40,7 @@ import app.marlboroadvance.mpvex.preferences.preference.collectAsState
 import app.marlboroadvance.mpvex.ui.theme.controlColor
 import app.marlboroadvance.mpvex.ui.theme.spacing
 import dev.vivvvek.seeker.Segment
-import `is`.xyz.mpv.Utils
+import com.cmstudio.apnaplayer.engine.PlayerBridgeUtils
 import org.koin.compose.koinInject
 
 @Composable
@@ -92,7 +92,7 @@ fun CurrentChapter(
         horizontalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.extraSmall),
       ) {
         Text(
-          text = Utils.prettyTime(currentChapter.start.toInt()),
+          text = PlayerBridgeUtils.prettyTime(currentChapter.start.toInt()),
           fontFamily = FontFamily.Monospace,
           style = MaterialTheme.typography.bodyMedium,
           maxLines = 1,

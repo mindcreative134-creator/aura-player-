@@ -38,6 +38,7 @@ import androidx.compose.material.icons.filled.Title
 import androidx.compose.material.icons.filled.VideoLibrary
 import androidx.compose.material.icons.filled.ViewModule
 import androidx.compose.material3.CircularProgressIndicator
+import app.marlboroadvance.mpvex.presentation.components.ApnaLoadingAnimation
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
@@ -106,7 +107,10 @@ import app.marlboroadvance.mpvex.utils.history.RecentlyPlayedOps
 import app.marlboroadvance.mpvex.utils.media.CopyPasteOps
 import app.marlboroadvance.mpvex.utils.media.MediaUtils
 import app.marlboroadvance.mpvex.utils.sort.SortUtils
+import app.marlboroadvance.mpvex.domain.vault.VaultManager
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import kotlinx.serialization.Serializable
 import my.nanihadesuka.compose.LazyColumnScrollbar
 import my.nanihadesuka.compose.LazyVerticalGridScrollbar
@@ -414,6 +418,25 @@ data class VideoListScreen(
             onRenameClick = { renameDialogOpen.value = true },
             onDeleteClick = { deleteDialogOpen.value = true },
             onAddToPlaylistClick = { addToPlaylistDialogOpen.value = true },
+            onHideToVaultClick = {
+              val selectedVideos = selectionManager.getSelectedItems()
+              coroutineScope.launch {
+                movingToPrivateSpace.value = true
+                val count = withContext(Dispatchers.IO) {
+                  var moved = 0
+                  for (v in selectedVideos) {
+                    val result = VaultManager.addToVault(context, v.uri, v.displayName)
+                    if (result.isSuccess) moved++
+                  }
+                  moved
+                }
+                movingToPrivateSpace.value = false
+                privateSpaceMovedCount.intValue = count
+                showPrivateSpaceCompletionDialog.value = true
+                selectionManager.clear()
+                viewModel.refresh()
+              }
+            },
             showRename = selectionManager.isSingleSelection
           )
         }
@@ -530,8 +553,8 @@ data class VideoListScreen(
           text = {
             Text(
               text =
-                "Successfully moved ${privateSpaceMovedCount.intValue} video(s) to private space.\n\n" +
-                  "To access private space, long press on the app name at the top of the main screen.",
+                "Successfully moved ${privateSpaceMovedCount.intValue} video(s) to Private Vault.\n\n" +
+                  "To access your hidden videos, tap the Lock icon at the top of the main screen or open Private Vault from the menu.",
               style = MaterialTheme.typography.bodyMedium,
             )
           },
@@ -621,9 +644,10 @@ private fun VideoListContent(
           .padding(bottom = 80.dp), // Account for bottom navigation bar
         contentAlignment = Alignment.Center,
       ) {
-        CircularProgressIndicator(
-          modifier = Modifier.size(48.dp),
-          color = MaterialTheme.colorScheme.primary,
+        ApnaLoadingAnimation(
+          size = 80.dp,
+          title = "Loading videos...",
+          subtitle = "Preparing media list"
         )
       }
     }
@@ -782,7 +806,7 @@ private fun VideoListContent(
                 isGridMode = mediaLayoutMode == MediaLayoutMode.GRID,
                 gridColumns = videoGridColumns,
                 showSubtitleIndicator = showSubtitleIndicator,
-                allowThumbnailGeneration = false,
+                allowThumbnailGeneration = true,
               )
             }
             }
@@ -833,7 +857,7 @@ private fun VideoListContent(
                   },
                   isGridMode = false,
                   showSubtitleIndicator = showSubtitleIndicator,
-                  allowThumbnailGeneration = false,
+                  allowThumbnailGeneration = true,
                 )
               }
             }

@@ -1,9 +1,9 @@
-package app.marlboroadvance.mpvex.ui.player
+﻿package app.marlboroadvance.mpvex.ui.player
 
 import android.util.Log
 import app.marlboroadvance.mpvex.preferences.AudioPreferences
 import app.marlboroadvance.mpvex.preferences.SubtitlesPreferences
-import `is`.xyz.mpv.MPVLib
+import com.cmstudio.apnaplayer.engine.PlayerBridge
 import kotlinx.coroutines.delay
 
 /**
@@ -65,13 +65,13 @@ class TrackSelector(
     val maxAttempts = 20
     
     while (attempts < maxAttempts) {
-      val count = MPVLib.getPropertyInt("track-list/count") ?: 0
+      val count = PlayerBridge.getPropertyInt("track-list/count") ?: 0
       if (count > 0) break
       delay(50)
       attempts++
     }
 
-    val trackCount = MPVLib.getPropertyInt("track-list/count") ?: 0
+    val trackCount = PlayerBridge.getPropertyInt("track-list/count") ?: 0
     if (trackCount == 0) return
 
     // Read all tracks once
@@ -89,20 +89,20 @@ class TrackSelector(
   private fun readTracks(count: Int): List<Track> {
     val list = mutableListOf<Track>()
     for (i in 0 until count) {
-      val id = MPVLib.getPropertyInt("track-list/$i/id") ?: continue
-      val type = MPVLib.getPropertyString("track-list/$i/type") ?: continue
+      val id = PlayerBridge.getPropertyInt("track-list/$i/id") ?: continue
+      val type = PlayerBridge.getPropertyString("track-list/$i/type") ?: continue
 
       list.add(
         Track(
           id = id,
           type = type,
-          lang = (MPVLib.getPropertyString("track-list/$i/lang") ?: "").lowercase(),
-          title = (MPVLib.getPropertyString("track-list/$i/title") ?: "").lowercase(),
-          isDefault = MPVLib.getPropertyBoolean("track-list/$i/default") ?: false,
-          forced = MPVLib.getPropertyBoolean("track-list/$i/forced") ?: false,
-          hearing = MPVLib.getPropertyBoolean("track-list/$i/hearing-impaired") ?: false,
-          external = MPVLib.getPropertyBoolean("track-list/$i/external") ?: false,
-          image = MPVLib.getPropertyBoolean("track-list/$i/image") ?: false
+          lang = (PlayerBridge.getPropertyString("track-list/$i/lang") ?: "").lowercase(),
+          title = (PlayerBridge.getPropertyString("track-list/$i/title") ?: "").lowercase(),
+          isDefault = PlayerBridge.getPropertyBoolean("track-list/$i/default") ?: false,
+          forced = PlayerBridge.getPropertyBoolean("track-list/$i/forced") ?: false,
+          hearing = PlayerBridge.getPropertyBoolean("track-list/$i/hearing-impaired") ?: false,
+          external = PlayerBridge.getPropertyBoolean("track-list/$i/external") ?: false,
+          image = PlayerBridge.getPropertyBoolean("track-list/$i/image") ?: false
         )
       )
     }
@@ -133,9 +133,9 @@ class TrackSelector(
   }
 
   private fun detectAnimeContext(tracks: List<Track>): Boolean {
-    val path = MPVLib.getPropertyString("path") ?: ""
-    val title = MPVLib.getPropertyString("media-title") ?: ""
-    val filename = MPVLib.getPropertyString("filename") ?: ""
+    val path = PlayerBridge.getPropertyString("path") ?: ""
+    val title = PlayerBridge.getPropertyString("media-title") ?: ""
+    val filename = PlayerBridge.getPropertyString("filename") ?: ""
 
     val signalFolder = isAnimeFolder(path)
     val signalLiveAction = isLiveAction(path, title)
@@ -161,7 +161,7 @@ class TrackSelector(
 
   private suspend fun ensureAudioTrackSelected(tracks: List<Track>, hasState: Boolean) {
     try {
-      val currentAid = MPVLib.getPropertyInt("aid")
+      val currentAid = PlayerBridge.getPropertyInt("aid")
       if (hasState && currentAid != null && currentAid > 0) return
 
       val preferredLangs = audioPreferences.preferredLanguages.get()
@@ -182,7 +182,7 @@ class TrackSelector(
                   Log.d(TAG, "Smart Audio: Selected ${track.lang} (id=${track.id}) [Already Active. Skipping Change.]")
                 } else {
                   Log.d(TAG, "Smart Audio: Selected ${track.lang} (id=${track.id}) [Applied]")
-                  MPVLib.setPropertyInt("aid", track.id)
+                  PlayerBridge.setPropertyInt("aid", track.id)
                 }
                 return
               }
@@ -201,7 +201,7 @@ class TrackSelector(
             Log.d(TAG, "Smart Audio: Fallback (id=${track.id}) [Already Active. Skipping Change.]")
           } else {
             Log.d(TAG, "Smart Audio: Fallback (id=${track.id}) [Applied]")
-            MPVLib.setPropertyInt("aid", track.id)
+            PlayerBridge.setPropertyInt("aid", track.id)
           }
           return
         }
@@ -217,7 +217,7 @@ class TrackSelector(
 
   private suspend fun ensureSubtitleTrackSelected(tracks: List<Track>, hasState: Boolean) {
     try {
-      val currentSid = MPVLib.getPropertyInt("sid") ?: 0
+      val currentSid = PlayerBridge.getPropertyInt("sid") ?: 0
 
       // Respect manual "Subtitles Off" state
       if (hasState && currentSid == 0) {
@@ -236,7 +236,7 @@ class TrackSelector(
         .filter { it.isNotEmpty() }
 
       if (preferredLangs.isEmpty()) {
-        preferredLangs = (MPVLib.getPropertyString("slang") ?: "")
+        preferredLangs = (PlayerBridge.getPropertyString("slang") ?: "")
           .split(",")
           .map { it.trim().lowercase() }
           .filter { it.isNotEmpty() }
@@ -253,7 +253,7 @@ class TrackSelector(
             Log.d(TAG, "Smart Sub: External Subtitle Detected (id=${track.id}) [Already Active. Skipping Change.]")
           } else {
             Log.d(TAG, "Smart Sub: External Subtitle Detected (id=${track.id}) [Applied]")
-            MPVLib.setPropertyInt("sid", track.id)
+            PlayerBridge.setPropertyInt("sid", track.id)
           }
           return
         }
@@ -271,7 +271,7 @@ class TrackSelector(
                   Log.d(TAG, "Smart Sub: Native File Default Japanese Sub (id=${track.id}) [Already Active. Skipping Change.]")
                 } else {
                   Log.d(TAG, "Smart Sub: Native File Default Japanese Sub (id=${track.id}) [Applied]")
-                  MPVLib.setPropertyInt("sid", track.id)
+                  PlayerBridge.setPropertyInt("sid", track.id)
                 }
                 return
               }
@@ -292,7 +292,7 @@ class TrackSelector(
                   Log.d(TAG, "Smart Sub: Anime Dialogue matched (id=${track.id}) [Already Active. Skipping Change.]")
                 } else {
                   Log.d(TAG, "Smart Sub: Anime Dialogue matched (id=${track.id}) [Applied]")
-                  MPVLib.setPropertyInt("sid", track.id)
+                  PlayerBridge.setPropertyInt("sid", track.id)
                 }
                 return
               }
@@ -310,7 +310,7 @@ class TrackSelector(
                 Log.d(TAG, "Smart Sub: Clean Match (id=${track.id}) [Already Active. Skipping Change.]")
               } else {
                 Log.d(TAG, "Smart Sub: Clean Match (id=${track.id}) [Applied]")
-                MPVLib.setPropertyInt("sid", track.id)
+                PlayerBridge.setPropertyInt("sid", track.id)
               }
               return
             }
@@ -326,7 +326,7 @@ class TrackSelector(
               Log.d(TAG, "Smart Sub: Fallback Match (id=${track.id}) [Already Active. Skipping Change.]")
             } else {
               Log.d(TAG, "Smart Sub: Fallback Match (id=${track.id}) [Applied]")
-              MPVLib.setPropertyInt("sid", track.id)
+              PlayerBridge.setPropertyInt("sid", track.id)
             }
             return
           }

@@ -350,47 +350,34 @@ object SearchablePreferences {
             add(SearchablePreference(
                 titleRes = R.string.pref_decoder,
                 summaryRes = R.string.pref_decoder_summary,
-                keywords = listOf("decoder", "hardware", "gpu", "debanding", "video"),
+                keywords = listOf("decoder", "hardware", "mediacodec", "playback", "video", "acceleration"),
                 category = "Decoder",
                 screen = DecoderPreferencesScreen,
             ))
             add(SearchablePreference(
                 titleRes = R.string.pref_decoder_try_hw_dec_title,
-                keywords = listOf("hardware", "decoding", "hw", "acceleration", "gpu"),
+                keywords = listOf("hardware", "decoding", "hw", "acceleration", "mediacodec", "gpu"),
                 category = "Decoder",
                 screen = DecoderPreferencesScreen,
             ))
             add(SearchablePreference(
                 titleRes = R.string.pref_decoder_gpu_next_title,
                 summaryRes = R.string.pref_decoder_gpu_next_summary,
-                keywords = listOf("gpu", "next", "rendering", "backend", "vulkan", "opengl"),
+                keywords = listOf("audio", "offload", "dsp", "direct", "battery"),
                 category = "Decoder",
                 screen = DecoderPreferencesScreen,
             ))
             add(SearchablePreference(
                 titleRes = R.string.pref_decoder_vulkan_title,
                 summaryRes = R.string.pref_decoder_vulkan_summary,
-                keywords = listOf("vulkan", "gpu", "rendering", "graphics", "api", "performance"),
-                category = "Decoder",
-                screen = DecoderPreferencesScreen,
-            ))
-            add(SearchablePreference(
-                titleRes = R.string.pref_decoder_debanding_title,
-                keywords = listOf("deband", "banding", "gradient", "visual", "quality"),
+                keywords = listOf("tunneling", "direct", "surface", "hardware", "sync"),
                 category = "Decoder",
                 screen = DecoderPreferencesScreen,
             ))
             add(SearchablePreference(
                 titleRes = R.string.pref_decoder_yuv420p_title,
                 summaryRes = R.string.pref_decoder_yuv420p_summary,
-                keywords = listOf("yuv420p", "chroma", "subsampling", "format", "compatibility"),
-                category = "Decoder",
-                screen = DecoderPreferencesScreen,
-            ))
-            add(SearchablePreference(
-                titleRes = R.string.pref_anime4k_title,
-                summaryRes = R.string.pref_anime4k_summary,
-                keywords = listOf("anime4k", "upscale", "shader", "anime", "upscale"),
+                keywords = listOf("fallback", "software", "codec", "compatibility"),
                 category = "Decoder",
                 screen = DecoderPreferencesScreen,
             ))
@@ -488,7 +475,7 @@ object SearchablePreferences {
             add(SearchablePreference(
                 titleRes = R.string.pref_advanced,
                 summaryRes = R.string.pref_advanced_summary,
-                keywords = listOf("advanced", "mpv", "config", "logs", "debug"),
+                keywords = listOf("advanced", "engine", "config", "logs", "debug"),
                 category = "Advanced",
                 screen = AdvancedPreferencesScreen,
             ))
@@ -508,19 +495,19 @@ object SearchablePreferences {
             ))
             add(SearchablePreference(
                 titleRes = R.string.pref_advanced_mpv_conf_storage_location,
-                keywords = listOf("storage", "location", "directory", "folder", "config"),
+                keywords = listOf("storage", "location", "directory", "folder", "backup"),
                 category = "Advanced",
                 screen = AdvancedPreferencesScreen,
             ))
             add(SearchablePreference(
                 titleRes = R.string.pref_advanced_mpv_conf,
-                keywords = listOf("mpv", "conf", "config", "configuration", "settings"),
+                keywords = listOf("engine", "playback", "hardware", "configuration", "pipeline"),
                 category = "Advanced",
                 screen = AdvancedPreferencesScreen,
             ))
             add(SearchablePreference(
                 titleRes = R.string.pref_advanced_input_conf,
-                keywords = listOf("input", "conf", "keybindings", "shortcuts", "keys", "controls"),
+                keywords = listOf("telemetry", "architecture", "stats", "diagnostics", "hardware"),
                 category = "Advanced",
                 screen = AdvancedPreferencesScreen,
             ))
@@ -540,7 +527,7 @@ object SearchablePreferences {
             add(SearchablePreference(
                 titleRes = R.string.pref_clear_config_cache_title,
                 summaryRes = R.string.pref_clear_config_cache_summary,
-                keywords = listOf("clear", "config", "cache", "mpv", "settings"),
+                keywords = listOf("clear", "config", "cache", "preferences", "settings"),
                 category = "Advanced",
                 screen = AdvancedPreferencesScreen,
             ))

@@ -1,19 +1,12 @@
-mpvExtended is a front-end for the versatile media player mpv, built on the libmpv library. It aims to combine the powerful features of mpv with an easier-to-use interface and additional functionality.
+Aura Player is an ultra-fast, modern media player for Android with an all-in-one suite for Video, Music, Radio, and Online Streaming.
 
- - Simpler and Easier to Use UI: Designed to make navigation and playback smoother, especially for those who want a straightforward media player experience.
- - Advanced Configuration and Scripting: Offers the full capabilities of mpv's scripting and configuration for users who want to customize their playback.
- - Enhanced Playback Features: Frame-by-frame navigation, sleep timer, speed presets, and better playback history implementation.
- - Picture-in-Picture (PiP): Continue watching videos while using other apps.
- - Multi-Modal Controls: Includes customizable gestures for controlling volume, brightness, and playback, along with keyboard input support.
- - High-Quality Rendering: Hardware and software video decoding with advanced rendering settings.
- - Network Streaming: Play network streams with the "Open URL" function.
- - File Management: Provides basic file operations like copy, move, rename, and delete.
-
-mpvExtended aims to enhance the mpv experience by making it more accessible while retaining its flexibility and powerful playback capabilities.
-
-This app respects your freedom and privacy:
-
-* No trackers
-* No advertisements
-* Fully open source
-* No unnecessary permissions
+ - High-Performance Video Engine: Smooth 4K, HDR, and Ultra HD playback with Media3 hardware acceleration.
+ - Ambient Cinema Lighting: Immersive soft letterbox backlighting for theater-style night viewing.
+ - MX-Style Smart Gestures: Quick brightness swipe on left, volume boost up to 200% on right, and precision scrub seeking.
+ - Complete Music & Audio Player: Background audio playback with lock screen media controls.
+ - Synced LRC Lyrics: Real-time karaoke-style scrolling lyrics powered by LRCLib.
+ - Online World Radio: Access thousands of live online radio stations powered by RadioBrowser.
+ - Advanced Subtitles: Full ASS/SSA styled subtitles, external SRT/VTT file import, and multi-track audio switching.
+ - Network Streaming & Downloader: Direct streaming via Stream Link (HTTP/HLS/DASH/RTSP) and built-in offline link downloader.
+ - Clean Media Library: Fast media scanning with folder stacking, multi-item badges, and list/grid views.
+ - Offline-First & Private: Zero telemetry, zero analytics, zero ads, and local-only processing.

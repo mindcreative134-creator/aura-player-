@@ -4,6 +4,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -19,6 +20,7 @@ import kotlinx.collections.immutable.toImmutableList
 
 sealed class SubtitleItem {
   data class Track(val node: TrackNode) : SubtitleItem()
+  object Off : SubtitleItem()
   data class Header(val title: String) : SubtitleItem()
   object Divider : SubtitleItem()
 }
@@ -29,26 +31,35 @@ fun SubtitlesSheet(
   onToggleSubtitle: (Int) -> Unit,
   isSubtitleSelected: (Int) -> Boolean,
   onAddSubtitle: () -> Unit,
+  onOpenOnlineSubtitleSearch: () -> Unit = {},
+  onOpenAiSubtitles: () -> Unit = {},
   onOpenSubtitleSettings: () -> Unit,
   onOpenSubtitleDelay: () -> Unit,
   onRemoveSubtitle: (Int) -> Unit,
   onDismissRequest: () -> Unit,
   modifier: Modifier = Modifier
 ) {
+  val isNoneSelected = remember(tracks) {
+    tracks.none { isSubtitleSelected(it.id) }
+  }
+
   val items = remember(tracks) {
     val list = mutableListOf<SubtitleItem>()
+    
+    // Always include Off option at top
+    list.add(SubtitleItem.Off)
     
     // Internal/Local tracks section
     val internal = tracks.filter { it.external != true }
     val external = tracks.filter { it.external == true }
     
-    if (internal.isNotEmpty() || external.isNotEmpty()) {
-        list.add(SubtitleItem.Header(if (internal.isNotEmpty()) "Embedded Subtitles" else "Local Subtitles"))
-        list.addAll(internal.map { SubtitleItem.Track(it) })
-        if (internal.isNotEmpty() && external.isNotEmpty()) {
-          list.add(SubtitleItem.Header("External Subtitles"))
-        }
-        list.addAll(external.map { SubtitleItem.Track(it) })
+    if (internal.isNotEmpty()) {
+      list.add(SubtitleItem.Header("Embedded Subtitles"))
+      list.addAll(internal.map { SubtitleItem.Track(it) })
+    }
+    if (external.isNotEmpty()) {
+      list.add(SubtitleItem.Header("External Subtitles"))
+      list.addAll(external.map { SubtitleItem.Track(it) })
     }
 
     list.toImmutableList()
@@ -62,6 +73,12 @@ fun SubtitlesSheet(
         stringResource(R.string.player_sheets_add_ext_sub),
         onAddSubtitle,
         actions = {
+          IconButton(onClick = onOpenAiSubtitles) {
+            Icon(Icons.Filled.AutoAwesome, contentDescription = "AI Subtitles", tint = androidx.compose.ui.graphics.Color(0xFF00F2FE))
+          }
+          IconButton(onClick = onOpenOnlineSubtitleSearch) {
+            Icon(Icons.Default.CloudDownload, contentDescription = "Online Subtitles")
+          }
           IconButton(onClick = onOpenSubtitleSettings) {
             Icon(Icons.Default.Palette, null)
           }
@@ -73,6 +90,35 @@ fun SubtitlesSheet(
     },
     track = { item ->
       when (item) {
+        SubtitleItem.Off -> {
+          Row(
+            modifier = Modifier
+              .fillMaxWidth()
+              .clickable {
+                tracks.filter { isSubtitleSelected(it.id) }.forEach {
+                  onToggleSubtitle(it.id)
+                }
+              }
+              .padding(horizontal = MaterialTheme.spacing.medium, vertical = MaterialTheme.spacing.extraSmall),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.smaller),
+          ) {
+            RadioButton(
+              selected = isNoneSelected,
+              onClick = {
+                tracks.filter { isSubtitleSelected(it.id) }.forEach {
+                  onToggleSubtitle(it.id)
+                }
+              }
+            )
+            Text(
+              text = "Off (Subtitles Disabled)",
+              fontWeight = if (isNoneSelected) FontWeight.Bold else FontWeight.Normal,
+              color = if (isNoneSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface,
+              modifier = Modifier.weight(1f)
+            )
+          }
+        }
         is SubtitleItem.Track -> {
           val track = item.node
           SubtitleTrackRow(

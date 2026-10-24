@@ -102,6 +102,12 @@ fun PlayerButtonChip(
               )
             }
           }
+          PlayerButton.AB_LOOP -> {
+            app.marlboroadvance.mpvex.ui.player.controls.components.AbLoopIcon(
+              tint = MaterialTheme.colorScheme.onSurfaceVariant,
+              size = 24.dp,
+            )
+          }
           else -> {
             // Default: Icon only
             Icon(

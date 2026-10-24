@@ -169,20 +169,25 @@ class VideoListViewModel(
           _isLoading.value = true
         }
 
+        val isAllVideos = bucketId == "ALL_VIDEOS"
         val folderFile = File(bucketId)
-        val currentFolderMod = if (folderFile.exists()) folderFile.lastModified() else 0L
+        val currentFolderMod = if (!isAllVideos && folderFile.exists()) folderFile.lastModified() else 0L
         val needsMetadata = MetadataRetrieval.isVideoMetadataNeeded(browserPreferences)
         val isMissingMetadata = needsMetadata && _videos.value.any { it.width > 0 && it.fps == 0f && !it.resolution.contains("@") }
 
         // Fast stat check: if folder's filesystem lastModified hasn't changed AND metadata is already present,
         // no files were added, deleted, or renamed. Skip heavy rescan completely!
-        if (isBackgroundRefresh && currentFolderMod > 0L && (currentFolderMod == cachedFolderLastModified || VideoStatCache.isFolderStatUnchanged(bucketId, currentFolderMod)) && _videos.value.isNotEmpty() && !isMissingMetadata) {
+        if (!isAllVideos && isBackgroundRefresh && currentFolderMod > 0L && (currentFolderMod == cachedFolderLastModified || VideoStatCache.isFolderStatUnchanged(bucketId, currentFolderMod)) && _videos.value.isNotEmpty() && !isMissingMetadata) {
           Log.d(tag, "Folder stat unchanged and metadata complete ($currentFolderMod), skipping rescan")
           return@launch
         }
 
         // Fast query of basic video info from MediaStore (or filesystem fallback)
-        var videoList = MediaFileRepository.getVideosInFolder(getApplication(), bucketId)
+        var videoList = if (isAllVideos) {
+          MediaFileRepository.getAllVideos(getApplication())
+        } else {
+          MediaFileRepository.getVideosInFolder(getApplication(), bucketId)
+        }
 
         if (!isActive) return@launch
 
@@ -205,7 +210,11 @@ class VideoListViewModel(
             triggerMediaScan()
             delay(1000)
             if (!isActive) return@launch
-            var retryVideoList = MediaFileRepository.getVideosInFolder(getApplication(), bucketId)
+            var retryVideoList = if (isAllVideos) {
+              MediaFileRepository.getAllVideos(getApplication())
+            } else {
+              MediaFileRepository.getVideosInFolder(getApplication(), bucketId)
+            }
             if (!isActive) return@launch
 
             if (previousVideoCount > 0 && retryVideoList.isEmpty()) {

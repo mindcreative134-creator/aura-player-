@@ -1,4 +1,4 @@
-package app.marlboroadvance.mpvex.ui.player.controls.components
+﻿package app.marlboroadvance.mpvex.ui.player.controls.components
 
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.LinearEasing
@@ -59,7 +59,7 @@ import app.marlboroadvance.mpvex.ui.player.controls.LocalPlayerButtonsClickEvent
 import app.marlboroadvance.mpvex.ui.theme.spacing
 import app.marlboroadvance.mpvex.preferences.SeekbarStyle
 import dev.vivvvek.seeker.Segment
-import `is`.xyz.mpv.Utils
+import com.cmstudio.apnaplayer.engine.PlayerBridgeUtils
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.coroutines.delay
@@ -530,7 +530,7 @@ fun VideoTimer(
           onClick = onClick,
         )
         .wrapContentHeight(Alignment.CenterVertically),
-    text = Utils.prettyTime(value.toInt(), isInverted),
+    text = PlayerBridgeUtils.prettyTime(value.toInt(), isInverted),
     color = Color.White,
     textAlign = TextAlign.Center,
   )

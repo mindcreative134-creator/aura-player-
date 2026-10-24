@@ -4,7 +4,7 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.net.Uri
 import android.util.Log
-import com.github.k1rakishou.fsaf.FileManager
+import androidx.documentfile.provider.DocumentFile
 import com.yubyf.truetypeparser.TTFFile
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -15,27 +15,45 @@ import java.util.Locale
 @SuppressLint("UseKtx")
 fun copyFontsFromDirectory(
   context: Context,
-  fileManager: FileManager,
   uriString: String,
 ) {
   runCatching {
-    val destinationPath = context.filesDir.path + "/fonts"
-    val destinationDir = fileManager.fromPath(destinationPath)
-
-    if (!fileManager.exists(destinationDir)) {
-      File(destinationPath).mkdirs()
+    val destinationDir = File(context.filesDir, "fonts")
+    if (!destinationDir.exists()) {
+      destinationDir.mkdirs()
     }
 
-    val sourceDir = fileManager.fromUri(Uri.parse(uriString))
-    if (sourceDir != null && fileManager.exists(sourceDir)) {
-      fileManager.listFiles(sourceDir).forEach { file ->
-        if (fileManager.isFile(file)) {
-          val fileName = fileManager.getName(file)
-          if (fileName.lowercase().matches(".*\\.[ot]tf$".toRegex())) {
-            val inputStream = fileManager.getInputStream(file) ?: return@forEach
-            val outputFile = File(destinationPath, fileName)
-            outputFile.outputStream().use { outputStream ->
-              inputStream.use { it.copyTo(outputStream) }
+    val uri = Uri.parse(uriString)
+    if (uri.scheme == "content") {
+      val treeDoc = DocumentFile.fromTreeUri(context, uri)
+        ?: DocumentFile.fromSingleUri(context, uri)
+      if (treeDoc != null && treeDoc.exists() && treeDoc.isDirectory) {
+        treeDoc.listFiles().forEach { docFile ->
+          if (docFile.isFile) {
+            val fileName = docFile.name ?: return@forEach
+            if (fileName.lowercase(Locale.ROOT).matches(".*\\.[ot]tf$".toRegex())) {
+              context.contentResolver.openInputStream(docFile.uri)?.use { inputStream ->
+                val outputFile = File(destinationDir, fileName)
+                outputFile.outputStream().use { outputStream ->
+                  inputStream.copyTo(outputStream)
+                }
+              }
+            }
+          }
+        }
+      }
+    } else {
+      // Direct file path or file:// URI
+      val path = if (uri.scheme == "file") uri.path ?: uriString else uriString
+      val sourceFolder = File(path)
+      if (sourceFolder.exists() && sourceFolder.isDirectory) {
+        sourceFolder.listFiles()?.forEach { file ->
+          if (file.isFile && file.name.lowercase(Locale.ROOT).matches(".*\\.[ot]tf$".toRegex())) {
+            val outputFile = File(destinationDir, file.name)
+            file.inputStream().use { inputStream ->
+              outputFile.outputStream().use { outputStream ->
+                inputStream.copyTo(outputStream)
+              }
             }
           }
         }

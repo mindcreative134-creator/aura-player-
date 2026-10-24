@@ -63,5 +63,6 @@ data class TrackNode(
 ) {
   val isAudio = type == "audio"
   val isSubtitle = type == "sub"
+  val isVideo = type == "video"
   val isSelected = selected == true
 }

@@ -51,7 +51,6 @@ import app.marlboroadvance.mpvex.ui.utils.LocalBackStack
 import app.marlboroadvance.mpvex.utils.media.CustomFontEntry
 import app.marlboroadvance.mpvex.utils.media.copyFontsFromDirectory
 import app.marlboroadvance.mpvex.utils.media.loadCustomFontEntries
-import com.github.k1rakishou.fsaf.FileManager
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -74,7 +73,6 @@ object SubtitlesPreferencesScreen : Screen {
     val context = LocalContext.current
     val backstack = LocalBackStack.current
     val preferences = koinInject<SubtitlesPreferences>()
-    val fileManager = koinInject<FileManager>()
 
     Scaffold(
       topBar = {
@@ -121,7 +119,7 @@ object SubtitlesPreferencesScreen : Screen {
             // Copy fonts immediately in background
             kotlinx.coroutines.CoroutineScope(Dispatchers.IO).launch {
               isLoadingFonts = true
-              copyFontsFromDirectory(context, fileManager, uri.toString())
+              copyFontsFromDirectory(context, uri.toString())
               withContext(Dispatchers.Main) {
                 fontLoadTrigger++
                 isLoadingFonts = false
@@ -140,7 +138,7 @@ object SubtitlesPreferencesScreen : Screen {
           if (fontsFolder.isNotBlank()) {
             isLoadingFonts = true
             withContext(Dispatchers.IO) {
-              copyFontsFromDirectory(context, fileManager, fontsFolder)
+              copyFontsFromDirectory(context, fontsFolder)
             }
             fontLoadTrigger++
             isLoadingFonts = false
@@ -298,7 +296,7 @@ object SubtitlesPreferencesScreen : Screen {
                           onClick = {
                             kotlinx.coroutines.CoroutineScope(Dispatchers.IO).launch {
                               isLoadingFonts = true
-                              copyFontsFromDirectory(context, fileManager, fontsFolder)
+                              copyFontsFromDirectory(context, fontsFolder)
                               withContext(Dispatchers.Main) {
                                 fontLoadTrigger++
                                 isLoadingFonts = false

@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.lazy.items
@@ -31,12 +32,15 @@ import androidx.compose.material.icons.filled.Folder
 import androidx.compose.material.icons.filled.GridView
 import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Link
+import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.filled.PushPin
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.SwapVert
 import androidx.compose.material.icons.filled.Title
 import androidx.compose.material.icons.filled.ViewModule
 import androidx.compose.material3.CircularProgressIndicator
+import app.marlboroadvance.mpvex.presentation.components.ApnaLoadingAnimation
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.FloatingActionButtonMenu
@@ -107,6 +111,7 @@ import app.marlboroadvance.mpvex.ui.browser.filesystem.FileSystemDirectoryScreen
 import app.marlboroadvance.mpvex.ui.browser.filesystem.FileSystemBrowserRootScreen
 import app.marlboroadvance.mpvex.ui.browser.selection.rememberSelectionManager
 import app.marlboroadvance.mpvex.ui.browser.sheets.PlayLinkSheet
+import app.marlboroadvance.mpvex.ui.browser.vault.PrivateVaultScreen
 import app.marlboroadvance.mpvex.ui.browser.states.EmptyState
 import app.marlboroadvance.mpvex.ui.browser.states.LoadingState
 import app.marlboroadvance.mpvex.ui.browser.states.PermissionDeniedState
@@ -233,12 +238,44 @@ object FolderListScreen : Screen {
       }
     }
 
+    val pinnedFolders by foldersPreferences.pinnedFolders.collectAsState()
+
     // Sorting and filtering
-    val sortedFolders = remember(videoFolders, folderSortType, folderSortOrder) {
-      SortUtils.sortFolders(videoFolders, folderSortType, folderSortOrder)
+    val sortedFolders = remember(videoFolders, folderSortType, folderSortOrder, pinnedFolders) {
+      SortUtils.sortFolders(videoFolders, folderSortType, folderSortOrder, pinnedFolders)
     }
 
     val filteredFolders = sortedFolders
+
+    val onQuickPlayFolder: (VideoFolder) -> Unit = { folder ->
+      coroutineScope.launch {
+        val allVideos = app.marlboroadvance.mpvex.repository.MediaFileRepository.getVideosInFolder(context, folder.bucketId)
+        if (allVideos.isNotEmpty()) {
+          if (allVideos.size == 1) {
+            MediaUtils.playFile(allVideos.first(), context)
+          } else {
+            val intent = Intent(Intent.ACTION_VIEW, allVideos.first().uri)
+            intent.setClass(context, app.marlboroadvance.mpvex.ui.player.PlayerActivity::class.java)
+            intent.putExtra("internal_launch", true)
+            intent.putParcelableArrayListExtra("playlist", ArrayList(allVideos.map { it.uri }))
+            intent.putExtra("playlist_index", 0)
+            intent.putExtra("launch_source", "playlist")
+            context.startActivity(intent)
+          }
+        }
+      }
+    }
+
+    val onTogglePinFolder: (VideoFolder) -> Unit = { folder ->
+      val currentPinned = foldersPreferences.pinnedFolders.get().toMutableSet()
+      if (folder.path in currentPinned || folder.bucketId in currentPinned) {
+        currentPinned.remove(folder.path)
+        currentPinned.remove(folder.bucketId)
+      } else {
+        currentPinned.add(folder.path)
+      }
+      foldersPreferences.pinnedFolders.set(currentPinned)
+    }
     
     // Selection manager
     val selectionManager = rememberSelectionManager(
@@ -377,6 +414,9 @@ object FolderListScreen : Screen {
             onSettingsClick = {
               backstack.add(app.marlboroadvance.mpvex.ui.preferences.PreferencesScreen)
             },
+            onTitleDoubleTap = {
+              backstack.add(PrivateVaultScreen)
+            },
             onDeleteClick = { deleteDialogOpen.value = true },
             onRenameClick = null,
             isSingleSelection = selectionManager.isSingleSelection,
@@ -432,6 +472,32 @@ object FolderListScreen : Screen {
             onSelectAll = { selectionManager.selectAll() },
             onInvertSelection = { selectionManager.invertSelection() },
             onDeselectAll = { selectionManager.clear() },
+            additionalActions = {
+              if (selectionManager.isInSelectionMode) {
+                IconButton(
+                  onClick = {
+                    val selected = selectionManager.getSelectedItems()
+                    val currentPinned = foldersPreferences.pinnedFolders.get().toMutableSet()
+                    selected.forEach { f ->
+                      if (f.path in currentPinned || f.bucketId in currentPinned) {
+                        currentPinned.remove(f.path)
+                        currentPinned.remove(f.bucketId)
+                      } else {
+                        currentPinned.add(f.path)
+                      }
+                    }
+                    foldersPreferences.pinnedFolders.set(currentPinned)
+                    selectionManager.clear()
+                  }
+                ) {
+                  Icon(
+                    imageVector = Icons.Filled.PushPin,
+                    contentDescription = "Pin / Unpin Folders",
+                    tint = MaterialTheme.colorScheme.primary,
+                  )
+                }
+              }
+            },
           )
         }
       },
@@ -448,7 +514,7 @@ object FolderListScreen : Screen {
                   TooltipAnchorPosition.Above
                 }
               ),
-              tooltip = { PlainTooltip { Text("Toggle menu") } },
+              tooltip = { PlainTooltip { Text("Quick Actions") } },
               state = rememberTooltipState(),
             ) {
               ToggleFloatingActionButton(
@@ -466,7 +532,7 @@ object FolderListScreen : Screen {
                 }
                 Icon(
                   painter = rememberVectorPainter(imageVector),
-                  contentDescription = null,
+                  contentDescription = "Quick Actions",
                   modifier = Modifier.animateIcon({ checkedProgress }),
                 )
               }
@@ -479,7 +545,7 @@ object FolderListScreen : Screen {
               filePicker.launch(arrayOf("video/*"))
             },
             icon = { Icon(Icons.Filled.FileOpen, contentDescription = null) },
-            text = { Text(text = "Open File") },
+            text = { Text(text = "Open Video File") },
           )
 
           FloatingActionButtonMenuItem(
@@ -494,7 +560,7 @@ object FolderListScreen : Screen {
               }
             },
             icon = { Icon(Icons.Filled.History, contentDescription = null) },
-            text = { Text(text = "Recently Played") },
+            text = { Text(text = "Play Recent Video") },
           )
 
           FloatingActionButtonMenuItem(
@@ -503,7 +569,16 @@ object FolderListScreen : Screen {
               showLinkDialog.value = true
             },
             icon = { Icon(Icons.Filled.Link, contentDescription = null) },
-            text = { Text(text = "Open Link") },
+            text = { Text(text = "Open Network Stream") },
+          )
+
+          FloatingActionButtonMenuItem(
+            onClick = {
+              isFabExpanded.value = false
+              backstack.add(PrivateVaultScreen)
+            },
+            icon = { Icon(Icons.Filled.Lock, contentDescription = "Private Vault") },
+            text = { Text(text = "Private Vault") },
           )
         }
       },
@@ -520,7 +595,11 @@ object FolderListScreen : Screen {
                     modifier = Modifier.fillMaxSize(),
                     contentAlignment = Alignment.Center,
                   ) {
-                    CircularProgressIndicator()
+                    ApnaLoadingAnimation(
+                      size = 64.dp,
+                      title = "Searching...",
+                      subtitle = "Scanning your media library"
+                    )
                   }
                 } else if (searchResults.isEmpty()) {
                   // No results
@@ -563,6 +642,24 @@ object FolderListScreen : Screen {
                 gridState = gridState,
                 isRefreshing = isRefreshing,
                 selectionManager = selectionManager,
+                pinnedFolders = pinnedFolders,
+                sortType = folderSortType,
+                sortOrder = folderSortOrder,
+                onSortClick = { sortDialogOpen.value = true },
+                onToggleLayoutMode = {
+                  browserPreferences.mediaLayoutMode.set(
+                    if (mediaLayoutMode == MediaLayoutMode.GRID) MediaLayoutMode.LIST else MediaLayoutMode.GRID
+                  )
+                },
+                onNavigateToFavorites = { backstack.add(app.marlboroadvance.mpvex.ui.browser.playlist.PlaylistScreen) },
+                onNavigateToPlaylists = { backstack.add(app.marlboroadvance.mpvex.ui.browser.playlist.PlaylistScreen) },
+                onStreamClick = { backstack.add(app.marlboroadvance.mpvex.ui.browser.networkstreaming.NetworkStreamingScreen) },
+                onDownloadsClick = { backstack.add(app.marlboroadvance.mpvex.ui.downloads.DownloadsScreen) },
+                onAllVideosClick = {
+                  backstack.add(app.marlboroadvance.mpvex.ui.browser.videolist.VideoListScreen("ALL_VIDEOS", "All Videos"))
+                },
+                onTogglePin = onTogglePinFolder,
+                onQuickPlay = onQuickPlayFolder,
                 onRefresh = { viewModel.refresh() },
                 onFolderClick = { folder ->
                   if (selectionManager.isInSelectionMode) {
@@ -632,6 +729,18 @@ private fun FolderListContent(
   gridState: androidx.compose.foundation.lazy.grid.LazyGridState,
   isRefreshing: androidx.compose.runtime.MutableState<Boolean>,
   selectionManager: app.marlboroadvance.mpvex.ui.browser.selection.SelectionManager<VideoFolder, String>,
+  pinnedFolders: Set<String>,
+  sortType: FolderSortType,
+  sortOrder: SortOrder,
+  onSortClick: () -> Unit,
+  onToggleLayoutMode: () -> Unit,
+  onNavigateToFavorites: () -> Unit,
+  onNavigateToPlaylists: () -> Unit,
+  onStreamClick: () -> Unit,
+  onDownloadsClick: () -> Unit = {},
+  onAllVideosClick: () -> Unit,
+  onTogglePin: (VideoFolder) -> Unit,
+  onQuickPlay: (VideoFolder) -> Unit,
   onRefresh: suspend () -> Unit,
   onFolderClick: (VideoFolder) -> Unit,
   onFolderLongClick: (VideoFolder) -> Unit,
@@ -695,6 +804,18 @@ private fun FolderListContent(
           gridState = gridState,
           scrollbarAlpha = scrollbarAlpha,
           selectionManager = selectionManager,
+          pinnedFolders = pinnedFolders,
+          sortType = sortType,
+          sortOrder = sortOrder,
+          onSortClick = onSortClick,
+          onToggleLayoutMode = onToggleLayoutMode,
+          onNavigateToFavorites = onNavigateToFavorites,
+          onNavigateToPlaylists = onNavigateToPlaylists,
+          onStreamClick = onStreamClick,
+          onDownloadsClick = onDownloadsClick,
+          onAllVideosClick = onAllVideosClick,
+          onTogglePin = onTogglePin,
+          onQuickPlay = onQuickPlay,
           onFolderClick = onFolderClick,
           onFolderLongClick = onFolderLongClick,
         )
@@ -708,6 +829,18 @@ private fun FolderListContent(
           listState = listState,
           scrollbarAlpha = scrollbarAlpha,
           selectionManager = selectionManager,
+          pinnedFolders = pinnedFolders,
+          sortType = sortType,
+          sortOrder = sortOrder,
+          onSortClick = onSortClick,
+          onToggleLayoutMode = onToggleLayoutMode,
+          onNavigateToFavorites = onNavigateToFavorites,
+          onNavigateToPlaylists = onNavigateToPlaylists,
+          onStreamClick = onStreamClick,
+          onDownloadsClick = onDownloadsClick,
+          onAllVideosClick = onAllVideosClick,
+          onTogglePin = onTogglePin,
+          onQuickPlay = onQuickPlay,
           onFolderClick = onFolderClick,
           onFolderLongClick = onFolderLongClick,
         )
@@ -738,6 +871,18 @@ private fun GridContent(
   gridState: androidx.compose.foundation.lazy.grid.LazyGridState,
   scrollbarAlpha: Float,
   selectionManager: app.marlboroadvance.mpvex.ui.browser.selection.SelectionManager<VideoFolder, String>,
+  pinnedFolders: Set<String>,
+  sortType: FolderSortType,
+  sortOrder: SortOrder,
+  onSortClick: () -> Unit,
+  onToggleLayoutMode: () -> Unit,
+  onNavigateToFavorites: () -> Unit,
+  onNavigateToPlaylists: () -> Unit,
+  onStreamClick: () -> Unit,
+  onDownloadsClick: () -> Unit = {},
+  onAllVideosClick: () -> Unit,
+  onTogglePin: (VideoFolder) -> Unit,
+  onQuickPlay: (VideoFolder) -> Unit,
   onFolderClick: (VideoFolder) -> Unit,
   onFolderLongClick: (VideoFolder) -> Unit,
 ) {
@@ -754,6 +899,27 @@ private fun GridContent(
       horizontalArrangement = Arrangement.spacedBy(4.dp),
       verticalArrangement = Arrangement.spacedBy(4.dp),
     ) {
+      if (!selectionManager.isInSelectionMode) {
+        item(
+          key = "home_dashboard_header_grid",
+          span = { GridItemSpan(maxLineSpan) },
+        ) {
+          app.marlboroadvance.mpvex.ui.browser.home.HomeDashboardHeader(
+            folders = folders,
+            pinnedCount = pinnedFolders.size,
+            mediaLayoutMode = MediaLayoutMode.GRID,
+            sortType = sortType,
+            sortOrder = sortOrder,
+            onSortClick = onSortClick,
+            onToggleLayoutMode = onToggleLayoutMode,
+            onNavigateToFavorites = onNavigateToFavorites,
+            onNavigateToPlaylists = onNavigateToPlaylists,
+            onStreamClick = onStreamClick,
+            onDownloadsClick = onDownloadsClick,
+            onAllVideosClick = onAllVideosClick,
+          )
+        }
+      }
       items(folders.size) { index ->
         val folder = folders[index]
         val isRecentlyPlayed = recentlyPlayedFilePath?.let { filePath ->
@@ -778,6 +944,9 @@ private fun GridContent(
           },
           newVideoCount = newCount,
           isGridMode = true,
+          isPinned = folder.path in pinnedFolders || folder.bucketId in pinnedFolders,
+          onPinClick = { onTogglePin(folder) },
+          onQuickPlay = { onQuickPlay(folder) },
         )
       }
     }
@@ -811,6 +980,18 @@ private fun ListContent(
   listState: LazyListState,
   scrollbarAlpha: Float,
   selectionManager: app.marlboroadvance.mpvex.ui.browser.selection.SelectionManager<VideoFolder, String>,
+  pinnedFolders: Set<String>,
+  sortType: FolderSortType,
+  sortOrder: SortOrder,
+  onSortClick: () -> Unit,
+  onToggleLayoutMode: () -> Unit,
+  onNavigateToFavorites: () -> Unit,
+  onNavigateToPlaylists: () -> Unit,
+  onStreamClick: () -> Unit,
+  onDownloadsClick: () -> Unit = {},
+  onAllVideosClick: () -> Unit,
+  onTogglePin: (VideoFolder) -> Unit,
+  onQuickPlay: (VideoFolder) -> Unit,
   onFolderClick: (VideoFolder) -> Unit,
   onFolderLongClick: (VideoFolder) -> Unit,
 ) {
@@ -824,6 +1005,24 @@ private fun ListContent(
         bottom = navigationBarHeight
       ),
     ) {
+      if (!selectionManager.isInSelectionMode) {
+        item(key = "home_dashboard_header_list") {
+          app.marlboroadvance.mpvex.ui.browser.home.HomeDashboardHeader(
+            folders = folders,
+            pinnedCount = pinnedFolders.size,
+            mediaLayoutMode = MediaLayoutMode.LIST,
+            sortType = sortType,
+            sortOrder = sortOrder,
+            onSortClick = onSortClick,
+            onToggleLayoutMode = onToggleLayoutMode,
+            onNavigateToFavorites = onNavigateToFavorites,
+            onNavigateToPlaylists = onNavigateToPlaylists,
+            onStreamClick = onStreamClick,
+            onDownloadsClick = onDownloadsClick,
+            onAllVideosClick = onAllVideosClick,
+          )
+        }
+      }
       items(folders) { folder ->
         val isRecentlyPlayed = recentlyPlayedFilePath?.let { filePath ->
           val file = File(filePath)
@@ -847,6 +1046,9 @@ private fun ListContent(
           },
           newVideoCount = newCount,
           isGridMode = false,
+          isPinned = folder.path in pinnedFolders || folder.bucketId in pinnedFolders,
+          onPinClick = { onTogglePin(folder) },
+          onQuickPlay = { onQuickPlay(folder) },
         )
       }
     }

@@ -123,7 +123,7 @@ object PermissionUtils {
   fun getStoragePermission(): String =
     when {
       Build.VERSION.SDK_INT <= Build.VERSION_CODES.P -> {
-        // Android 9 and below need WRITE permission to create folders/files (e.g., mpvsnaps)
+        // Android 9 and below need WRITE permission to create folders/files (e.g., ApnaPlayerSnaps)
         android.Manifest.permission.WRITE_EXTERNAL_STORAGE
       }
 
@@ -209,6 +209,94 @@ object PermissionUtils {
             override val permission = permissionState.permission
             override val status = PermissionStatus.Granted
 
+            override fun launchPermissionRequest() = permissionState.launchPermissionRequest()
+          }
+        } else {
+          permissionState
+        }
+      }
+
+    LaunchedEffect(effectivePermissionState.status) {
+      if (effectivePermissionState.status == PermissionStatus.Granted) {
+        onPermissionGranted()
+      }
+    }
+
+    return effectivePermissionState
+  }
+
+  /**
+   * Returns audio-specific permission for the running Android version.
+   */
+  fun getAudioPermission(): String =
+    when {
+      Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU -> {
+        android.Manifest.permission.READ_MEDIA_AUDIO
+      }
+      Build.VERSION.SDK_INT <= Build.VERSION_CODES.P -> {
+        android.Manifest.permission.WRITE_EXTERNAL_STORAGE
+      }
+      else -> android.Manifest.permission.READ_EXTERNAL_STORAGE
+    }
+
+  /**
+   * Checks whether audio permission is currently granted.
+   */
+  fun hasAudioPermission(context: Context): Boolean {
+    if (!BuildConfig.SCOPED_STORAGE_ONLY && Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+      if (android.os.Environment.isExternalStorageManager()) {
+        return true
+      }
+    }
+    return androidx.core.content.ContextCompat.checkSelfPermission(
+      context,
+      getAudioPermission(),
+    ) == android.content.pm.PackageManager.PERMISSION_GRANTED
+  }
+
+  @OptIn(ExperimentalPermissionsApi::class)
+  @Composable
+  fun rememberAudioPermissionState(): PermissionState = rememberPermissionState(getAudioPermission())
+
+  @OptIn(ExperimentalPermissionsApi::class)
+  @Composable
+  fun handleAudioPermission(onPermissionGranted: () -> Unit): PermissionState {
+    val permissionState = rememberAudioPermissionState()
+    val context = LocalContext.current
+    var lifecycleTrigger by remember { mutableIntStateOf(0) }
+
+    DisposableEffect(Unit) {
+      val lifecycleOwner = context as? LifecycleOwner
+      val observer =
+        LifecycleEventObserver { _, event ->
+          if (event == Lifecycle.Event.ON_RESUME) {
+            lifecycleTrigger++
+          }
+        }
+      lifecycleOwner?.lifecycle?.addObserver(observer)
+      onDispose {
+        lifecycleOwner?.lifecycle?.removeObserver(observer)
+      }
+    }
+
+    val effectivePermissionState =
+      remember(permissionState.status, lifecycleTrigger) {
+        if (!BuildConfig.SCOPED_STORAGE_ONLY && Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+          if (android.os.Environment.isExternalStorageManager()) {
+            object : PermissionState {
+              override val permission = permissionState.permission
+              override val status = PermissionStatus.Granted
+              override fun launchPermissionRequest() = permissionState.launchPermissionRequest()
+            }
+          } else {
+            permissionState
+          }
+        } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R &&
+          android.os.Environment.isExternalStorageManager()
+        ) {
+          object : PermissionState {
+            override val permission = permissionState.permission
+            override val status = PermissionStatus.Granted
             override fun launchPermissionRequest() = permissionState.launchPermissionRequest()
           }
         } else {

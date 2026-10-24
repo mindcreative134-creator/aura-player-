@@ -6,7 +6,6 @@ import android.graphics.BitmapFactory
 import android.util.LruCache
 import app.marlboroadvance.mpvex.domain.media.model.Video
 import app.marlboroadvance.mpvex.utils.media.MediaInfoOps
-import `is`.xyz.mpv.FastThumbnails
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Dispatchers
@@ -98,23 +97,9 @@ class ThumbnailRepository(
             }
 
             // Check if this video should use MediaStore
-            val videoKey = videoBaseKey(video)
-            val thumbnail = if (useMediaStoreForVideo.containsKey(videoKey)) {
-              // Use MediaStore for this video
-              android.util.Log.d("ThumbnailRepository", "Using MediaStore for ${video.displayName}")
-              generateWithMediaStore(video, diskCacheDimension)
-            } else {
-              // Try FastThumbnails first
-              val fastResult = generateWithFastThumbnails(video, diskCacheDimension)
-              if (fastResult == null) {
-                // FastThumbnails failed, mark for MediaStore and try it
-                android.util.Log.w("ThumbnailRepository", "FastThumbnails failed for ${video.displayName}, falling back to MediaStore")
-                useMediaStoreForVideo[videoKey] = true
-                generateWithMediaStore(video, diskCacheDimension)
-              } else {
-                fastResult
-              }
-            }
+            // Generate thumbnail using native hardware accelerated retriever or MediaStore
+            val thumbnail = generateWithRetriever(video, diskCacheDimension)
+              ?: generateWithMediaStore(video, diskCacheDimension)
 
             if (thumbnail == null) {
               return@async null
@@ -304,20 +289,33 @@ class ThumbnailRepository(
     return Bitmap.createBitmap(bitmap, 0, 0, bitmap.width, bitmap.height, matrix, true)
   }
 
-  private suspend fun generateWithFastThumbnails(
+  private suspend fun generateWithRetriever(
     video: Video,
     dimension: Int,
-  ): Bitmap? {
-    return runCatching {
-      val positionSec = preferredPositionSeconds(video)
-      
-      val bmp = FastThumbnails.generateAsync(
-          video.path.ifBlank { video.uri.toString() },
-          positionSec,
-          dimension,
-          useHwDec = false
-      ) ?: return@runCatching null
-      rotateIfNeeded(video, bmp)
+  ): Bitmap? = withContext(Dispatchers.IO) {
+    runCatching {
+      val retriever = android.media.MediaMetadataRetriever()
+      try {
+        if (video.path.isNotBlank() && File(video.path).exists()) {
+          retriever.setDataSource(video.path)
+        } else {
+          retriever.setDataSource(context, video.uri)
+        }
+        val positionUs = preferredPositionSeconds(video).toLong() * 1_000_000L
+        val bmp = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O_MR1) {
+          retriever.getScaledFrameAtTime(
+            positionUs,
+            android.media.MediaMetadataRetriever.OPTION_CLOSEST_SYNC,
+            dimension,
+            dimension
+          )
+        } else {
+          retriever.getFrameAtTime(positionUs, android.media.MediaMetadataRetriever.OPTION_CLOSEST_SYNC)
+        }
+        bmp?.let { rotateIfNeeded(video, it) }
+      } finally {
+        runCatching { retriever.release() }
+      }
     }.getOrNull()
   }
 

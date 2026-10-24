@@ -1,14 +1,17 @@
-package app.marlboroadvance.mpvex.ui.player
+﻿package app.marlboroadvance.mpvex.ui.player
 
-import `is`.xyz.mpv.MPVLib
-import `is`.xyz.mpv.MPVNode
+import com.cmstudio.apnaplayer.engine.PlayerBridge
+import com.cmstudio.apnaplayer.engine.PlayerNode
 
 class PlayerObserver(
   private val activity: PlayerActivity,
-) : MPVLib.EventObserver {
+) : PlayerBridge.EventObserver {
   override fun eventProperty(property: String) {
     if (activity.player.isExiting) return
-    activity.runOnUiThread { activity.onObserverEvent(property) }
+    activity.runOnUiThread {
+      if (activity.isFinishing || activity.isDestroyed || activity.player.isExiting) return@runOnUiThread
+      activity.onObserverEvent(property)
+    }
   }
 
   override fun eventProperty(
@@ -16,7 +19,10 @@ class PlayerObserver(
     value: Long,
   ) {
     if (activity.player.isExiting) return
-    activity.runOnUiThread { activity.onObserverEvent(property, value) }
+    activity.runOnUiThread {
+      if (activity.isFinishing || activity.isDestroyed || activity.player.isExiting) return@runOnUiThread
+      activity.onObserverEvent(property, value)
+    }
   }
 
   override fun eventProperty(
@@ -24,7 +30,10 @@ class PlayerObserver(
     value: Boolean,
   ) {
     if (activity.player.isExiting) return
-    activity.runOnUiThread { activity.onObserverEvent(property, value) }
+    activity.runOnUiThread {
+      if (activity.isFinishing || activity.isDestroyed || activity.player.isExiting) return@runOnUiThread
+      activity.onObserverEvent(property, value)
+    }
   }
 
   override fun eventProperty(
@@ -32,7 +41,10 @@ class PlayerObserver(
     value: String,
   ) {
     if (activity.player.isExiting) return
-    activity.runOnUiThread { activity.onObserverEvent(property, value) }
+    activity.runOnUiThread {
+      if (activity.isFinishing || activity.isDestroyed || activity.player.isExiting) return@runOnUiThread
+      activity.onObserverEvent(property, value)
+    }
   }
 
   override fun eventProperty(
@@ -40,20 +52,29 @@ class PlayerObserver(
     value: Double,
   ) {
     if (activity.player.isExiting) return
-    activity.runOnUiThread { activity.onObserverEvent(property, value) }
+    activity.runOnUiThread {
+      if (activity.isFinishing || activity.isDestroyed || activity.player.isExiting) return@runOnUiThread
+      activity.onObserverEvent(property, value)
+    }
   }
 
   @Suppress("EmptyFunctionBlock")
   override fun eventProperty(
     property: String,
-    value: MPVNode,
+    value: PlayerNode,
   ) {
     if (activity.player.isExiting) return
-    activity.runOnUiThread { activity.onObserverEvent(property, value) }
+    activity.runOnUiThread {
+      if (activity.isFinishing || activity.isDestroyed || activity.player.isExiting) return@runOnUiThread
+      activity.onObserverEvent(property, value)
+    }
   }
 
-  override fun event(eventId: Int, data: MPVNode) {
+  override fun event(eventId: Int, data: PlayerNode) {
     if (activity.player.isExiting) return
-    activity.runOnUiThread { activity.event(eventId) }
+    activity.runOnUiThread {
+      if (activity.isFinishing || activity.isDestroyed || activity.player.isExiting) return@runOnUiThread
+      activity.event(eventId)
+    }
   }
 }

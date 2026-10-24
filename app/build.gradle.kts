@@ -7,7 +7,6 @@ plugins {
   alias(libs.plugins.kotlinx.serialization)
   alias(libs.plugins.ksp)
   alias(libs.plugins.room)
-  alias(libs.plugins.aboutlibraries)
 }
 
 android {
@@ -15,7 +14,7 @@ android {
   compileSdk = 37
 
   defaultConfig {
-    applicationId = "app.marlboroadvance.mpvex"
+    applicationId = "com.cmstudio.auraplayer"
     minSdk = 26
     targetSdk = 36
     versionCode = 131
@@ -35,7 +34,7 @@ android {
     create("standard") {
       dimension = "distribution"
       isDefault = true
-      buildConfigField("boolean", "ENABLE_UPDATE_FEATURE", "true")
+      buildConfigField("boolean", "ENABLE_UPDATE_FEATURE", "false")
       buildConfigField("boolean", "SCOPED_STORAGE_ONLY", "false")
     }
 
@@ -63,9 +62,11 @@ android {
     includeInBundle = false
   }
 
+  val isBundleTask = gradle.startParameter.taskNames.any { it.contains("bundle", ignoreCase = true) }
+
   splits {
     abi {
-      isEnable = true
+      isEnable = !isBundleTask
       reset()
       include("armeabi-v7a", "arm64-v8a", "x86", "x86_64")
       isUniversalApk = true
@@ -74,6 +75,7 @@ android {
 
   buildTypes {
     named("release") {
+      signingConfig = signingConfigs.getByName("debug")
       isMinifyEnabled = true
       isShrinkResources = true
       proguardFiles(
@@ -107,6 +109,10 @@ android {
     compose = true
     viewBinding = true
     buildConfig = true
+  }
+
+  testOptions {
+    unitTests.isReturnDefaultValues = true
   }
 
   packaging {
@@ -196,7 +202,6 @@ dependencies {
 
   implementation(libs.seeker)
   implementation(libs.compose.prefs)
-  implementation(libs.aboutlibraries.compose.m3)
 
   implementation(libs.accompanist.permissions)
 
@@ -209,9 +214,14 @@ dependencies {
   implementation(libs.okhttp)
 
   implementation(libs.truetype.parser)
-  implementation(libs.fsaf)
   implementation(libs.mediainfo.lib)
-  implementation(libs.mpv.android)
+  implementation(libs.media3.exoplayer)
+  implementation(libs.media3.exoplayer.hls)
+  implementation(libs.media3.exoplayer.dash)
+  implementation(libs.media3.ui)
+  implementation(libs.media3.session)
+  implementation("androidx.media3:media3-datasource:1.5.1")
+  implementation("androidx.media3:media3-database:1.5.1")
 
   // Network protocol libraries
   implementation(libs.smbj)
@@ -222,6 +232,11 @@ dependencies {
   implementation(libs.nanohttpd)
   implementation(libs.lazycolumnscrollbar)
   implementation(libs.reorderable)
+
+  // HTML scraping for online subtitles (SubtitleCat, MovieSubtitles, etc.)
+  implementation("org.jsoup:jsoup:1.18.1")
+
+  testImplementation("junit:junit:4.13.2")
 }
 
 /* ---------------- Git helpers ---------------- */

@@ -1,4 +1,4 @@
-package app.marlboroadvance.mpvex.ui.player
+﻿package app.marlboroadvance.mpvex.ui.player
 
 import android.annotation.SuppressLint
 import android.app.Notification
@@ -22,8 +22,8 @@ import androidx.core.app.ServiceCompat
 import androidx.media.MediaBrowserServiceCompat
 import androidx.media.session.MediaButtonReceiver
 import app.marlboroadvance.mpvex.R
-import `is`.xyz.mpv.MPVLib
-import `is`.xyz.mpv.MPVNode
+import com.cmstudio.apnaplayer.engine.PlayerBridge
+import com.cmstudio.apnaplayer.engine.PlayerNode
 import app.marlboroadvance.mpvex.preferences.PlayerPreferences
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
@@ -33,12 +33,12 @@ import org.koin.core.component.inject
  */
 class MediaPlaybackService :
   MediaBrowserServiceCompat(),
-  MPVLib.EventObserver,
+  PlayerBridge.EventObserver,
   KoinComponent {
   companion object {
     private const val TAG = "MediaPlaybackService"
     private const val NOTIFICATION_ID = 1
-    private const val NOTIFICATION_CHANNEL_ID = "mpvex_playback_channel"
+    private const val NOTIFICATION_CHANNEL_ID = "apna_player_playback_channel"
 
     @Volatile
     internal var thumbnail: Bitmap? = null
@@ -91,12 +91,12 @@ class MediaPlaybackService :
     
     // Only add MPV observer if MPV is initialized
     try {
-      MPVLib.addObserver(this)
+      PlayerBridge.addObserver(this)
       // Observe properties
-      MPVLib.observeProperty("pause", MPVLib.MpvFormat.MPV_FORMAT_FLAG)
-      MPVLib.observeProperty("media-title", MPVLib.MpvFormat.MPV_FORMAT_STRING)
-      MPVLib.observeProperty("metadata/artist", MPVLib.MpvFormat.MPV_FORMAT_STRING)
-      MPVLib.observeProperty("time-pos", MPVLib.MpvFormat.MPV_FORMAT_DOUBLE)
+      PlayerBridge.observeProperty("pause", PlayerBridge.MpvFormat.MPV_FORMAT_FLAG)
+      PlayerBridge.observeProperty("media-title", PlayerBridge.MpvFormat.MPV_FORMAT_STRING)
+      PlayerBridge.observeProperty("metadata/artist", PlayerBridge.MpvFormat.MPV_FORMAT_STRING)
+      PlayerBridge.observeProperty("time-pos", PlayerBridge.MpvFormat.MPV_FORMAT_DOUBLE)
       Log.d(TAG, "MPV observer registered")
     } catch (e: Exception) {
       Log.e(TAG, "Error registering MPV observer", e)
@@ -130,11 +130,11 @@ class MediaPlaybackService :
 
     // Fallback: Read current state from MPV if not provided via intent
     if (mediaTitle.isBlank()) {
-      mediaTitle = MPVLib.getPropertyString("media-title") ?: ""
-      mediaArtist = MPVLib.getPropertyString("metadata/artist") ?: ""
+      mediaTitle = PlayerBridge.getPropertyString("media-title") ?: ""
+      mediaArtist = PlayerBridge.getPropertyString("metadata/artist") ?: ""
     }
     
-    paused = MPVLib.getPropertyBoolean("pause") == true
+    paused = PlayerBridge.getPropertyBoolean("pause") == true
 
     updateMediaSession()
 
@@ -187,12 +187,12 @@ class MediaPlaybackService :
           object : MediaSessionCompat.Callback() {
             override fun onPlay() {
               Log.d(TAG, "onPlay called")
-              MPVLib.setPropertyBoolean("pause", false)
+              PlayerBridge.setPropertyBoolean("pause", false)
             }
 
             override fun onPause() {
               Log.d(TAG, "onPause called")
-              MPVLib.setPropertyBoolean("pause", true)
+              PlayerBridge.setPropertyBoolean("pause", true)
             }
 
             override fun onStop() {
@@ -203,24 +203,24 @@ class MediaPlaybackService :
             override fun onSkipToNext() {
               Log.d(TAG, "onSkipToNext called")
               // Use precise seeking for videos shorter than 2 minutes (120 seconds) or if preference is enabled
-              val duration = MPVLib.getPropertyInt("duration") ?: 0
+              val duration = PlayerBridge.getPropertyInt("duration") ?: 0
               val shouldUsePreciseSeeking = playerPreferences.usePreciseSeeking.get() || duration < 120
               val seekMode = if (shouldUsePreciseSeeking) "relative+exact" else "relative+keyframes"
-              MPVLib.command("seek", "10", seekMode)
+              PlayerBridge.command("seek", "10", seekMode)
             }
 
             override fun onSkipToPrevious() {
               Log.d(TAG, "onSkipToPrevious called")
               // Use precise seeking for videos shorter than 2 minutes (120 seconds) or if preference is enabled
-              val duration = MPVLib.getPropertyInt("duration") ?: 0
+              val duration = PlayerBridge.getPropertyInt("duration") ?: 0
               val shouldUsePreciseSeeking = playerPreferences.usePreciseSeeking.get() || duration < 120
               val seekMode = if (shouldUsePreciseSeeking) "relative+exact" else "relative+keyframes"
-              MPVLib.command("seek", "-10", seekMode)
+              PlayerBridge.command("seek", "-10", seekMode)
             }
 
             override fun onSeekTo(pos: Long) {
               Log.d(TAG, "onSeekTo called: $pos")
-              MPVLib.setPropertyDouble("time-pos", pos / 1000.0)
+              PlayerBridge.setPropertyDouble("time-pos", pos / 1000.0)
             }
           },
         )
@@ -244,7 +244,7 @@ class MediaPlaybackService :
       
       // Update metadata
       val duration = runCatching { 
-        MPVLib.getPropertyDouble("duration")?.times(1000)?.toLong() 
+        PlayerBridge.getPropertyDouble("duration")?.times(1000)?.toLong() 
       }.getOrNull() ?: 0L
       
       val metadataBuilder =
@@ -263,7 +263,7 @@ class MediaPlaybackService :
 
       // Update playback state
       val position = runCatching { 
-        MPVLib.getPropertyDouble("time-pos")?.times(1000)?.toLong() 
+        PlayerBridge.getPropertyDouble("time-pos")?.times(1000)?.toLong() 
       }.getOrNull() ?: 0L
       
       val state = if (paused) PlaybackStateCompat.STATE_PAUSED else PlaybackStateCompat.STATE_PLAYING
@@ -418,11 +418,11 @@ class MediaPlaybackService :
 
   override fun eventProperty(
     property: String,
-    value: MPVNode,
+    value: PlayerNode,
   ) {}
 
-  override fun event(eventId: Int, data: MPVNode) {
-    if (eventId == MPVLib.MpvEvent.MPV_EVENT_SHUTDOWN) {
+  override fun event(eventId: Int, data: PlayerNode) {
+    if (eventId == PlayerBridge.MpvEvent.MPV_EVENT_SHUTDOWN) {
       Log.d(TAG, "MPV shutdown event received, stopping service")
       stopSelf()
     }
@@ -436,7 +436,7 @@ class MediaPlaybackService :
       
       // Remove MPV observer safely
       try {
-        MPVLib.removeObserver(this)
+        PlayerBridge.removeObserver(this)
       } catch (e: Exception) {
         Log.e(TAG, "Error removing MPV observer", e)
       }
@@ -485,7 +485,7 @@ class MediaPlaybackService :
     try {
       // Kill MPV playback immediately when task is removed
       try {
-        MPVLib.command("quit")
+        PlayerBridge.command("quit")
         Log.d(TAG, "MPV quit command sent")
       } catch (e: Exception) {
         Log.e(TAG, "Error sending quit command to MPV", e)

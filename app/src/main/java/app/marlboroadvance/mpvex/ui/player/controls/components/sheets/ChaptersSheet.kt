@@ -1,4 +1,4 @@
-package app.marlboroadvance.mpvex.ui.player.controls.components.sheets
+﻿package app.marlboroadvance.mpvex.ui.player.controls.components.sheets
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -18,7 +18,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import app.marlboroadvance.mpvex.R
 import app.marlboroadvance.mpvex.ui.theme.spacing
 import dev.vivvvek.seeker.Segment
-import `is`.xyz.mpv.Utils
+import com.cmstudio.apnaplayer.engine.PlayerBridgeUtils
 import kotlinx.collections.immutable.ImmutableList
 
 @Composable
@@ -85,7 +85,7 @@ fun ChapterTrack(
       overflow = TextOverflow.Ellipsis,
     )
     Text(
-      Utils.prettyTime(chapter.start.toInt()),
+      PlayerBridgeUtils.prettyTime(chapter.start.toInt()),
       fontStyle = if (selected) FontStyle.Italic else FontStyle.Normal,
       fontWeight = if (selected) FontWeight.ExtraBold else FontWeight.Normal,
       color = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface,

@@ -1,4 +1,4 @@
-package app.marlboroadvance.mpvex.ui.player.controls.components.panels
+﻿package app.marlboroadvance.mpvex.ui.player.controls.components.panels
 
 import android.annotation.SuppressLint
 import androidx.annotation.StringRes
@@ -51,9 +51,9 @@ import app.marlboroadvance.mpvex.presentation.components.SliderItem
 import app.marlboroadvance.mpvex.ui.player.controls.CARDS_MAX_WIDTH
 import app.marlboroadvance.mpvex.ui.player.controls.panelCardsColors
 import app.marlboroadvance.mpvex.ui.theme.spacing
-import com.github.k1rakishou.fsaf.FileManager
+import app.marlboroadvance.mpvex.utils.media.loadCustomFontEntries
 import com.yubyf.truetypeparser.TTFFile
-import `is`.xyz.mpv.MPVLib
+import com.cmstudio.apnaplayer.engine.PlayerBridge
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -68,7 +68,6 @@ import org.koin.compose.koinInject
 fun SubtitleSettingsTypographyCard(modifier: Modifier = Modifier) {
   val context = LocalContext.current
   val preferences = koinInject<SubtitlesPreferences>()
-  val fileManager = koinInject<FileManager>()
   var isExpanded by remember { mutableStateOf(true) }
   val fonts by remember { mutableStateOf(mutableListOf<String>("Default")) }
   var fontsLoadingIndicator: (@Composable () -> Unit)? by remember {
@@ -79,19 +78,8 @@ fun SubtitleSettingsTypographyCard(modifier: Modifier = Modifier) {
   }
   LaunchedEffect(Unit) {
     withContext(Dispatchers.IO) {
-      val fontsDir = fileManager.fromPath(context.filesDir.path + "/fonts")
-      if (fileManager.exists(fontsDir)) {
-        fonts.addAll(
-          fileManager
-            .listFiles(fontsDir)
-            .filter { fileManager.isFile(it) && fileManager.getName(it).lowercase().matches(".*\\.[ot]tf$".toRegex()) }
-            .mapNotNull {
-              runCatching {
-                TTFFile.open(fileManager.getInputStream(it) ?: return@mapNotNull null).families.values.first()
-              }.getOrNull()
-            }.distinct()
-        )
-      }
+      val customFonts = loadCustomFontEntries(context)
+      fonts.addAll(customFonts.map { it.familyName })
       fontsLoadingIndicator = null
     }
   }
@@ -111,20 +99,26 @@ fun SubtitleSettingsTypographyCard(modifier: Modifier = Modifier) {
     colors = panelCardsColors(),
   ) {
     Column {
-      val isBold by MPVLib.propBoolean["sub-bold"].collectAsState()
-      val isItalic by MPVLib.propBoolean["sub-italic"].collectAsState()
-      val mpvJustify by MPVLib.propString["sub-justify"].collectAsState()
-      val justify by remember {
-        derivedStateOf { SubtitleJustification.entries.first { it.value == mpvJustify } }
+      val isBold by PlayerBridge.propBoolean["sub-bold"].collectAsState()
+      val isItalic by PlayerBridge.propBoolean["sub-italic"].collectAsState()
+      val mpvJustify by PlayerBridge.propString["sub-justify"].collectAsState()
+      val justify by remember(mpvJustify) {
+        derivedStateOf {
+          SubtitleJustification.entries.firstOrNull { it.value == mpvJustify }
+            ?: SubtitleJustification.Auto
+        }
       }
-      val font by MPVLib.propString["sub-font"].collectAsState()
-      val fontSize by MPVLib.propInt["sub-font-size"].collectAsState()
-      val mpvBorderStyle by MPVLib.propString["sub-border-style"].collectAsState()
-      val borderStyle by remember {
-        derivedStateOf { SubtitlesBorderStyle.entries.first { it.value == mpvBorderStyle } }
+      val font by PlayerBridge.propString["sub-font"].collectAsState()
+      val fontSize by PlayerBridge.propInt["sub-font-size"].collectAsState()
+      val mpvBorderStyle by PlayerBridge.propString["sub-border-style"].collectAsState()
+      val borderStyle by remember(mpvBorderStyle) {
+        derivedStateOf {
+          SubtitlesBorderStyle.entries.firstOrNull { it.value == mpvBorderStyle }
+            ?: SubtitlesBorderStyle.OutlineAndShadow
+        }
       }
-      val borderSize by MPVLib.propInt["sub-outline-size"].collectAsState()
-      val shadowOffset by MPVLib.propInt["sub-shadow-offset"].collectAsState()
+      val borderSize by PlayerBridge.propInt["sub-outline-size"].collectAsState()
+      val shadowOffset by PlayerBridge.propInt["sub-shadow-offset"].collectAsState()
       Row(
         Modifier
           .fillMaxWidth()
@@ -136,7 +130,7 @@ fun SubtitleSettingsTypographyCard(modifier: Modifier = Modifier) {
           checked = isBold == true,
           onCheckedChange = {
             preferences.bold.set(it)
-            MPVLib.setPropertyBoolean("sub-bold", it)
+            PlayerBridge.setPropertyBoolean("sub-bold", it)
           },
         ) {
           Icon(
@@ -149,7 +143,7 @@ fun SubtitleSettingsTypographyCard(modifier: Modifier = Modifier) {
           checked = isItalic == true,
           onCheckedChange = {
             preferences.italic.set(it)
-            MPVLib.setPropertyBoolean("sub-italic", it)
+            PlayerBridge.setPropertyBoolean("sub-italic", it)
           },
         ) {
           Icon(
@@ -162,13 +156,13 @@ fun SubtitleSettingsTypographyCard(modifier: Modifier = Modifier) {
           IconToggleButton(
             checked = justify == justification,
             onCheckedChange = {
-              MPVLib.setPropertyBoolean("sub-ass-justify", it)
+              PlayerBridge.setPropertyBoolean("sub-ass-justify", it)
               if (it) {
                 preferences.justification.set(justification)
-                MPVLib.setPropertyString("sub-justify", justification.value)
+                PlayerBridge.setPropertyString("sub-justify", justification.value)
               } else {
                 preferences.justification.set(SubtitleJustification.Auto)
-                MPVLib.setPropertyString("sub-justify", SubtitleJustification.Auto.value)
+                PlayerBridge.setPropertyString("sub-justify", SubtitleJustification.Auto.value)
               }
             },
           ) {
@@ -205,8 +199,8 @@ fun SubtitleSettingsTypographyCard(modifier: Modifier = Modifier) {
           onValueChangedEvent = {
             val actualFont = if (it == "Default") "" else it
             preferences.font.set(actualFont)
-            MPVLib.setPropertyString("sub-font", actualFont)
-            MPVLib.setPropertyString("secondary-sub-font", actualFont)
+            PlayerBridge.setPropertyString("sub-font", actualFont)
+            PlayerBridge.setPropertyString("secondary-sub-font", actualFont)
           },
           leadingIcon = fontsLoadingIndicator,
         )
@@ -219,7 +213,7 @@ fun SubtitleSettingsTypographyCard(modifier: Modifier = Modifier) {
         valueText = fontSize.toString(),
         onChange = {
           preferences.fontSize.set(it)
-          MPVLib.setPropertyInt("sub-font-size", it)
+          PlayerBridge.setPropertyInt("sub-font-size", it)
         },
       ) {
         Icon(Icons.Default.FormatSize, null)
@@ -231,7 +225,7 @@ fun SubtitleSettingsTypographyCard(modifier: Modifier = Modifier) {
           borderStyle,
           onValueChange = {
             preferences.borderStyle.set(it)
-            MPVLib.setPropertyString("sub-border-style", it.value)
+            PlayerBridge.setPropertyString("sub-border-style", it.value)
           },
           title = { Text(stringResource(R.string.player_sheets_subtitles_border_style)) },
           valueToText = { AnnotatedString(context.getString(it.titleRes)) },
@@ -247,7 +241,7 @@ fun SubtitleSettingsTypographyCard(modifier: Modifier = Modifier) {
         valueText = (borderSize ?: preferences.borderSize.get()).toString(),
         onChange = {
           preferences.borderSize.set(it)
-          MPVLib.setPropertyInt("sub-outline-size", it)
+          PlayerBridge.setPropertyInt("sub-outline-size", it)
         },
         max = 20,
         icon = { Icon(Icons.Default.BorderColor, null) },
@@ -258,7 +252,7 @@ fun SubtitleSettingsTypographyCard(modifier: Modifier = Modifier) {
         valueText = (shadowOffset ?: preferences.shadowOffset.get()).toString(),
         onChange = {
           preferences.shadowOffset.set(it)
-          MPVLib.setPropertyInt("sub-shadow-offset", it)
+          PlayerBridge.setPropertyInt("sub-shadow-offset", it)
         },
         max = 100,
         icon = { Icon(painterResource(R.drawable.sharp_shadow_24), null) },
@@ -268,16 +262,16 @@ fun SubtitleSettingsTypographyCard(modifier: Modifier = Modifier) {
 }
 
 fun resetTypography(preferences: SubtitlesPreferences) {
-  MPVLib.setPropertyBoolean("sub-bold", preferences.bold.deleteAndGet())
-  MPVLib.setPropertyBoolean("sub-italic", preferences.italic.deleteAndGet())
-  MPVLib.setPropertyBoolean("sub-ass-justify", false)
-  MPVLib.setPropertyString("sub-justify", preferences.justification.deleteAndGet().value)
-  MPVLib.setPropertyString("sub-font", preferences.font.deleteAndGet())
-  MPVLib.setPropertyString("secondary-sub-font", preferences.font.get())
-  MPVLib.setPropertyInt("sub-font-size", preferences.fontSize.deleteAndGet())
-  MPVLib.setPropertyInt("sub-border-size", preferences.borderSize.deleteAndGet())
-  MPVLib.setPropertyInt("sub-shadow-offset", preferences.shadowOffset.deleteAndGet())
-  MPVLib.setPropertyString("sub-border-style", preferences.borderStyle.deleteAndGet().value)
+  PlayerBridge.setPropertyBoolean("sub-bold", preferences.bold.deleteAndGet())
+  PlayerBridge.setPropertyBoolean("sub-italic", preferences.italic.deleteAndGet())
+  PlayerBridge.setPropertyBoolean("sub-ass-justify", false)
+  PlayerBridge.setPropertyString("sub-justify", preferences.justification.deleteAndGet().value)
+  PlayerBridge.setPropertyString("sub-font", preferences.font.deleteAndGet())
+  PlayerBridge.setPropertyString("secondary-sub-font", preferences.font.get())
+  PlayerBridge.setPropertyInt("sub-font-size", preferences.fontSize.deleteAndGet())
+  PlayerBridge.setPropertyInt("sub-border-size", preferences.borderSize.deleteAndGet())
+  PlayerBridge.setPropertyInt("sub-shadow-offset", preferences.shadowOffset.deleteAndGet())
+  PlayerBridge.setPropertyString("sub-border-style", preferences.borderStyle.deleteAndGet().value)
 }
 
 enum class SubtitlesBorderStyle(

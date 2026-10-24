@@ -1,7 +1,9 @@
 package app.marlboroadvance.mpvex.ui.browser.cards
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -91,30 +93,53 @@ fun VideoCard(
   val showSizeChip = overrideShowSizeChip ?: showSizeChipPref
   val showResolutionChip = overrideShowResolutionChip ?: showResolutionChipPref
 
+  val containerTag = remember(video.displayName, video.path) {
+    val ext = (video.displayName.ifBlank { video.path }).substringAfterLast(".", "").uppercase()
+    if (ext in setOf("MKV", "MP4", "WEBM", "AVI", "MOV", "TS", "FLV", "M4V", "3GP", "WMV")) ext else null
+  }
+
+  val qualityBadge = remember(video.width, video.height, video.resolution) {
+    when {
+      video.height >= 2160 || video.width >= 3840 -> "4K"
+      video.height >= 1440 || video.width >= 2560 -> "2K"
+      video.height >= 1080 || video.width >= 1920 -> "1080p"
+      video.height >= 720 || video.width >= 1280 -> "720p"
+      video.height >= 480 || video.width >= 720 -> "480p"
+      else -> null
+    }
+  }
+
   Card(
     modifier = modifier
-      .then(
-        if (isGridMode) Modifier.fillMaxWidth() else Modifier.fillMaxWidth()
-      )
+      .fillMaxWidth()
+      .padding(horizontal = if (isGridMode) 4.dp else 8.dp, vertical = 4.dp)
       .combinedClickable(
         onClick = onClick,
         onLongClick = onLongClick,
       ),
-    colors = CardDefaults. cardColors(containerColor = Color. Transparent),
+    shape = RoundedCornerShape(16.dp),
+    colors = CardDefaults.cardColors(
+      containerColor = if (isSelected) {
+        MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.35f)
+      } else {
+        MaterialTheme.colorScheme.surfaceContainerLow
+      }
+    ),
+    border = BorderStroke(
+      width = 1.dp,
+      color = if (isSelected) {
+        MaterialTheme.colorScheme.primary
+      } else {
+        MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.22f)
+      }
+    ),
   ) {
     if (isGridMode) {
       // GRID LAYOUT - Vertical arrangement
       Column(
         modifier = Modifier
-          . fillMaxWidth()
-          .background(
-            if (isSelected) {
-              MaterialTheme.colorScheme.tertiary. copy(alpha = 0.3f)
-            } else {
-              Color. Transparent
-            },
-          )
-          .padding(12.dp),
+          .fillMaxWidth()
+          .padding(10.dp),
         horizontalAlignment = if (gridColumns == 1) Alignment.Start else Alignment.CenterHorizontally,
       ) {
         val thumbnailRepository = koinInject<ThumbnailRepository>()
@@ -161,8 +186,9 @@ fun VideoCard(
           modifier = Modifier
             .fillMaxWidth()
             .aspectRatio(aspect)
-            .clip(RoundedCornerShape(12.dp))
+            .clip(RoundedCornerShape(14.dp))
             .background(MaterialTheme.colorScheme.surfaceContainerHigh)
+            .border(0.5.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.25f), RoundedCornerShape(14.dp))
             .combinedClickable(
               onClick = onThumbClick,
               onLongClick = onLongClick,
@@ -195,16 +221,14 @@ fun VideoCard(
           }
 
           // Show "NEW" label for recently added unplayed videos if enabled (top-left corner).
-          // The age + unplayed check is already resolved by the ViewModel (isOldAndUnplayed),
-          // so we only need to check the preference toggle here.
           if (showUnplayedOldVideoLabel && isOldAndUnplayed) {
             Box(
               modifier =
                 Modifier
                   .align(Alignment.TopStart)
                   .padding(6.dp)
-                  .clip(RoundedCornerShape(4.dp))
-                  .background(Color(0xFFD32F2F)) // Warning red color
+                  .clip(RoundedCornerShape(6.dp))
+                  .background(Color(0xFFD32F2F))
                   .padding(horizontal = 8.dp, vertical = 3.dp),
             ) {
               Text(
@@ -217,19 +241,37 @@ fun VideoCard(
             }
           }
 
+          // Quality badge overlay (top-right corner)
+          if (qualityBadge != null) {
+            Box(
+              modifier =
+                Modifier
+                  .align(Alignment.TopEnd)
+                  .padding(6.dp)
+                  .clip(RoundedCornerShape(6.dp))
+                  .background(Color.Black.copy(alpha = 0.72f))
+                  .padding(horizontal = 6.dp, vertical = 2.dp),
+            ) {
+              Text(
+                text = qualityBadge,
+                style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
+                color = Color.White,
+              )
+            }
+          }
 
           // Duration overlay
           Box(
             modifier = Modifier
-              .align(Alignment. BottomEnd)
+              .align(Alignment.BottomEnd)
               .padding(6.dp)
-              .clip(RoundedCornerShape(4.dp))
-              .background(Color.Black.copy(alpha = 0.65f))
+              .clip(RoundedCornerShape(6.dp))
+              .background(Color.Black.copy(alpha = 0.75f))
               .padding(horizontal = 6.dp, vertical = 2.dp),
           ) {
             Text(
-              text = video. durationFormatted,
-              style = MaterialTheme.typography.labelSmall,
+              text = video.durationFormatted,
+              style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Medium),
               color = Color.White,
             )
           }
@@ -242,11 +284,11 @@ fun VideoCard(
                 .fillMaxWidth()
                 .height(4.dp),
             ) {
-              Box(modifier = Modifier.matchParentSize().background(Color.Black. copy(alpha = 0.6f)))
+              Box(modifier = Modifier.matchParentSize().background(Color.Black.copy(alpha = 0.6f)))
               Box(
                 modifier = Modifier
                   .fillMaxHeight()
-                  . fillMaxWidth(progressPercentage)
+                  .fillMaxWidth(progressPercentage)
                   .background(MaterialTheme.colorScheme.primary),
               )
             }
@@ -286,6 +328,19 @@ fun VideoCard(
             horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(4.dp),
             verticalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(4.dp)
           ) {
+            if (containerTag != null) {
+              Text(
+                containerTag,
+                style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
+                modifier = Modifier
+                  .background(
+                    MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.8f),
+                    RoundedCornerShape(8.dp),
+                  )
+                  .padding(horizontal = 8.dp, vertical = 4.dp),
+                color = MaterialTheme.colorScheme.onSecondaryContainer,
+              )
+            }
             if (showSubtitleIndicator) {
               if (video.hasEmbeddedSubtitles && video.subtitleCodec.isNotBlank()) {
                 video.subtitleCodec.split(" ").forEach { codec ->
@@ -375,13 +430,6 @@ fun VideoCard(
         modifier =
           Modifier
             .fillMaxWidth()
-            .background(
-              if (isSelected) {
-                MaterialTheme.colorScheme.tertiary.copy(alpha = 0.3f)
-              } else {
-                Color.Transparent
-              },
-            )
             .padding(12.dp),
         verticalAlignment = Alignment.CenterVertically,
       ) {
@@ -435,6 +483,7 @@ fun VideoCard(
               .aspectRatio(aspect)
               .clip(RoundedCornerShape(12.dp))
               .background(MaterialTheme.colorScheme.surfaceContainerHigh)
+              .border(0.5.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.25f), RoundedCornerShape(12.dp))
               .combinedClickable(
                 onClick = onThumbClick,
                 onLongClick = onLongClick,
@@ -489,6 +538,25 @@ fun VideoCard(
             }
           }
 
+          // Quality badge overlay (top-right corner)
+          if (qualityBadge != null) {
+            Box(
+              modifier =
+                Modifier
+                  .align(Alignment.TopEnd)
+                  .padding(6.dp)
+                  .clip(RoundedCornerShape(6.dp))
+                  .background(Color.Black.copy(alpha = 0.72f))
+                  .padding(horizontal = 6.dp, vertical = 2.dp),
+            ) {
+              Text(
+                text = qualityBadge,
+                style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
+                color = Color.White,
+              )
+            }
+          }
+
 
           // Duration timestamp overlay at bottom-right of the thumbnail
           Box(
@@ -496,13 +564,13 @@ fun VideoCard(
               Modifier
                 .align(Alignment.BottomEnd)
                 .padding(6.dp)
-                .clip(RoundedCornerShape(4.dp))
-                .background(Color.Black.copy(alpha = 0.65f))
+                .clip(RoundedCornerShape(6.dp))
+                .background(Color.Black.copy(alpha = 0.75f))
                 .padding(horizontal = 6.dp, vertical = 2.dp),
           ) {
             Text(
               text = video.durationFormatted,
-              style = MaterialTheme.typography.labelSmall,
+              style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Medium),
               color = Color.White,
             )
           }
@@ -544,7 +612,7 @@ fun VideoCard(
               MaterialTheme.typography.titleMedium
             } else {
               MaterialTheme.typography.titleSmall
-            }.let { baseStyle ->
+            }.copy(fontWeight = FontWeight.SemiBold).let { baseStyle ->
               if (isRecentlyPlayed) baseStyle.copy(fontStyle = FontStyle.Italic) else baseStyle
             },
             color = if (isRecentlyPlayed) {
@@ -559,22 +627,35 @@ fun VideoCard(
           )
           Spacer(modifier = Modifier.height(4.dp))
           FlowRow(
-            horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(4.dp),
+            horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(6.dp),
             verticalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(4.dp)
           ) {
+            if (containerTag != null) {
+              Text(
+                containerTag,
+                style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
+                modifier = Modifier
+                  .background(
+                    MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.8f),
+                    RoundedCornerShape(50),
+                  )
+                  .padding(horizontal = 8.dp, vertical = 3.dp),
+                color = MaterialTheme.colorScheme.onSecondaryContainer,
+              )
+            }
             if (showSubtitleIndicator) {
               if (video.hasEmbeddedSubtitles && video.subtitleCodec.isNotBlank()) {
                 video.subtitleCodec.split(" ").forEach { codec ->
                   Text(
                     text = codec,
-                    style = MaterialTheme.typography.labelSmall,
+                    style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.SemiBold),
                     modifier = Modifier
                       .background(
-                        MaterialTheme.colorScheme.primary,
-                        RoundedCornerShape(8.dp),
+                        MaterialTheme.colorScheme.primary.copy(alpha = 0.14f),
+                        RoundedCornerShape(50),
                       )
-                      .padding(horizontal = 8.dp, vertical = 4.dp),
-                    color = MaterialTheme.colorScheme.onPrimary,
+                      .padding(horizontal = 8.dp, vertical = 3.dp),
+                    color = MaterialTheme.colorScheme.primary,
                   )
                 }
               }
@@ -582,15 +663,15 @@ fun VideoCard(
             if (showSizeChip && video.sizeFormatted != "0 B" && video.sizeFormatted != "--") {
               Text(
                 video.sizeFormatted,
-                style = MaterialTheme.typography.labelSmall,
+                style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Medium),
                 modifier =
                   Modifier
                     .background(
-                      MaterialTheme.colorScheme.surfaceContainerHigh,
-                      RoundedCornerShape(8.dp),
+                      MaterialTheme.colorScheme.surfaceContainerHighest.copy(alpha = 0.7f),
+                      RoundedCornerShape(50),
                     )
-                    .padding(horizontal = 8.dp, vertical = 4.dp),
-                color = MaterialTheme.colorScheme.onSurface,
+                    .padding(horizontal = 8.dp, vertical = 3.dp),
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
               )
             }
             // Resolution and Framerate logic (List view)
@@ -607,45 +688,45 @@ fun VideoCard(
 
                 Text(
                   displayResolution,
-                  style = MaterialTheme.typography.labelSmall,
+                  style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
                   modifier =
                     Modifier
                       .background(
-                        MaterialTheme.colorScheme.surfaceContainerHigh,
-                        RoundedCornerShape(8.dp),
+                        MaterialTheme.colorScheme.primary.copy(alpha = 0.14f),
+                        RoundedCornerShape(50),
                       )
-                      .padding(horizontal = 8.dp, vertical = 4.dp),
-                  color = MaterialTheme.colorScheme.onSurface,
+                      .padding(horizontal = 8.dp, vertical = 3.dp),
+                  color = MaterialTheme.colorScheme.primary,
                 )
               }
             } else if (showFramerateInResolution && hasFps) {
               // Resolution is hidden, but framerate is enabled -> show only framerate
               Text(
                 "$fpsOnly FPS",
-                style = MaterialTheme.typography.labelSmall,
+                style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Medium),
                 modifier =
                   Modifier
                     .background(
-                      MaterialTheme.colorScheme.surfaceContainerHigh,
-                      RoundedCornerShape(8.dp),
+                      MaterialTheme.colorScheme.surfaceContainerHighest.copy(alpha = 0.7f),
+                      RoundedCornerShape(50),
                     )
-                    .padding(horizontal = 8.dp, vertical = 4.dp),
-                color = MaterialTheme.colorScheme.onSurface,
+                    .padding(horizontal = 8.dp, vertical = 3.dp),
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
               )
             }
             
             if (showDateChip && video.dateModified > 0) {
               Text(
                 formatDate(video.dateModified),
-                style = MaterialTheme.typography.labelSmall,
+                style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Medium),
                 modifier =
                   Modifier
                     .background(
-                      MaterialTheme.colorScheme.surfaceContainerHigh,
-                      RoundedCornerShape(8.dp),
+                      MaterialTheme.colorScheme.surfaceContainerHighest.copy(alpha = 0.7f),
+                      RoundedCornerShape(50),
                     )
-                    .padding(horizontal = 8.dp, vertical = 4.dp),
-                color = MaterialTheme.colorScheme.onSurface,
+                    .padding(horizontal = 8.dp, vertical = 3.dp),
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
               )
             }
           }

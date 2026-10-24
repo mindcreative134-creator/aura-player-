@@ -78,4 +78,10 @@ class PlayerPreferences(
     serializer = { it.toString() },
     deserializer = { it.toDoubleOrNull() ?: -1.0 }
   )
+
+  // Advanced Audio & Visual Immersion
+  val isAmbientGlowEnabled = preferenceStore.getBoolean("ambient_glow_enabled", false)
+  val ambientGlowIntensity = preferenceStore.getFloat("ambient_glow_intensity", 0.6f)
+  val dialogueEnhancer = preferenceStore.getBoolean("dialogue_enhancer", false)
+  val volumeBoostPercent = preferenceStore.getInt("volume_boost_percent", 0)
 }

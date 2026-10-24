@@ -1,4 +1,4 @@
-package app.marlboroadvance.mpvex.ui.player.controls.components.panels
+﻿package app.marlboroadvance.mpvex.ui.player.controls.components.panels
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -28,7 +28,7 @@ import app.marlboroadvance.mpvex.ui.player.FilterPreset
 import app.marlboroadvance.mpvex.ui.player.controls.CARDS_MAX_WIDTH
 import app.marlboroadvance.mpvex.ui.player.controls.panelCardsColors
 import app.marlboroadvance.mpvex.ui.theme.spacing
-import `is`.xyz.mpv.MPVLib
+import com.cmstudio.apnaplayer.engine.PlayerBridge
 import org.koin.compose.koinInject
 
 @OptIn(ExperimentalLayoutApi::class)
@@ -93,12 +93,12 @@ fun VideoSettingsFilterPresetsCard(modifier: Modifier = Modifier) {
               decoderPreferences.sharpnessFilter.set(preset.sharpness)
 
               // Apply to MPV
-              MPVLib.setPropertyInt("brightness", preset.brightness)
-              MPVLib.setPropertyInt("saturation", preset.saturation)
-              MPVLib.setPropertyInt("contrast", preset.contrast)
-              MPVLib.setPropertyInt("gamma", preset.gamma)
-              MPVLib.setPropertyInt("hue", preset.hue)
-              MPVLib.setPropertyInt("sharpen", preset.sharpness)
+              PlayerBridge.setPropertyInt("brightness", preset.brightness)
+              PlayerBridge.setPropertyInt("saturation", preset.saturation)
+              PlayerBridge.setPropertyInt("contrast", preset.contrast)
+              PlayerBridge.setPropertyInt("gamma", preset.gamma)
+              PlayerBridge.setPropertyInt("hue", preset.hue)
+              PlayerBridge.setPropertyInt("sharpen", preset.sharpness)
             },
             label = { Text(preset.displayName) },
             leadingIcon = null,

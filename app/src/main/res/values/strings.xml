@@ -1,5 +1,5 @@
 <resources>
-  <string name="app_name" translatable="false">mpvEx</string>
+  <string name="app_name" translatable="false">Aura Player</string>
   <string name="generic_reset">Reset</string>
   <string name="generic_share">Share</string>
   <string name="generic_confirm">Confirm</string>
@@ -88,12 +88,12 @@
   <string name="pref_export_settings_summary">Export settings to an XML file</string>
   <string name="pref_import_settings_title">Import Settings</string>
   <string name="pref_import_settings_summary">Import settings from an XML file</string>
-  <string name="pref_enable_lua_scripts_title">Enable Lua Scripts</string>
-  <string name="pref_enable_lua_scripts_summary">Load Lua scripts from configuration directory</string>
-  <string name="pref_manage_lua_scripts_title">Manage Lua Scripts</string>
-  <string name="pref_manage_lua_scripts_summary">Manage enabled Lua scripts</string>
-  <string name="pref_clear_config_cache_title">Clear config cache</string>
-  <string name="pref_clear_config_cache_summary">Clear the cached mpv.conf settings</string>
+  <string name="pref_enable_lua_scripts_title">Hardware Acceleration</string>
+  <string name="pref_enable_lua_scripts_summary">Use native MediaCodec decoders</string>
+  <string name="pref_manage_lua_scripts_title">Media Pipeline</string>
+  <string name="pref_manage_lua_scripts_summary">Hardware MediaCodec audio and video rendering</string>
+  <string name="pref_clear_config_cache_title">Clear engine cache</string>
+  <string name="pref_clear_config_cache_summary">Clear cached playback configuration</string>
   <string name="pref_clear_thumbnail_cache_title">Clear thumbnail cache</string>
   <string name="pref_clear_thumbnail_cache_summary">Delete all cached video thumbnails (will regenerate as you browse folders)</string>
   <string name="pref_layout_title">Player Layout</string>
@@ -153,35 +153,34 @@
   <string name="pref_gesture_double_tap_right_title">Double tap (right)</string>
   <string name="pref_gesture_use_single_tap_for_center_title">Use single tap for center gesture</string>
   <string name="pref_gesture_use_single_tap_for_center_summary">Use a single tap in the center for gestures (like play/pause) instead of a double tap.</string>
-  <string name="pref_gesture_view_title">View</string>
-  <string name="pref_gesture_double_tap_custom_info">You can bind custom actions to these gestures in input.conf using the following key codes:\n\nLeft: MBTN_LEFT_DBL\nCenter: MBTN_MID_DBL\nRight: MBTN_RIGHT_DBL</string>
+  <string name="pref_gesture_double_tap_custom_info">Custom gesture actions trigger seek, play/pause, or custom quick actions across screen zones (Left, Center, Right).</string>
   <string name="pref_gesture_media_title">Media controls</string>
   <string name="pref_gesture_media_previous">Previous</string>
   <string name="pref_gesture_media_play">Play/Pause</string>
   <string name="pref_gesture_media_next">Next</string>
-  <string name="pref_gesture_media_custom_info">You can bind custom actions to media controls in input.conf using the following key codes:\n\nPrevious: PREV\nPlay/Pause: PLAYPAUSE\nNext: NEXT</string>
+  <string name="pref_gesture_media_custom_info">Hardware media controls automatically bind to standard Android multimedia playback events.</string>
   <string name="pref_gesture_tap_thumbnail_to_select_title">Tap thumbnail to select</string>
   <string name="pref_gesture_tap_thumbnail_to_select_summary">When enabled, tapping on thumbnails enters selection mode. When disabled, tapping thumbnails plays the video.</string>
   <string name="pref_decoder">Decoder</string>
-  <string name="pref_decoder_summary">Hardware decoding, pixel format, debanding</string>
-  <string name="pref_decoder_profile_title">MPV Profile</string>
-  <string name="pref_decoder_try_hw_dec_title">Try hardware decoding</string>
-  <string name="pref_decoder_gpu_next_title">Use gpu-next</string>
-  <string name="pref_decoder_gpu_next_summary">A new rendering backend</string>
-  <string name="pref_decoder_gpu_next_enable_title">Enable gpu-next?</string>
-  <string name="pref_decoder_gpu_next_warning">Enabling gpu-next may cause purple screen issues during playback on some devices.</string>
-  <string name="pref_decoder_gpu_next_purple_screen_fix">If you experience purple screens, try to disable opengl-pbo in Advanced settings (mpv.conf):</string>
+  <string name="pref_decoder_summary">MediaCodec hardware decoding, buffer control, and audio offload</string>
+  <string name="pref_decoder_profile_title">Decoder Mode</string>
+  <string name="pref_decoder_try_hw_dec_title">Try hardware decoding (MediaCodec)</string>
+  <string name="pref_decoder_gpu_next_title">Audio Offload Pipeline</string>
+  <string name="pref_decoder_gpu_next_summary">Direct DSP audio routing to conserve battery and reduce latency</string>
+  <string name="pref_decoder_gpu_next_enable_title">Enable Audio Offload?</string>
+  <string name="pref_decoder_gpu_next_warning">Audio offload directs audio processing to dedicated DSP hardware.</string>
+  <string name="pref_decoder_gpu_next_purple_screen_fix">If playback has issues, disable audio offload in settings.</string>
   <string name="pref_decoder_gpu_next_enable_anyway">Enable Anyway</string>
-  <string name="pref_decoder_debanding_title">Debanding</string>
-  <string name="pref_decoder_vulkan_title">Use Vulkan</string>
-  <string name="pref_decoder_vulkan_summary">Enable Vulkan rendering on supported devices (may improve performance)</string>
-  <string name="pref_decoder_vulkan_not_supported">Not supported (requires Android 13+ with Vulkan 1.3)</string>
-  <string name="pref_decoder_yuv420p_title">Use YUV420P pixel format</string>
-  <string name="pref_decoder_yuv420p_summary">May fix black screens on some video codecs, can also improve performance at the cost of quality</string>
+  <string name="pref_decoder_debanding_title">Display Refresh Rate Sync</string>
+  <string name="pref_decoder_vulkan_title">Tunneling &amp; Direct Surface</string>
+  <string name="pref_decoder_vulkan_summary">Synchronized hardware surface output for smooth 60/120fps video</string>
+  <string name="pref_decoder_vulkan_not_supported">Not supported on this hardware platform</string>
+  <string name="pref_decoder_yuv420p_title">Decoder Fallback</string>
+  <string name="pref_decoder_yuv420p_summary">Automatically fallback to software decoders if hardware encounters unsupported streams</string>
   <string name="pref_subtitles">Subtitles</string>
   <string name="pref_subtitles_summary">Preferred languages, fonts and styling</string>
-  <string name="pref_custom_lua_title">Custom Lua Buttons</string>
-  <string name="pref_custom_lua_summary">Manage custom player buttons with Lua code</string>
+  <string name="pref_custom_lua_title">Player Controls</string>
+  <string name="pref_custom_lua_summary">Configure customized on-screen playback buttons</string>
   <string name="pref_preferred_languages">Preferred languages</string>
   <string name="pref_subtitles_fonts_dir">Fonts directory</string>
   <string name="pref_subtitles_autoload_title">Automatically load subtitles</string>
@@ -201,10 +200,10 @@
   <string name="pref_audio_preferred_language">Audio language(s) to be selected by default on a video with multiple audio streams, Two- or three-letter languages codes work. Multiple values can be delimited by comma.</string>
   <string name="pref_audio_volume_boost_cap">Volume boost cap</string>
   <string name="pref_advanced">Advanced</string>
-  <string name="pref_advanced_summary">Configuration location, mpv.conf</string>
-  <string name="pref_advanced_mpv_conf_storage_location">Pick configuration storage location</string>
-  <string name="pref_advanced_mpv_conf">Edit mpv.conf</string>
-  <string name="pref_advanced_input_conf">Edit input.conf</string>
+  <string name="pref_advanced_summary">Google Media3 ExoPlayer architecture, cache, and diagnostics</string>
+  <string name="pref_advanced_mpv_conf_storage_location">Configuration Backup Location</string>
+  <string name="pref_advanced_mpv_conf">Engine Configuration</string>
+  <string name="pref_advanced_input_conf">Media Telemetry</string>
   <string name="pref_advanced_dump_logs_title">Dump logs</string>
   <string name="pref_advanced_dump_logs_summary">Dumps and copies the logs to be shared with the developers</string>
   <string name="pref_advanced_verbose_logging_title">Verbose logging</string>
@@ -217,12 +216,12 @@
   <string name="pref_advanced_cleared_fonts_cache">Cleared cached fonts</string>
   <string name="pref_advanced_enable_recently_played_title">Recently Played</string>
   <string name="pref_advanced_enable_recently_played_summary">Track and display recently played videos and playlists</string>
-  <string name="pref_advanced_features_tooltip">Enable experimental or advanced features such as stats page and Anime4K upscaling</string>
-  <string name="pref_anime4k_title">Anime4K upscaling (Experimental)</string>
-  <string name="pref_anime4k_summary">Enable Anime4K upscaling filter</string>
-  <string name="pref_anime4k_incompatibility">Anime4K Incompatibility</string>
-  <string name="pref_anime4k_gpu_next_error">gpu-next is incompatible with Anime4K shaders. When Anime4K is enabled, the app will automatically use the legacy \'gpu\' backend for shader compatibility.</string>
-  <string name="pref_anime4k_cannot_use_with_gpu_next">Cannot use Anime4K when gpu-next is enabled</string>
+  <string name="pref_advanced_features_tooltip">Google Media3 ExoPlayer diagnostic and performance statistics</string>
+  <string name="pref_anime4k_title">Super-Resolution Upscaling (AI)</string>
+  <string name="pref_anime4k_summary">Enhanced texture clarity and sharp edge rendering</string>
+  <string name="pref_anime4k_incompatibility">Upscaler Incompatibility</string>
+  <string name="pref_anime4k_gpu_next_error">High-performance post-processing requires compatible GPU hardware acceleration.</string>
+  <string name="pref_anime4k_cannot_use_with_gpu_next">Cannot enable upscaler under current decoder profile</string>
   <string name="anime4k_mode_title">Anime4K Presets</string>
   <string name="anime4k_mode_toast">Anime4K: Preset %1$s</string>
   <string name="anime4k_quality_title">Anime4K Variants</string>
@@ -240,17 +239,8 @@
   <string name="anime4k_quality_balanced">Balanced</string>
   <string name="anime4k_quality_high">High</string>
   <string name="pref_about_title">About</string>
-  <string name="pref_about_summary">Acknowledgments, licenses</string>
+  <string name="pref_about_summary">App info, version, device details</string>
   <string name="pref_about_oss_libraries">Libraries</string>
-  <string name="pref_about_donate_title">Donate</string>
-  <string name="pref_about_donate_kofi">Ko-fi</string>
-  <string name="pref_about_donate_kofi_summary">Support the developer on Ko-fi</string>
-  <string name="pref_about_donate_kofi_url" translatable="false">https://ko-fi.com/adityanarvekar</string>
-  <string name="pref_about_donate_paypal">PayPal</string>
-  <string name="pref_about_donate_paypal_summary">Support the developer on PayPal</string>
-  <string name="pref_about_donate_paypal_url" translatable="false">https://paypal.me/aadinarvekar</string>
-  <string name="pref_about_donate_upi">UPI</string>
-  <string name="pref_about_donate_upi_id" translatable="false">aadiinarvekar@upi</string>
   <string name="player_sheets_add_ext_sub">Add external subtitles</string>
   <string name="player_sheets_add_ext_audio">Add external audio tracks</string>
   <string name="player_sheets_tracks_off">Off</string>
@@ -344,14 +334,14 @@
   <string name="toast_sleep_timer_ended">Sleep timer ended</string>
   <string name="toast_file_no_longer_exists">File no longer exists</string>
   <string name="volume_slider_absolute_value" translatable="false">%d</string>
-  <string name="github_repo_url" translatable="false">https://github.com/marlboro-advance/mpvex</string>
+  <string name="github_repo_url" translatable="false">https://github.com/apnaplayer/media</string>
   <string name="swap_the_volume_and_brightness_slider">Swap volume and brightness slider</string>
   <string name="pref_player_display_reduce_player_animation">Reduce player animation</string>
   <string name="pref_player_display_hide_player_control_time">Hide player control time</string>
   <string name="show_splash_ovals_on_double_tap_to_seek">Show ripple when double tap seeking</string>
   <string name="show_time_on_double_tap_to_seek">Show seek time</string>
   <string name="player_sheets_frame_navigation_title">Frame Navigation</string>
-  <string name="player_sheets_frame_navigation_snapshot_saved" translatable="false">Saved to Pictures/mpvSnaps</string>
+  <string name="player_sheets_frame_navigation_snapshot_saved" translatable="false">Saved to Pictures/ApnaPlayerSnaps</string>
   <string name="player_sheets_frame_navigation_include_subtitles">Include subtitles in snapshot</string>
   <string name="player_sheets_zoom_slider_label">Video Zoom</string>
   <plurals name="seconds">
@@ -457,8 +447,8 @@
   <string name="auto_picture_in_picture">Auto picture-in-picture</string>
   <string name="dynamic_speed_overlay">Dynamic speed overlay</string>
   <string name="show_navigation_bar_with_controls">Show navigation bar with controls</string>
-  <string name="enable_lua_scripts">Enable Lua scripts</string>
-  <string name="manage_lua_scripts">Manage Lua scripts</string>
+  <string name="enable_lua_scripts">Hardware Acceleration</string>
+  <string name="manage_lua_scripts">Media Pipeline</string>
   <string name="rename_playlist">Rename playlist</string>
   <string name="create_playlist">Create playlist</string>
   <string name="add_connection">Add connection</string>

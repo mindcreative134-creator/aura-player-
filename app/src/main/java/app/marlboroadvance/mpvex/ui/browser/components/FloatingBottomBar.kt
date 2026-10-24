@@ -17,6 +17,7 @@ import androidx.compose.material.icons.automirrored.filled.PlaylistAdd
 import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.DriveFileRenameOutline
+import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.Icon
@@ -40,12 +41,14 @@ fun BrowserBottomBar(
   onRenameClick: () -> Unit,
   onDeleteClick: () -> Unit,
   onAddToPlaylistClick: () -> Unit,
+  onHideToVaultClick: (() -> Unit)? = null,
   modifier: Modifier = Modifier,
   showCopy: Boolean = true,
   showMove: Boolean = true,
   showRename: Boolean = true,
   showDelete: Boolean = true,
   showAddToPlaylist: Boolean = true,
+  showHideToVault: Boolean = true,
 ) {
   AnimatedVisibility(
     visible = isSelectionMode,
@@ -141,6 +144,23 @@ fun BrowserBottomBar(
             contentDescription = "Delete",
             modifier = Modifier.size(24.dp)
           )
+        }
+
+        if (onHideToVaultClick != null && showHideToVault) {
+          FilledTonalIconButton(
+            onClick = onHideToVaultClick,
+            modifier = Modifier.size(50.dp),
+            colors = IconButtonDefaults.filledTonalIconButtonColors(
+              containerColor = MaterialTheme.colorScheme.tertiaryContainer,
+              contentColor = MaterialTheme.colorScheme.onTertiaryContainer
+            )
+          ) {
+            Icon(
+              Icons.Filled.Lock,
+              contentDescription = "Hide in Private Vault",
+              modifier = Modifier.size(24.dp)
+            )
+          }
         }
       }
     }

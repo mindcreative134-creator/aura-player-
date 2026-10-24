@@ -1,12 +1,17 @@
 package app.marlboroadvance.mpvex.ui.browser.components
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.PlaylistAdd
@@ -92,6 +97,7 @@ fun BrowserTopBar(
   onDeselectAll: (() -> Unit)? = null,
   additionalActions: @Composable RowScope.() -> Unit = { },
   onTitleLongPress: (() -> Unit)? = null,
+  onTitleDoubleTap: (() -> Unit)? = null,
   useRemoveIcon: Boolean = false,
   onAddToPlaylistClick: (() -> Unit)? = null,
 ) {
@@ -124,6 +130,7 @@ fun BrowserTopBar(
       additionalActions = additionalActions,
       modifier = modifier,
       onTitleLongPress = onTitleLongPress,
+      onTitleDoubleTap = onTitleDoubleTap,
     )
   }
 }
@@ -142,6 +149,7 @@ private fun NormalTopBar(
   additionalActions: @Composable RowScope.() -> Unit,
   modifier: Modifier = Modifier,
   onTitleLongPress: (() -> Unit)?,
+  onTitleDoubleTap: (() -> Unit)? = null,
 ) {
   val preferences = koinInject<AppearancePreferences>()
   val darkMode by preferences.darkMode.collectAsState()
@@ -186,7 +194,7 @@ private fun NormalTopBar(
         .onGloballyPositioned { coordinates ->
           titleBounds.value = coordinates.boundsInWindow()
         }
-        .pointerInput(onTitleLongPress) {
+        .pointerInput(onTitleLongPress, onTitleDoubleTap) {
           detectTapGestures(
             onTap = { localOffset ->
               // Don't allow theme change if animation is in progress
@@ -203,33 +211,65 @@ private fun NormalTopBar(
                 toggleDarkMode()
               }
             },
+            onDoubleTap = if (onTitleDoubleTap != null) {
+              { onTitleDoubleTap() }
+            } else null,
             onLongPress = if (onTitleLongPress != null) {
               { onTitleLongPress() }
             } else null
           )
         }
 
-      Text(
-        title,
-        style =
+      Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = titleModifier.then(
           if (onBackClick == null) {
-            MaterialTheme.typography.headlineMediumEmphasized
+            Modifier.padding(start = 4.dp)
           } else {
-            MaterialTheme.typography.headlineSmall
-          },
-        fontWeight = FontWeight.ExtraBold,
-        color = MaterialTheme.colorScheme.primary,
-        maxLines = 1,
-        overflow = TextOverflow.Ellipsis,
-        modifier =
-          titleModifier.then(
+            Modifier
+          }
+        )
+      ) {
+        if (onBackClick == null) {
+          // Apna Player branded icon badge
+          Box(
+            modifier = Modifier
+              .size(34.dp)
+              .clip(RoundedCornerShape(10.dp))
+              .background(
+                Brush.linearGradient(
+                  colors = listOf(
+                    MaterialTheme.colorScheme.primary,
+                    Color(0xFF00E5FF)
+                  )
+                )
+              ),
+            contentAlignment = Alignment.Center
+          ) {
+            Icon(
+              Icons.Filled.PlayArrow,
+              contentDescription = null,
+              modifier = Modifier.size(20.dp),
+              tint = Color.White
+            )
+          }
+          Spacer(modifier = Modifier.width(10.dp))
+        }
+
+        Text(
+          title,
+          style =
             if (onBackClick == null) {
-              Modifier.padding(start = 8.dp)
+              MaterialTheme.typography.titleLarge
             } else {
-              Modifier
+              MaterialTheme.typography.headlineSmall
             },
-          ),
-      )
+          fontWeight = FontWeight.Black,
+          color = MaterialTheme.colorScheme.primary,
+          maxLines = 1,
+          overflow = TextOverflow.Ellipsis,
+        )
+      }
     },
     navigationIcon = {
       if (onBackClick != null) {
@@ -267,7 +307,7 @@ private fun NormalTopBar(
           modifier = Modifier.padding(horizontal = 2.dp),
         ) {
           Icon(
-            Icons.Default.ViewComfy,
+            Icons.AutoMirrored.Filled.Sort,
             contentDescription = stringResource(R.string.sort),
             modifier = Modifier.size(24.dp),
             tint = MaterialTheme.colorScheme.secondary,

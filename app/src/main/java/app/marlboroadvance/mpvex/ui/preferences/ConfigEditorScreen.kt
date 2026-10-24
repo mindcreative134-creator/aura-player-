@@ -61,6 +61,8 @@ data class ConfigEditorScreen(
 ) : Screen {
 
   enum class ConfigType {
+    ENGINE_CONFIG,
+    MEDIA_TELEMETRY,
     MPV_CONF,
     INPUT_CONF
   }
@@ -74,12 +76,12 @@ data class ConfigEditorScreen(
     val scope        = rememberCoroutineScope()
 
     val (fileName, initialValue) = when (configType) {
-      ConfigType.MPV_CONF   -> "mpv.conf"   to preferences.mpvConf.get()
-      ConfigType.INPUT_CONF -> "input.conf" to preferences.inputConf.get()
+      ConfigType.ENGINE_CONFIG, ConfigType.MPV_CONF   -> "engine.properties" to preferences.engineConfig.get()
+      ConfigType.MEDIA_TELEMETRY, ConfigType.INPUT_CONF -> "telemetry.log" to preferences.telemetryConfig.get()
     }
     val screenTitle = when (configType) {
-      ConfigType.MPV_CONF   -> "Edit mpv.conf"
-      ConfigType.INPUT_CONF -> "Edit input.conf"
+      ConfigType.ENGINE_CONFIG, ConfigType.MPV_CONF   -> "Engine Configuration"
+      ConfigType.MEDIA_TELEMETRY, ConfigType.INPUT_CONF -> "Media Telemetry"
     }
 
     var configText       by remember { mutableStateOf(initialValue) }
@@ -108,8 +110,8 @@ data class ConfigEditorScreen(
       scope.launch(Dispatchers.IO) {
         try {
           when (configType) {
-            ConfigType.MPV_CONF   -> preferences.mpvConf.set(configText)
-            ConfigType.INPUT_CONF -> preferences.inputConf.set(configText)
+            ConfigType.ENGINE_CONFIG, ConfigType.MPV_CONF   -> preferences.engineConfig.set(configText)
+            ConfigType.MEDIA_TELEMETRY, ConfigType.INPUT_CONF -> preferences.telemetryConfig.set(configText)
           }
           File(context.filesDir, fileName).writeText(configText)
 

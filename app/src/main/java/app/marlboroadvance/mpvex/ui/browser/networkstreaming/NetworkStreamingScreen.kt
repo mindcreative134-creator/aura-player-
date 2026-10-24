@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
@@ -62,6 +63,12 @@ import app.marlboroadvance.mpvex.ui.browser.states.EmptyState
 import app.marlboroadvance.mpvex.ui.preferences.PreferencesScreen
 import app.marlboroadvance.mpvex.ui.utils.LocalBackStack
 import app.marlboroadvance.mpvex.utils.media.MediaUtils
+import android.widget.Toast
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.material.icons.outlined.FileDownload
+import androidx.compose.material3.SuggestionChip
+import androidx.compose.material3.SuggestionChipDefaults
+import app.marlboroadvance.mpvex.domain.download.ApnaDownloadManager
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 import org.koin.compose.koinInject
@@ -117,11 +124,11 @@ object NetworkStreamingScreen : Screen {
     Scaffold(
         topBar = {
           BrowserTopBar(
-            title = "Network",
+            title = "Stream & Network",
             isInSelectionMode = false,
             selectedCount = 0,
             totalCount = 0,
-            onBackClick = null, // No back button for network screen (root tab)
+            onBackClick = if (backstack.size > 1) { { backstack.removeLast() } } else null,
             onCancelSelection = { },
           onSortClick = null,
           // Search functionality disabled for production
@@ -290,12 +297,13 @@ private fun StreamLinkSection(
 ) {
   val context = LocalContext.current
   var linkUrl by rememberSaveable { mutableStateOf("") }
+  val downloadManager = remember(context) { ApnaDownloadManager.getInstance(context) }
 
   Column(
     modifier = Modifier.fillMaxWidth(),
   ) {
     Text(
-      text = "Stream Link",
+      text = "Stream or Download Link",
       style = MaterialTheme.typography.titleLarge,
       fontWeight = FontWeight.Bold,
       color = MaterialTheme.colorScheme.primary,
@@ -313,10 +321,10 @@ private fun StreamLinkSection(
         OutlinedTextField(
           value = linkUrl,
           onValueChange = { linkUrl = it },
-          label = { Text("Video URL") },
+          label = { Text("Stream / Media URL") },
           placeholder = {
             Text(
-              text = "https://example.com/video.mp4",
+              text = "https://... (m3u8, mp4, mkv, Jellyfin stream)",
               color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
           },
@@ -330,11 +338,32 @@ private fun StreamLinkSection(
           modifier = Modifier.fillMaxWidth(),
           singleLine = true,
         )
+
+        Spacer(modifier = Modifier.height(10.dp))
+
+        // Quick supported format pills
+        LazyRow(
+          horizontalArrangement = Arrangement.spacedBy(6.dp),
+          modifier = Modifier.fillMaxWidth(),
+        ) {
+          val formats = listOf("Live IPTV (.m3u8)", "MP4 / MKV", "Jellyfin / Emby", "DASH (.mpd)", "Audio (.mp3)")
+          items(formats) { fmt ->
+            SuggestionChip(
+              onClick = { },
+              label = { Text(fmt, style = MaterialTheme.typography.labelSmall) },
+              colors = SuggestionChipDefaults.suggestionChipColors(
+                containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+              ),
+            )
+          }
+        }
+
+        Spacer(modifier = Modifier.height(12.dp))
+
         Row(
-          modifier = Modifier
-            .fillMaxWidth()
-            .padding(top = 12.dp),
-          horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End),
+          modifier = Modifier.fillMaxWidth(),
+          horizontalArrangement = Arrangement.spacedBy(8.dp),
+          verticalAlignment = Alignment.CenterVertically,
         ) {
           FilledTonalButton(
             onClick = {
@@ -344,10 +373,12 @@ private fun StreamLinkSection(
               if (clipData != null && clipData.itemCount > 0) {
                 val text = clipData.getItemAt(0).text?.toString() ?: ""
                 if (text.isNotBlank()) {
-                  linkUrl = text
+                  linkUrl = text.trim()
                 }
               }
             },
+            modifier = Modifier.weight(1f),
+            contentPadding = PaddingValues(horizontal = 6.dp, vertical = 10.dp),
             colors = ButtonDefaults.filledTonalButtonColors(
               containerColor = MaterialTheme.colorScheme.secondaryContainer,
               contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
@@ -356,35 +387,73 @@ private fun StreamLinkSection(
             Icon(
               imageVector = Icons.Filled.ContentPaste,
               contentDescription = null,
-              modifier = Modifier.padding(end = 8.dp),
+              modifier = Modifier.size(18.dp),
             )
+            Spacer(modifier = Modifier.width(4.dp))
             Text(
               text = "Paste",
               fontWeight = FontWeight.Bold,
+              maxLines = 1,
             )
           }
 
           FilledTonalButton(
             onClick = {
-              if (linkUrl.isNotBlank()) {
-                onPlayLink(linkUrl)
+              val cleanUrl = linkUrl.trim()
+              if (cleanUrl.isNotBlank()) {
+                val filename = cleanUrl.substringAfterLast('/').substringBefore('?').ifBlank { "stream_download.mp4" }
+                downloadManager.enqueueDownload(url = cleanUrl, customName = filename)
+                Toast.makeText(context, "Added to Downloads: $filename", Toast.LENGTH_SHORT).show()
                 linkUrl = ""
               }
             },
             enabled = linkUrl.isNotBlank(),
+            modifier = Modifier.weight(1f),
+            contentPadding = PaddingValues(horizontal = 6.dp, vertical = 10.dp),
             colors = ButtonDefaults.filledTonalButtonColors(
-              containerColor = MaterialTheme.colorScheme.primaryContainer,
-              contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+              containerColor = MaterialTheme.colorScheme.tertiaryContainer,
+              contentColor = MaterialTheme.colorScheme.onTertiaryContainer,
+            ),
+          ) {
+            Icon(
+              imageVector = Icons.Outlined.FileDownload,
+              contentDescription = null,
+              modifier = Modifier.size(18.dp),
+            )
+            Spacer(modifier = Modifier.width(4.dp))
+            Text(
+              text = "Download",
+              fontWeight = FontWeight.Bold,
+              maxLines = 1,
+            )
+          }
+
+          Button(
+            onClick = {
+              val cleanUrl = linkUrl.trim()
+              if (cleanUrl.isNotBlank()) {
+                onPlayLink(cleanUrl)
+                linkUrl = ""
+              }
+            },
+            enabled = linkUrl.isNotBlank(),
+            modifier = Modifier.weight(1f),
+            contentPadding = PaddingValues(horizontal = 6.dp, vertical = 10.dp),
+            colors = ButtonDefaults.buttonColors(
+              containerColor = MaterialTheme.colorScheme.primary,
+              contentColor = MaterialTheme.colorScheme.onPrimary,
             ),
           ) {
             Icon(
               imageVector = Icons.Filled.PlayArrow,
               contentDescription = null,
-              modifier = Modifier.padding(end = 8.dp),
+              modifier = Modifier.size(18.dp),
             )
+            Spacer(modifier = Modifier.width(4.dp))
             Text(
-              text = "Play",
+              text = "Stream",
               fontWeight = FontWeight.Bold,
+              maxLines = 1,
             )
           }
         }
@@ -392,3 +461,4 @@ private fun StreamLinkSection(
     }
   }
 }
+

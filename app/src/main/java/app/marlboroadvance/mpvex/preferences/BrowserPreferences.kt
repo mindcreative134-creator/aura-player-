@@ -29,6 +29,8 @@ class BrowserPreferences(
 
   // Visibility preferences for video card chips
   val showVideoThumbnails = preferenceStore.getBoolean("show_video_thumbnails", true)
+  val showFolderThumbnails = preferenceStore.getBoolean("show_folder_thumbnails", false)
+  val showNetworkThumbnails = preferenceStore.getBoolean("show_network_thumbnails", true)
   val showSizeChip = preferenceStore.getBoolean("show_size_chip", true)
   // Metadata-dependent chips (disabled by default for better performance)
   val showResolutionChip = preferenceStore.getBoolean("show_resolution_chip", false)

@@ -43,6 +43,8 @@ import androidx.compose.material.icons.filled.RepeatOne
 import androidx.compose.material.icons.filled.ScreenRotation
 import androidx.compose.material.icons.filled.Shuffle
 import androidx.compose.material.icons.filled.ShuffleOn
+import androidx.compose.material.icons.filled.Cast
+import androidx.compose.material.icons.filled.Equalizer
 import androidx.compose.material.icons.filled.Speed
 import androidx.compose.material.icons.filled.Subtitles
 import androidx.compose.material.icons.filled.ZoomIn
@@ -54,6 +56,8 @@ import androidx.compose.material.icons.filled.Headset
 import androidx.compose.material.icons.filled.BlurOn
 import androidx.compose.material.icons.outlined.BlurOn
 import androidx.compose.material.icons.outlined.Autorenew
+import androidx.compose.material.icons.outlined.ContentCut
+import androidx.compose.material.icons.outlined.Hd
 import androidx.compose.ui.draw.rotate
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
@@ -818,15 +822,13 @@ fun RenderPlayerButton(
               .clickable(onClick = viewModel::toggleABLoopExpanded),
           ) {
             Box(contentAlignment = Alignment.Center) {
-              Icon(
-                imageVector = Icons.Outlined.Autorenew,
-                contentDescription = "AB Loop",
+              app.marlboroadvance.mpvex.ui.player.controls.components.AbLoopIcon(
                 tint = if (loopA != null && loopB != null) {
                   MaterialTheme.colorScheme.primary
                 } else {
                   if (hideBackground) controlColor else MaterialTheme.colorScheme.onSurface
                 },
-                modifier = Modifier.size(24.dp),
+                size = 24.dp,
               )
             }
           }
@@ -838,6 +840,49 @@ fun RenderPlayerButton(
       ControlsButton(
         icon = Icons.Default.Headset,
         onClick = { activity.triggerBackgroundPlayback() },
+        color = if (hideBackground) controlColor else MaterialTheme.colorScheme.onSurface,
+        modifier = Modifier.size(buttonSize),
+      )
+    }
+
+    PlayerButton.EQUALIZER -> {
+      ControlsButton(
+        icon = Icons.Default.Equalizer,
+        onClick = { onOpenSheet(Sheets.Equalizer) },
+        color = if (hideBackground) controlColor else MaterialTheme.colorScheme.onSurface,
+        modifier = Modifier.size(buttonSize),
+      )
+    }
+
+    PlayerButton.CAST -> {
+      ControlsButton(
+        icon = Icons.Default.Cast,
+        onClick = {
+          runCatching {
+            val intent = android.content.Intent("android.settings.CAST_SETTINGS")
+            activity.startActivity(intent)
+          }.onFailure {
+            android.widget.Toast.makeText(activity, "Cast: Open Quick Settings > Cast to connect to TV", android.widget.Toast.LENGTH_LONG).show()
+          }
+        },
+        color = if (hideBackground) controlColor else MaterialTheme.colorScheme.onSurface,
+        modifier = Modifier.size(buttonSize),
+      )
+    }
+
+    PlayerButton.VIDEO_QUALITY -> {
+      ControlsButton(
+        icon = Icons.Outlined.Hd,
+        onClick = { onOpenSheet(Sheets.VideoQuality) },
+        color = if (hideBackground) controlColor else MaterialTheme.colorScheme.onSurface,
+        modifier = Modifier.size(buttonSize),
+      )
+    }
+
+    PlayerButton.CLIP -> {
+      ControlsButton(
+        icon = Icons.Outlined.ContentCut,
+        onClick = { onOpenSheet(Sheets.VideoClip) },
         color = if (hideBackground) controlColor else MaterialTheme.colorScheme.onSurface,
         modifier = Modifier.size(buttonSize),
       )

@@ -58,7 +58,18 @@ enum class Decoder(
   ;
 
   companion object {
-    fun getDecoderFromValue(value: String): Decoder = Decoder.entries.first { it.value == value }
+    fun getDecoderFromValue(value: String): Decoder {
+      val trimmed = value.trim()
+      return Decoder.entries.firstOrNull { it.value.equals(trimmed, ignoreCase = true) }
+        ?: when (trimmed.lowercase()) {
+          "auto", "auto-safe", "yes" -> Auto
+          "auto-copy" -> AutoCopy
+          "mediacodec-copy" -> HW
+          "mediacodec" -> HWPlus
+          "no", "sw", "none", "software" -> SW
+          else -> HWPlus
+        }
+    }
   }
 }
 
@@ -70,7 +81,7 @@ enum class Debanding(
   GPU(R.string.player_sheets_deband_gpu),
 }
 
-enum class MPVProfile(
+enum class PlayerProfile(
   val displayName: String,
   val value: String,
 ) {
@@ -85,7 +96,7 @@ enum class MPVProfile(
   override fun toString(): String = displayName
 
   companion object {
-    fun fromValue(value: String): MPVProfile = entries.firstOrNull { it.value == value } ?: Fast
+    fun fromValue(value: String): PlayerProfile = entries.firstOrNull { it.value == value } ?: Fast
   }
 }
 
@@ -101,6 +112,15 @@ enum class Sheets {
   AspectRatios,
   Playlist,
   FrameNavigation,
+  OnlineSubtitleSearch,
+  Equalizer,
+  AiSubtitles,
+  Anime4kSettings,
+  Diagnostics,
+  Orientation,
+  FilterPresets,
+  VideoQuality,
+  VideoClip,
 }
 
 enum class Panels {
@@ -288,7 +308,7 @@ enum class FilterPreset(
 enum class VideoFilters(
   @StringRes val titleRes: Int,
   val preference: (DecoderPreferences) -> Preference<Int>,
-  val mpvProperty: String,
+  val engineProperty: String,
   val min: Int = -100,
   val max: Int = 100,
 ) {
@@ -320,7 +340,7 @@ enum class VideoFilters(
   SHARPNESS(
     titleRes = R.string.player_sheets_filters_sharpness,
     preference = { it.sharpnessFilter },
-    mpvProperty = "sharpen",
+    engineProperty = "sharpen",
     min = -5,
     max = 5,
   ),
@@ -329,7 +349,7 @@ enum class VideoFilters(
 enum class DebandSettings(
   @StringRes val titleRes: Int,
   val preference: (DecoderPreferences) -> Preference<Int>,
-  val mpvProperty: String,
+  val engineProperty: String,
   val start: Int,
   val end: Int,
 ) {

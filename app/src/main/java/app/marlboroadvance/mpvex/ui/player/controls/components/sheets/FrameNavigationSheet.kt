@@ -1,4 +1,4 @@
-package app.marlboroadvance.mpvex.ui.player.controls.components.sheets
+﻿package app.marlboroadvance.mpvex.ui.player.controls.components.sheets
 
 import android.content.Context
 import android.widget.Toast
@@ -17,12 +17,28 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CameraAlt
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.gestures.detectHorizontalDragGestures
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.filled.FastForward
 import androidx.compose.material.icons.filled.FastRewind
 import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.FilledTonalButton
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardColors
 import androidx.compose.material3.CardDefaults
@@ -56,7 +72,7 @@ import app.marlboroadvance.mpvex.preferences.PlayerPreferences
 import app.marlboroadvance.mpvex.preferences.preference.collectAsState
 import app.marlboroadvance.mpvex.presentation.components.PlayerSheet
 import app.marlboroadvance.mpvex.ui.theme.spacing
-import `is`.xyz.mpv.MPVLib
+import com.cmstudio.apnaplayer.engine.PlayerBridge
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -96,15 +112,15 @@ fun FrameNavigationSheet(
   val currentOnUpdateFrameInfo by rememberUpdatedState(onUpdateFrameInfo)
 
   // Use the same logic as PlayerControls for pause state
-  val paused by MPVLib.propBoolean["pause"].collectAsState()
+  val paused by PlayerBridge.propBoolean["pause"].collectAsState()
   val isPaused = paused ?: false
 
   // Remember the initial pause state when the sheet opens
   val wasPausedInitially = remember { isPaused }
 
   // Use the same logic as PlayerControls for position and duration
-  val position by MPVLib.propInt["time-pos"].collectAsState()
-  val duration by MPVLib.propInt["duration"].collectAsState()
+  val position by PlayerBridge.propInt["time-pos"].collectAsState()
+  val duration by PlayerBridge.propInt["duration"].collectAsState()
   val pos = position ?: 0
   val dur = duration ?: 0
 
@@ -149,7 +165,7 @@ fun FrameNavigationSheet(
               currentOnPause()
               delay(50)
             }
-            MPVLib.command("no-osd", "frame-back-step")
+            PlayerBridge.command("no-osd", "frame-back-step")
             delay(100)
             currentOnUpdateFrameInfo()
           }
@@ -163,7 +179,7 @@ fun FrameNavigationSheet(
               currentOnPause()
               delay(50)
             }
-            MPVLib.command("no-osd", "frame-step")
+            PlayerBridge.command("no-osd", "frame-step")
             delay(100)
             currentOnUpdateFrameInfo()
           }
@@ -298,6 +314,12 @@ private fun FrameNavigationCard(
           modifier = Modifier.fillMaxWidth(),
         )
       }
+
+      // Interactive Frame-by-Frame Jog Dial
+      FrameJogDial(
+        onPreviousFrame = onPreviousFrame,
+        onNextFrame = onNextFrame,
+      )
 
       // Define button colors to make disabled buttons look the same as enabled
       val buttonColors =
@@ -606,114 +628,86 @@ private suspend fun takeSnapshot(
 
       // Generate filename with timestamp
       val timestamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
-      val filename = "mpv_snapshot_$timestamp.png"
+      val filename = "apna_player_snapshot_$timestamp.png"
 
       // Create a temporary file first
       val tempFile = File(context.cacheDir, filename)
 
-      // Take screenshot using MPV to temp file, with or without subtitles
-      if (includeSubtitles) {
-        MPVLib.command("screenshot-to-file", tempFile.absolutePath, "subtitles")
-      } else {
-        MPVLib.command("screenshot-to-file", tempFile.absolutePath, "video")
-      }
-
-      // Wait a bit for MPV to finish writing the file
-      delay(200)
-
-      // Check if file was created
-      if (!tempFile.exists() || tempFile.length() == 0L) {
+      // Take real video screenshot via ExoPlayerHolder
+      val captured = com.cmstudio.apnaplayer.engine.ExoPlayerHolder.captureFrame(tempFile)
+      if (!captured || !tempFile.exists() || tempFile.length() == 0L) {
         withContext(Dispatchers.Main) {
-          Toast.makeText(context, "Failed to create screenshot", Toast.LENGTH_SHORT).show()
+          Toast.makeText(context, "Failed to capture video frame", Toast.LENGTH_SHORT).show()
         }
         return@withContext
       }
 
-      // Use different methods based on Android version
+      var savedSuccessfully = false
       if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q) {
-        // Android 10+ - Use MediaStore with RELATIVE_PATH
-        val contentValues =
-          android.content.ContentValues().apply {
-            put(android.provider.MediaStore.Images.Media.DISPLAY_NAME, filename)
-            put(android.provider.MediaStore.Images.Media.MIME_TYPE, "image/png")
-            put(
-              android.provider.MediaStore.Images.Media.RELATIVE_PATH,
-              "${android.os.Environment.DIRECTORY_PICTURES}/mpvSnaps",
-            )
-            put(android.provider.MediaStore.Images.Media.IS_PENDING, 1)
-          }
-
-        val resolver = context.contentResolver
-        val imageUri =
-          resolver.insert(
-            android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
-            contentValues,
-          )
-
-        if (imageUri != null) {
-          // Copy temp file to MediaStore
-          resolver.openOutputStream(imageUri)?.use { outputStream ->
-            tempFile.inputStream().use { inputStream ->
-              inputStream.copyTo(outputStream)
+        try {
+          val contentValues =
+            android.content.ContentValues().apply {
+              put(android.provider.MediaStore.Images.Media.DISPLAY_NAME, filename)
+              put(android.provider.MediaStore.Images.Media.MIME_TYPE, "image/png")
+              put(
+                android.provider.MediaStore.Images.Media.RELATIVE_PATH,
+                "${android.os.Environment.DIRECTORY_PICTURES}/ApnaPlayerSnaps",
+              )
+              put(android.provider.MediaStore.Images.Media.IS_PENDING, 1)
             }
+
+          val resolver = context.contentResolver
+          val imageUri =
+            resolver.insert(
+              android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+              contentValues,
+            )
+
+          if (imageUri != null) {
+            resolver.openOutputStream(imageUri)?.use { outputStream ->
+              tempFile.inputStream().use { inputStream ->
+                inputStream.copyTo(outputStream)
+              }
+            }
+
+            contentValues.clear()
+            contentValues.put(android.provider.MediaStore.Images.Media.IS_PENDING, 0)
+            resolver.update(imageUri, contentValues, null, null)
+            savedSuccessfully = true
           }
+        } catch (e: Exception) {
+          android.util.Log.w("FrameNavigationSheet", "MediaStore insert failed, falling back to direct write", e)
+        }
+      }
 
-          // Mark as finished
-          contentValues.clear()
-          contentValues.put(android.provider.MediaStore.Images.Media.IS_PENDING, 0)
-          resolver.update(imageUri, contentValues, null, null)
-
-          // Delete temp file
-          tempFile.delete()
-
-          // Show success toast
-          withContext(Dispatchers.Main) {
-            Toast
-              .makeText(
-                context,
-                context.getString(R.string.player_sheets_frame_navigation_snapshot_saved),
-                Toast.LENGTH_SHORT,
-              ).show()
-          }
+      if (!savedSuccessfully) {
+        val picturesDir = android.os.Environment.getExternalStoragePublicDirectory(android.os.Environment.DIRECTORY_PICTURES)
+        val snapshotsDir = File(picturesDir, "ApnaPlayerSnaps").apply { mkdirs() }
+        val destFile = if (snapshotsDir.exists() && snapshotsDir.canWrite()) {
+          File(snapshotsDir, filename)
         } else {
-          throw Exception("Failed to create MediaStore entry")
+          File(context.getExternalFilesDir(android.os.Environment.DIRECTORY_PICTURES) ?: context.filesDir, filename)
         }
-      } else {
-        // Android 9 and below - Use legacy external storage
-        val picturesDir =
-          android.os.Environment.getExternalStoragePublicDirectory(
-            android.os.Environment.DIRECTORY_PICTURES,
-          )
-        val snapshotsDir = File(picturesDir, "mpvSnaps")
-
-        // Create directory if it doesn't exist
-        if (!snapshotsDir.exists()) {
-          val created = snapshotsDir.mkdirs()
-          if (!created && !snapshotsDir.exists()) {
-            throw Exception("Failed to create mpvSnaps directory")
-          }
-        }
-
-        val destFile = File(snapshotsDir, filename)
         tempFile.copyTo(destFile, overwrite = true)
-        tempFile.delete()
-
-        // Notify media scanner about the new file
         android.media.MediaScannerConnection.scanFile(
           context,
           arrayOf(destFile.absolutePath),
           arrayOf("image/png"),
           null,
         )
+        savedSuccessfully = true
+      }
 
-        withContext(Dispatchers.Main) {
-          Toast
-            .makeText(
-              context,
-              context.getString(R.string.player_sheets_frame_navigation_snapshot_saved),
-              Toast.LENGTH_SHORT,
-            ).show()
-        }
+      if (tempFile.exists()) {
+        tempFile.delete()
+      }
+
+      withContext(Dispatchers.Main) {
+        Toast.makeText(
+          context,
+          context.getString(R.string.player_sheets_frame_navigation_snapshot_saved),
+          Toast.LENGTH_SHORT,
+        ).show()
       }
     } catch (e: Exception) {
       withContext(Dispatchers.Main) {
@@ -722,3 +716,121 @@ private suspend fun takeSnapshot(
     }
   }
 }
+
+@Composable
+private fun FrameJogDial(
+  onPreviousFrame: () -> Unit,
+  onNextFrame: () -> Unit,
+  modifier: Modifier = Modifier,
+) {
+  var dragAccumulator by remember { mutableFloatStateOf(0f) }
+  val haptic = LocalHapticFeedback.current
+
+  Column(
+    modifier = modifier
+      .fillMaxWidth()
+      .padding(vertical = 4.dp),
+    horizontalAlignment = Alignment.CenterHorizontally,
+  ) {
+    Row(
+      modifier = Modifier.fillMaxWidth(),
+      horizontalArrangement = Arrangement.SpaceBetween,
+      verticalAlignment = Alignment.CenterVertically,
+    ) {
+      Text(
+        text = "Jog Dial (Scrub)",
+        style = MaterialTheme.typography.labelSmall,
+        fontWeight = FontWeight.SemiBold,
+        color = MaterialTheme.colorScheme.primary,
+      )
+      Text(
+        text = "◀ Drag to step frames ▶",
+        style = MaterialTheme.typography.labelSmall,
+        color = MaterialTheme.colorScheme.outline,
+      )
+    }
+
+    Spacer(modifier = Modifier.height(4.dp))
+
+    // Interactive Drag Strip
+    Box(
+      modifier = Modifier
+        .fillMaxWidth()
+        .height(44.dp)
+        .clip(RoundedCornerShape(12.dp))
+        .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
+        .border(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f), RoundedCornerShape(12.dp))
+        .pointerInput(Unit) {
+          detectHorizontalDragGestures { change, dragAmount ->
+            change.consume()
+            dragAccumulator += dragAmount
+            val threshold = 18f
+            while (dragAccumulator >= threshold) {
+              onNextFrame()
+              haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+              dragAccumulator -= threshold
+            }
+            while (dragAccumulator <= -threshold) {
+              onPreviousFrame()
+              haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+              dragAccumulator += threshold
+            }
+          }
+        },
+      contentAlignment = Alignment.Center,
+    ) {
+      // Visual tick ruler
+      Canvas(modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp)) {
+        val totalTicks = 25
+        val spacing = size.width / (totalTicks - 1)
+        val centerY = size.height / 2f
+        for (i in 0 until totalTicks) {
+          val x = i * spacing
+          val isCenter = i == totalTicks / 2
+          val tickHeight = if (isCenter) size.height * 0.7f else if (i % 5 == 0) size.height * 0.45f else size.height * 0.25f
+          val stroke = if (isCenter) 2.5f else 1.2f
+          val tickColor = if (isCenter) Color(0xFFE50914) else Color.Gray.copy(alpha = 0.6f)
+          drawLine(
+            color = tickColor,
+            start = Offset(x, centerY - tickHeight / 2),
+            end = Offset(x, centerY + tickHeight / 2),
+            strokeWidth = stroke,
+          )
+        }
+      }
+    }
+
+    Spacer(modifier = Modifier.height(6.dp))
+
+    // Quick Multi-step Frame Chips
+    Row(
+      modifier = Modifier.fillMaxWidth(),
+      horizontalArrangement = Arrangement.spacedBy(4.dp),
+    ) {
+      FilledTonalButton(
+        onClick = { repeat(5) { onPreviousFrame() } },
+        modifier = Modifier.weight(1f),
+        contentPadding = PaddingValues(0.dp),
+      ) { Text("-5", style = MaterialTheme.typography.labelSmall) }
+
+      FilledTonalButton(
+        onClick = { onPreviousFrame() },
+        modifier = Modifier.weight(1f),
+        contentPadding = PaddingValues(0.dp),
+      ) { Text("-1", style = MaterialTheme.typography.labelSmall) }
+
+      FilledTonalButton(
+        onClick = { onNextFrame() },
+        modifier = Modifier.weight(1f),
+        contentPadding = PaddingValues(0.dp),
+      ) { Text("+1", style = MaterialTheme.typography.labelSmall) }
+
+      FilledTonalButton(
+        onClick = { repeat(5) { onNextFrame() } },
+        modifier = Modifier.weight(1f),
+        contentPadding = PaddingValues(0.dp),
+      ) { Text("+5", style = MaterialTheme.typography.labelSmall) }
+    }
+  }
+}
+

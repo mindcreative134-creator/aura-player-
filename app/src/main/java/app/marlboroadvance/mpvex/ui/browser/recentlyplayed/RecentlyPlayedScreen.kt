@@ -24,6 +24,7 @@ import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Link
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material3.CircularProgressIndicator
+import app.marlboroadvance.mpvex.presentation.components.ApnaLoadingAnimation
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.FloatingActionButtonMenu
@@ -221,7 +222,7 @@ object RecentlyPlayedScreen : Screen {
                   TooltipAnchorPosition.Above
                 }
               ),
-              tooltip = { PlainTooltip { Text("Toggle menu") } },
+              tooltip = { PlainTooltip { Text("Quick Actions") } },
               state = rememberTooltipState(),
             ) {
               ToggleFloatingActionButton(
@@ -240,7 +241,7 @@ object RecentlyPlayedScreen : Screen {
                 }
                 Icon(
                   painter = rememberVectorPainter(imageVector),
-                  contentDescription = null,
+                  contentDescription = "Quick Actions",
                   modifier = Modifier.animateIcon({ checkedProgress }),
                 )
               }
@@ -253,7 +254,7 @@ object RecentlyPlayedScreen : Screen {
               filePicker.launch(arrayOf("video/*"))
             },
             icon = { Icon(Icons.Filled.FileOpen, contentDescription = null) },
-            text = { Text(text = "Open File") },
+            text = { Text(text = "Open Video File") },
           )
 
           FloatingActionButtonMenuItem(
@@ -268,7 +269,7 @@ object RecentlyPlayedScreen : Screen {
               }
             },
             icon = { Icon(Icons.Filled.History, contentDescription = null) },
-            text = { Text(text = "Recently Played") },
+            text = { Text(text = "Play Recent Video") },
           )
 
           FloatingActionButtonMenuItem(
@@ -277,7 +278,7 @@ object RecentlyPlayedScreen : Screen {
               showLinkDialog.value = true
             },
             icon = { Icon(Icons.Filled.Link, contentDescription = null) },
-            text = { Text(text = "Open Link") },
+            text = { Text(text = "Open Network Stream") },
           )
         }
       },
@@ -305,9 +306,10 @@ object RecentlyPlayedScreen : Screen {
               .padding(padding),
             contentAlignment = Alignment.Center,
           ) {
-            CircularProgressIndicator(
-              modifier = Modifier.size(48.dp),
-              color = MaterialTheme.colorScheme.primary,
+            ApnaLoadingAnimation(
+              size = 80.dp,
+              title = "Loading history...",
+              subtitle = "Fetching recent playback"
             )
           }
         }

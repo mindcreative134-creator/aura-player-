@@ -156,12 +156,12 @@ fun PermissionDeniedState(
             Text(
               text = if (isPlayStoreBuild) {
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                  "mpvEx requires \"Photos and videos\" permission to access and play your video files stored on your device."
+                  "Apna Player requires \"Photos and videos\" permission to access and play your video files stored on your device."
                 } else {
-                  "mpvEx requires \"Storage\" permission to access and play your media files stored on your device."
+                  "Apna Player requires \"Storage\" permission to access and play your media files stored on your device."
                 }
               } else {
-                "mpvEx requires \"All file access\" permission to discover media and subtitles on your device due to a change in security policy in Android 11 and later versions."
+                "Apna Player requires \"All file access\" permission to discover media and subtitles on your device due to a change in security policy in Android 11 and later versions."
               },
               style = MaterialTheme.typography.bodyLarge,
               color = MaterialTheme.colorScheme.onSurface,
@@ -235,9 +235,6 @@ fun PermissionDeniedState(
 
   // Explanation Dialog
   if (showExplanationDialog) {
-    val uriHandler = LocalUriHandler.current
-    val githubUrl = "https://github.com/marlboro-advance/mpvex"
-
     AlertDialog(
       onDismissRequest = { showExplanationDialog = false },
       icon = {
@@ -265,7 +262,7 @@ fun PermissionDeniedState(
           if (isPlayStoreBuild) {
             // Play Store build explanation
             Text(
-              text = "mpvEx needs access to your video files to provide its core functionality as a media player.",
+              text = "Apna Player needs access to your video files to provide its core functionality as a media player.",
               style = MaterialTheme.typography.bodyMedium,
               color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
@@ -295,65 +292,23 @@ fun PermissionDeniedState(
           } else {
             // Standard build explanation
             Text(
-              text = "mpvEx has always required storage access permission as it's essential for the app to find all media and subtitle files on your device, including the ones that are not supported by the system.",
+              text = "Apna Player requires storage access permission as it's essential for the app to find all media and subtitle files on your device, including the ones that are not indexed by the system.",
               style = MaterialTheme.typography.bodyMedium,
               color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
 
             Text(
-              text = "However, due to a change in security policy, apps built for Android 11 and above now require additional permission to continue accessing the same.",
+              text = "Due to Android security policies, apps require explicit permission to access device media storage.",
               style = MaterialTheme.typography.bodyMedium,
               color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
 
             Text(
-              text = "Please know that this permission is only used for the auto-discovery of media/subtitle files on your device and will not allow us to access the private data files stored by other apps in any way.",
+              text = "Please know that this permission is only used for the local auto-discovery of media/subtitle files on your device and will never access private data files stored by other apps in any way.",
               style = MaterialTheme.typography.bodyMedium,
               color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
           }
-
-          Text(
-            text = "mpvEx is an open source project. You can review the source code and verify how permissions are used by visiting our GitHub repository at:",
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-          )
-
-          // Clickable GitHub link
-          val annotatedString =
-            buildAnnotatedString {
-              pushStringAnnotation(
-                tag = "URL",
-                annotation = githubUrl,
-              )
-              withStyle(
-                style =
-                  SpanStyle(
-                    color = MaterialTheme.colorScheme.primary,
-                    fontWeight = FontWeight.Medium,
-                    textDecoration = TextDecoration.Underline,
-                  ),
-              ) {
-                append(githubUrl)
-              }
-              pop()
-            }
-
-          ClickableText(
-            text = annotatedString,
-            style = MaterialTheme.typography.bodyMedium,
-            onClick = { offset ->
-              annotatedString
-                .getStringAnnotations(
-                  tag = "URL",
-                  start = offset,
-                  end = offset,
-                ).firstOrNull()
-                ?.let {
-                  uriHandler.openUri(it.item)
-                }
-            },
-          )
 
           Text(
             text = "Be rest assured, your privacy is our utmost priority, and we neither access your files for other purposes nor transfer or store them to our servers. They remain safe on your device.",

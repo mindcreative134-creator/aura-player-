@@ -20,7 +20,7 @@
 # hide the original source file name.
 #-renamesourcefileattribute SourceFile
 -dontobfuscate
--keep,allowoptimization class is.xyz.mpv.** { public protected *; }
+-keep,allowoptimization class com.cmstudio.apnaplayer.engine.** { public protected *; }
 -keep,allowoptimization class net.mediaarea.mediainfo.lib.** { public protected *; }
 -keepclassmembers class net.mediaarea.mediainfo.lib.** {
     native <methods>;
@@ -76,3 +76,20 @@
     java.lang.Object writeReplace();
     java.lang.Object readResolve();
 }
+
+# Koin rules
+-keep class org.koin.** { *; }
+-dontwarn org.koin.**
+
+# Kotlinx Serialization rules
+-dontnote kotlinx.serialization.**
+-keepclassmembers class * {
+    *** Companion;
+}
+-keepclasseswithmembers class * {
+    kotlinx.serialization.KSerializer serializer(...);
+}
+
+# AndroidX Media3 / ExoPlayer
+-keep class androidx.media3.** { *; }
+-dontwarn androidx.media3.**

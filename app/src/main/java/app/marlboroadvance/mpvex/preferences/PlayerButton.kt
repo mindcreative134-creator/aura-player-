@@ -25,6 +25,10 @@ import androidx.compose.material.icons.outlined.Shuffle
 import androidx.compose.material.icons.outlined.SwapVert
 import androidx.compose.material.icons.outlined.PlayCircle
 import androidx.compose.material.icons.outlined.Headset
+import androidx.compose.material.icons.outlined.Cast
+import androidx.compose.material.icons.outlined.Equalizer
+import androidx.compose.material.icons.outlined.ContentCut
+import androidx.compose.material.icons.outlined.Hd
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.vector.ImageVector
 
@@ -57,6 +61,10 @@ enum class PlayerButton(
   AB_LOOP(Icons.Outlined.Autorenew),
   CUSTOM_SKIP(Icons.Outlined.FastForward),
   BACKGROUND_PLAYBACK(Icons.Outlined.Headset),
+  CAST(Icons.Outlined.Cast),
+  EQUALIZER(Icons.Outlined.Equalizer),
+  VIDEO_QUALITY(Icons.Outlined.Hd),
+  CLIP(Icons.Outlined.ContentCut),
   NONE(Icons.Outlined.Bookmarks),
 }
 
@@ -100,5 +108,9 @@ fun getPlayerButtonLabel(button: PlayerButton): String =
     PlayerButton.AB_LOOP -> "A-B Loop"
     PlayerButton.CUSTOM_SKIP -> "Custom Skip"
     PlayerButton.BACKGROUND_PLAYBACK -> "Background Playback"
+    PlayerButton.CAST -> "Cast to TV"
+    PlayerButton.EQUALIZER -> "Audio Equalizer"
+    PlayerButton.VIDEO_QUALITY -> "Video Quality (HD)"
+    PlayerButton.CLIP -> "Clip / Trim Video"
     PlayerButton.NONE -> "None"
   }

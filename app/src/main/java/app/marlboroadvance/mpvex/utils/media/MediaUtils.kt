@@ -9,7 +9,7 @@ import app.marlboroadvance.mpvex.BuildConfig
 import app.marlboroadvance.mpvex.domain.media.model.Video
 import app.marlboroadvance.mpvex.ui.player.PlayerActivity
 import app.marlboroadvance.mpvex.utils.history.RecentlyPlayedOps
-import `is`.xyz.mpv.Utils
+import com.cmstudio.apnaplayer.engine.PlayerBridgeUtils
 import java.io.File
 
 /**
@@ -22,13 +22,13 @@ import java.io.File
  * - Creates Intent and launches PlayerActivity
  * - Handles Video objects, URI strings, and file paths
  *
- * **BaseMPVView.playFile()** - Low-level MPV control (library)
+ * **BasePlayerView.playFile()** - Low-level MPV control (library)
  * - Called internally by PlayerActivity.onCreate()
  * - **Do not call directly from UI code**
  *
  * ## Flow
  * ```
- * UI → MediaUtils.playFile() → Intent → PlayerActivity → BaseMPVView.playFile() → MPV
+ * UI → MediaUtils.playFile() → Intent → PlayerActivity → BasePlayerView.playFile() → MPV
  * ```
  *
  * ## Special Cases
@@ -146,7 +146,7 @@ object MediaUtils {
     url.toUri().let { uri ->
       val structureOk =
         uri.isHierarchical && !uri.isRelative && (!uri.host.isNullOrBlank() || !uri.path.isNullOrBlank())
-      structureOk && Utils.PROTOCOLS.contains(uri.scheme)
+      structureOk && PlayerBridgeUtils.PROTOCOLS.contains(uri.scheme)
     }
 
   /**

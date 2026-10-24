@@ -137,6 +137,117 @@ object AppearancePreferencesScreen : Screen {
                                 },
                                 enabled = darkMode != DarkMode.Light
                             )
+                            PreferenceDivider()
+
+                            val liquidGlassSurfaces by preferences.liquidGlassSurfaces.collectAsState()
+                            SwitchPreference(
+                                value = liquidGlassSurfaces,
+                                onValueChange = preferences.liquidGlassSurfaces::set,
+                                title = { Text("Liquid glass surfaces") },
+                                summary = {
+                                    Text(
+                                        text = "Use translucent, softly outlined surfaces across navigation bars and player controls",
+                                        color = MaterialTheme.colorScheme.outline,
+                                    )
+                                },
+                            )
+
+                            PreferenceDivider()
+
+                            val useSystemFont by preferences.useSystemFont.collectAsState()
+                            SwitchPreference(
+                                value = useSystemFont,
+                                onValueChange = preferences.useSystemFont::set,
+                                title = { Text("Use system font") },
+                                summary = {
+                                    Text(
+                                        text = "Display app interface using device's system default font",
+                                        color = MaterialTheme.colorScheme.outline,
+                                    )
+                                },
+                            )
+                        }
+                    }
+
+                    item {
+                        PreferenceSectionHeader(title = "Navigation Tabs")
+                    }
+
+                    item {
+                        PreferenceCard {
+                            val showHomeTab by preferences.showHomeTab.collectAsState()
+                            val showRecentsTab by preferences.showRecentsTab.collectAsState()
+                            val showPlaylistsTab by preferences.showPlaylistsTab.collectAsState()
+                            val showNetworkTab by preferences.showNetworkTab.collectAsState()
+                            val showMusicTab by preferences.showMusicTab.collectAsState()
+
+                            SwitchPreference(
+                                value = showHomeTab,
+                                onValueChange = preferences.showHomeTab::set,
+                                title = { Text("Folders & Videos") },
+                                summary = {
+                                    Text(
+                                        text = "Show local storage folders and video browser tab",
+                                        color = MaterialTheme.colorScheme.outline,
+                                    )
+                                },
+                            )
+
+                            PreferenceDivider()
+
+                            SwitchPreference(
+                                value = showRecentsTab,
+                                onValueChange = preferences.showRecentsTab::set,
+                                title = { Text("Recents") },
+                                summary = {
+                                    Text(
+                                        text = "Show recently played videos tab",
+                                        color = MaterialTheme.colorScheme.outline,
+                                    )
+                                },
+                            )
+
+                            PreferenceDivider()
+
+                            SwitchPreference(
+                                value = showPlaylistsTab,
+                                onValueChange = preferences.showPlaylistsTab::set,
+                                title = { Text("Playlists") },
+                                summary = {
+                                    Text(
+                                        text = "Show custom user playlists tab",
+                                        color = MaterialTheme.colorScheme.outline,
+                                    )
+                                },
+                            )
+
+                            PreferenceDivider()
+
+                            SwitchPreference(
+                                value = showNetworkTab,
+                                onValueChange = preferences.showNetworkTab::set,
+                                title = { Text("Network Streaming") },
+                                summary = {
+                                    Text(
+                                        text = "Show online streams, HLS, and network servers tab",
+                                        color = MaterialTheme.colorScheme.outline,
+                                    )
+                                },
+                            )
+
+                            PreferenceDivider()
+
+                            SwitchPreference(
+                                value = showMusicTab,
+                                onValueChange = preferences.showMusicTab::set,
+                                title = { Text("Music Library") },
+                                summary = {
+                                    Text(
+                                        text = "Show audio player and music library tab",
+                                        color = MaterialTheme.colorScheme.outline,
+                                    )
+                                },
+                            )
                         }
                     }
 
@@ -152,15 +263,46 @@ object AppearancePreferencesScreen : Screen {
                                 onValueChange = { preferences.unlimitedNameLines.set(it) },
                                 title = {
                                     Text(
-                                        text = stringResource(id = R.string.pref_appearance_unlimited_name_lines_title),
+                                        text = "Show full video name",
                                     )
                                 },
                                 summary = {
                                     Text(
-                                        text = stringResource(id = R.string.pref_appearance_unlimited_name_lines_summary),
+                                        text = "Display full video title across multiple lines without truncating",
                                         color = MaterialTheme.colorScheme.outline,
                                     )
                                 }
+                            )
+
+                            PreferenceDivider()
+
+                            val showVideoThumbnails by browserPreferences.showVideoThumbnails.collectAsState()
+                            SwitchPreference(
+                                value = showVideoThumbnails,
+                                onValueChange = { browserPreferences.showVideoThumbnails.set(it) },
+                                title = { Text("Show video thumbnails") },
+                                summary = {
+                                    Text(
+                                        text = "Generate and display video frame thumbnails in lists",
+                                        color = MaterialTheme.colorScheme.outline,
+                                    )
+                                }
+                            )
+
+                            PreferenceDivider()
+
+                            val showNetworkThumbnails by browserPreferences.showNetworkThumbnails.collectAsState()
+                            SwitchPreference(
+                                value = showNetworkThumbnails,
+                                onValueChange = { browserPreferences.showNetworkThumbnails.set(it) },
+                                title = { Text("Network thumbnails") },
+                                summary = {
+                                    Text(
+                                        text = "Fetch and show thumbnails for online and remote network media",
+                                        color = MaterialTheme.colorScheme.outline,
+                                    )
+                                },
+                                enabled = showVideoThumbnails,
                             )
 
                             PreferenceDivider()

@@ -16,12 +16,16 @@ import app.marlboroadvance.mpvex.ui.player.controls.components.sheets.AspectRati
 import app.marlboroadvance.mpvex.ui.player.controls.components.sheets.AudioTracksSheet
 import app.marlboroadvance.mpvex.ui.player.controls.components.sheets.ChaptersSheet
 import app.marlboroadvance.mpvex.ui.player.controls.components.sheets.DecodersSheet
+import app.marlboroadvance.mpvex.ui.player.controls.components.sheets.EqualizerSheet
 import app.marlboroadvance.mpvex.ui.player.controls.components.sheets.FrameNavigationSheet
 import app.marlboroadvance.mpvex.ui.player.controls.components.sheets.MoreSheet
 import app.marlboroadvance.mpvex.ui.player.controls.components.sheets.PlaybackSpeedSheet
 import app.marlboroadvance.mpvex.ui.player.controls.components.sheets.PlaylistSheet
+import app.marlboroadvance.mpvex.ui.player.controls.components.sheets.OnlineSubtitleSearchSheet
 import app.marlboroadvance.mpvex.ui.player.controls.components.sheets.SubtitlesSheet
 import app.marlboroadvance.mpvex.ui.player.controls.components.sheets.VideoZoomSheet
+import app.marlboroadvance.mpvex.ui.player.controls.components.sheets.VideoQualitySheet
+import app.marlboroadvance.mpvex.ui.player.controls.components.sheets.VideoClipSheet
 import dev.vivvvek.seeker.Segment
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.toImmutableList
@@ -127,6 +131,8 @@ fun PlayerSheets(
         onToggleSubtitle = onToggleSubtitle,
         isSubtitleSelected = isSubtitleSelected,
         onAddSubtitle = { showFilePicker = true },
+        onOpenOnlineSubtitleSearch = { onShowSheet(Sheets.OnlineSubtitleSearch) },
+        onOpenAiSubtitles = { onShowSheet(Sheets.AiSubtitles) },
         onRemoveSubtitle = onRemoveSubtitle,
         onOpenSubtitleSettings = { onOpenPanel(Panels.SubtitleSettings) },
         onOpenSubtitleDelay = { onOpenPanel(Panels.SubtitleDelay) },
@@ -152,13 +158,16 @@ fun PlayerSheets(
     }
 
     Sheets.Chapters -> {
-      if (chapter == null) return
-      ChaptersSheet(
-        chapters,
-        currentChapter = chapter,
-        onClick = { onSeekToChapter(chapters.indexOf(it)) },
-        onDismissRequest,
-      )
+      if (chapter == null) {
+        LaunchedEffect(Unit) { onDismissRequest() }
+      } else {
+        ChaptersSheet(
+          chapters,
+          currentChapter = chapter,
+          onClick = { onSeekToChapter(chapters.indexOf(it)) },
+          onDismissRequest,
+        )
+      }
     }
 
     Sheets.Decoders -> {
@@ -174,8 +183,49 @@ fun PlayerSheets(
         remainingTime = sleepTimerTimeRemaining,
         onStartTimer = onStartSleepTimer,
         onDismissRequest = onDismissRequest,
-        onEnterFiltersPanel = { onOpenPanel(Panels.VideoFilters) },
+        onEnterFiltersPanel = {
+          onDismissRequest()
+          onOpenPanel(Panels.VideoFilters)
+        },
+        onOpenEqualizer = {
+          onDismissRequest()
+          onShowSheet(Sheets.Equalizer)
+        },
+        onOpenFrameNavigation = {
+          onDismissRequest()
+          onShowSheet(Sheets.FrameNavigation)
+        },
+        onOpenAudioDelay = {
+          onDismissRequest()
+          onOpenPanel(Panels.AudioDelay)
+        },
+        onOpenSubtitleDelay = {
+          onDismissRequest()
+          onOpenPanel(Panels.SubtitleDelay)
+        },
+        onOpenSubtitleSettings = {
+          onDismissRequest()
+          onOpenPanel(Panels.SubtitleSettings)
+        },
+        onOpenOnlineSubtitles = {
+          onDismissRequest()
+          onShowSheet(Sheets.OnlineSubtitleSearch)
+        },
+        onOpenABLoop = {
+          onDismissRequest()
+          viewModel.toggleABLoopExpanded()
+        },
+        onOpenDiagnostics = {
+          onDismissRequest()
+          onShowSheet(Sheets.Diagnostics)
+        },
         onAnime4KChanged = { },
+      )
+    }
+
+    Sheets.Equalizer -> {
+      EqualizerSheet(
+        onDismissRequest = onDismissRequest,
       )
     }
 
@@ -289,7 +339,66 @@ fun PlayerSheets(
           isM3UPlaylist = isM3U,
           playerPreferences = playerPreferences,
         )
+      } else {
+        LaunchedEffect(Unit) {
+          onDismissRequest()
+        }
       }
     }
+
+    Sheets.OnlineSubtitleSearch -> {
+      OnlineSubtitleSearchSheet(
+        mediaTitle = viewModel.currentMediaTitle,
+        onDismissRequest = onDismissRequest,
+        onSubtitleSelected = { uri ->
+          viewModel.addSubtitle(uri, select = true)
+        }
+      )
+    }
+
+    Sheets.AiSubtitles -> {
+      app.marlboroadvance.mpvex.ui.player.controls.components.sheets.AiSubtitleSheet(
+        isOpen = true,
+        onDismissRequest = onDismissRequest,
+        currentSubtitleFile = null,
+        currentAudioFile = null,
+        onSubtitleGenerated = { file ->
+          viewModel.addSubtitle(android.net.Uri.fromFile(file), select = true)
+        }
+      )
+    }
+
+    Sheets.Diagnostics -> {
+      app.marlboroadvance.mpvex.ui.player.controls.components.sheets.DiagnosticsSheet(
+        onDismissRequest = onDismissRequest,
+      )
+    }
+
+    Sheets.Orientation -> {
+      app.marlboroadvance.mpvex.ui.player.controls.components.sheets.OrientationSheet(
+        onDismissRequest = onDismissRequest,
+      )
+    }
+
+    Sheets.FilterPresets -> {
+      app.marlboroadvance.mpvex.ui.player.controls.components.sheets.FilterPresetsSheet(
+        onDismissRequest = onDismissRequest,
+      )
+    }
+
+    Sheets.VideoQuality -> {
+      VideoQualitySheet(
+        viewModel = viewModel,
+        onDismissRequest = onDismissRequest,
+      )
+    }
+
+    Sheets.VideoClip -> {
+      VideoClipSheet(
+        viewModel = viewModel,
+        onDismissRequest = onDismissRequest,
+      )
+    }
+    else -> {}
   }
 }

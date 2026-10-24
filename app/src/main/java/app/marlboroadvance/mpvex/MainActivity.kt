@@ -40,7 +40,7 @@ import app.marlboroadvance.mpvex.utils.update.UpdateDialog
 import app.marlboroadvance.mpvex.utils.update.UpdateViewModel
 import app.marlboroadvance.mpvex.ui.browser.MainScreen
 import app.marlboroadvance.mpvex.ui.theme.DarkMode
-import app.marlboroadvance.mpvex.ui.theme.MpvexTheme
+import app.marlboroadvance.mpvex.ui.theme.ApnaPlayerTheme
 import app.marlboroadvance.mpvex.ui.utils.LocalBackStack
 import app.marlboroadvance.mpvex.utils.permission.PermissionUtils
 import kotlinx.coroutines.CoroutineScope
@@ -92,7 +92,7 @@ class MainActivity : ComponentActivity() {
         autoConnectToNetworks()
       }
 
-      MpvexTheme {
+      ApnaPlayerTheme {
         Surface {
           Navigator()
         }

@@ -33,6 +33,7 @@ import androidx.compose.material.icons.outlined.SwapVert
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import app.marlboroadvance.mpvex.presentation.components.ApnaLoadingAnimation
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -569,9 +570,10 @@ private fun PlaylistVideoListContent(
         modifier = modifier.fillMaxSize(),
         contentAlignment = Alignment.Center,
       ) {
-        CircularProgressIndicator(
-          modifier = Modifier.size(48.dp),
-          color = MaterialTheme.colorScheme.primary,
+        ApnaLoadingAnimation(
+          size = 80.dp,
+          title = "Loading playlist...",
+          subtitle = "Fetching playlist videos"
         )
       }
     }

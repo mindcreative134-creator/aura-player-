@@ -291,6 +291,29 @@ object MediaFileRepository {
       }
     }
 
+  suspend fun getFirstVideoInFolder(
+    context: Context,
+    bucketId: String,
+  ): Video? =
+    withContext(Dispatchers.IO) {
+      try {
+        val videos = VideoScanUtils.getVideosInFolder(context, bucketId)
+        videos.firstOrNull()
+      } catch (e: Exception) {
+        null
+      }
+    }
+
+  suspend fun getAllVideos(context: Context): List<Video> =
+    withContext(Dispatchers.IO) {
+      val folders = getAllVideoFolders(context)
+      val result = mutableListOf<Video>()
+      for (folder in folders) {
+        runCatching { result += getVideosInFolder(context, folder.path) }
+      }
+      result.distinctBy { it.path }.sortedBy { it.displayName.lowercase(Locale.getDefault()) }
+    }
+
   suspend fun getVideosForBuckets(
     context: Context,
     bucketIds: Set<String>,

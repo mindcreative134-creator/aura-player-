@@ -3,12 +3,10 @@ package app.marlboroadvance.mpvex
 import android.app.Application
 import app.marlboroadvance.mpvex.database.repository.VideoMetadataCacheRepository
 import app.marlboroadvance.mpvex.di.DatabaseModule
-import app.marlboroadvance.mpvex.di.FileManagerModule
 import app.marlboroadvance.mpvex.di.PreferencesModule
 import app.marlboroadvance.mpvex.presentation.crash.CrashActivity
 import app.marlboroadvance.mpvex.presentation.crash.GlobalExceptionHandler
 import app.marlboroadvance.mpvex.utils.media.MediaLibraryEvents
-import `is`.xyz.mpv.FastThumbnails
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -32,14 +30,13 @@ class App : Application() {
       modules(
         PreferencesModule,
         DatabaseModule,
-        FileManagerModule,
         app.marlboroadvance.mpvex.di.domainModule,
+        app.marlboroadvance.mpvex.di.musicModule,
       )
     }
 
-    Thread.setDefaultUncaughtExceptionHandler(GlobalExceptionHandler(applicationContext, CrashActivity::class.java))
 
-    FastThumbnails.initialize(this)
+    Thread.setDefaultUncaughtExceptionHandler(GlobalExceptionHandler(applicationContext, CrashActivity::class.java))
 
     // Perform cache maintenance on app startup (non-blocking)
     applicationScope.launch {
@@ -48,9 +45,10 @@ class App : Application() {
       }
     }
     
-    // Trigger media scan on app launch to detect new videos
+    // Trigger media scan on app launch (delayed by 5s to eliminate cold-start frame drops)
     applicationScope.launch {
       runCatching {
+        kotlinx.coroutines.delay(5000)
         triggerMediaScanOnLaunch()
       }
     }

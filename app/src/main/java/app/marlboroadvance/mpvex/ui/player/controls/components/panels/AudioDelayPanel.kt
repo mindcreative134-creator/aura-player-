@@ -1,4 +1,4 @@
-@file:Suppress("ktlint:standard:no-wildcard-imports")
+﻿@file:Suppress("ktlint:standard:no-wildcard-imports")
 
 package app.marlboroadvance.mpvex.ui.player.controls.components.panels
 
@@ -30,7 +30,7 @@ import androidx.constraintlayout.compose.ConstraintLayout
 import app.marlboroadvance.mpvex.R
 import app.marlboroadvance.mpvex.preferences.AudioPreferences
 import app.marlboroadvance.mpvex.ui.theme.spacing
-import `is`.xyz.mpv.MPVLib
+import com.cmstudio.apnaplayer.engine.PlayerBridge
 import org.koin.compose.koinInject
 import kotlin.math.roundToInt
 
@@ -47,17 +47,17 @@ fun AudioDelayPanel(
       AudioDelayCardTitle(onClose = onDismissRequest)
     }
   ) {
-    val delay by MPVLib.propDouble["audio-delay"].collectAsState()
+    val delay by PlayerBridge.propDouble["audio-delay"].collectAsState()
     val delayFloat by remember { derivedStateOf { (delay ?: 0.0).toFloat() } }
 
     DelayCard(
       delay = delayFloat,
       onDelayChange = {
         val delayInSeconds = it.toDouble()
-        MPVLib.setPropertyDouble("audio-delay", delayInSeconds)
+        PlayerBridge.setPropertyDouble("audio-delay", delayInSeconds)
       },
       onApply = { preferences.defaultAudioDelay.set((delayFloat * 1000).roundToInt()) },
-      onReset = { MPVLib.setPropertyDouble("audio-delay", 0.0) },
+      onReset = { PlayerBridge.setPropertyDouble("audio-delay", 0.0) },
       delayType = DelayType.Audio,
     )
   }

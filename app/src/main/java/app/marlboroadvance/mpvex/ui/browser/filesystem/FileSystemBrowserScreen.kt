@@ -40,6 +40,7 @@ import androidx.compose.material.icons.filled.SwapVert
 import androidx.compose.material.icons.filled.Title
 import androidx.compose.material.icons.filled.ViewModule
 import androidx.compose.material3.CircularProgressIndicator
+import app.marlboroadvance.mpvex.presentation.components.ApnaLoadingAnimation
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.FloatingActionButtonMenu
 import androidx.compose.material3.FloatingActionButtonMenuItem
@@ -651,7 +652,7 @@ fun FileSystemBrowserScreen(path: String? = null) {
                     TooltipAnchorPosition.Above
                   }
                 ),
-                tooltip = { PlainTooltip { Text("Toggle menu") } },
+                tooltip = { PlainTooltip { Text("Quick Actions") } },
                 state = rememberTooltipState(),
               ) {
                 ToggleFloatingActionButton(
@@ -670,7 +671,7 @@ fun FileSystemBrowserScreen(path: String? = null) {
                   }
                   Icon(
                     painter = rememberVectorPainter(imageVector),
-                    contentDescription = null,
+                    contentDescription = "Quick Actions",
                     modifier = Modifier.animateIcon({ checkedProgress }),
                   )
                 }
@@ -683,7 +684,7 @@ fun FileSystemBrowserScreen(path: String? = null) {
                 filePicker.launch(arrayOf("video/*"))
               },
               icon = { Icon(Icons.Filled.FileOpen, contentDescription = null) },
-              text = { Text(text = "Open File") },
+              text = { Text(text = "Open Video File") },
             )
 
             FloatingActionButtonMenuItem(
@@ -698,7 +699,7 @@ fun FileSystemBrowserScreen(path: String? = null) {
                 }
               },
               icon = { Icon(Icons.Filled.History, contentDescription = null) },
-              text = { Text(text = "Recently Played") },
+              text = { Text(text = "Play Recent Video") },
             )
 
             FloatingActionButtonMenuItem(
@@ -707,7 +708,7 @@ fun FileSystemBrowserScreen(path: String? = null) {
                 showLinkDialog.value = true
               },
               icon = { Icon(Icons.Filled.Link, contentDescription = null) },
-              text = { Text(text = "Open Link") },
+              text = { Text(text = "Open Network Stream") },
             )
           }
         }
@@ -1068,9 +1069,10 @@ private fun FileSystemBrowserContent(
           .padding(bottom = 80.dp), // Account for bottom navigation bar
         contentAlignment = Alignment.Center,
       ) {
-        CircularProgressIndicator(
-          modifier = Modifier.size(48.dp),
-          color = MaterialTheme.colorScheme.primary,
+        ApnaLoadingAnimation(
+          size = 80.dp,
+          title = "Loading files...",
+          subtitle = "Scanning directory contents"
         )
       }
     }

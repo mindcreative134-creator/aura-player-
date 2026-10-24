@@ -205,12 +205,16 @@ private fun ThemeTransitionContent(content: @Composable () -> Unit) {
 // Main Theme
 // ============================================================================
 
+val LocalLiquidGlassEnabled = staticCompositionLocalOf { false }
+
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-fun MpvexTheme(content: @Composable () -> Unit) {
+fun ApnaPlayerTheme(content: @Composable () -> Unit) {
     val preferences = koinInject<AppearancePreferences>()
     val darkMode by preferences.darkMode.collectAsState()
     val amoledMode by preferences.amoledMode.collectAsState()
+    val liquidGlassSurfaces by preferences.liquidGlassSurfaces.collectAsState()
+    val useSystemFont by preferences.useSystemFont.collectAsState()
     val appTheme by preferences.appTheme.collectAsState()
     val darkTheme = isSystemInDarkTheme()
     val context = LocalContext.current
@@ -250,11 +254,12 @@ fun MpvexTheme(content: @Composable () -> Unit) {
     CompositionLocalProvider(
         LocalSpacing provides Spacing(),
         LocalThemeTransitionState provides rememberThemeTransitionState(),
+        LocalLiquidGlassEnabled provides liquidGlassSurfaces,
     ) {
         ThemeTransitionContent {
             MaterialTheme(
                 colorScheme = colorScheme,
-                typography = AppTypography,
+                typography = if (useSystemFont) SystemTypography else AppTypography,
                 content = content,
                 motionScheme = MotionScheme.expressive(),
             )

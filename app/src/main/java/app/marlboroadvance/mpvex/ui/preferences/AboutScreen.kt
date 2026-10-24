@@ -1,6 +1,5 @@
 package app.marlboroadvance.mpvex.ui.preferences
 
-import android.content.Intent
 import android.content.pm.PackageManager
 import android.widget.ImageView
 import android.widget.Toast
@@ -25,11 +24,18 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.AccountBalance
-import androidx.compose.material.icons.filled.CurrencyRupee
+import androidx.compose.material.icons.filled.Bolt
+import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.HighQuality
 import androidx.compose.material.icons.filled.Info
-import androidx.compose.material.icons.filled.MonetizationOn
+import androidx.compose.material.icons.filled.Memory
+import androidx.compose.material.icons.filled.Security
+import androidx.compose.material.icons.filled.Speed
+import androidx.compose.material.icons.filled.Subtitles
+import androidx.compose.material.icons.filled.Tune
 import androidx.compose.material.icons.filled.Update
+import androidx.compose.material.icons.filled.VolumeUp
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -38,11 +44,15 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawWithCache
@@ -56,8 +66,6 @@ import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.core.net.toUri
 import androidx.lifecycle.viewmodel.compose.viewModel
 import app.marlboroadvance.mpvex.BuildConfig
 import app.marlboroadvance.mpvex.R
@@ -65,8 +73,6 @@ import app.marlboroadvance.mpvex.presentation.Screen
 import app.marlboroadvance.mpvex.presentation.crash.CrashActivity.Companion.collectDeviceInfo
 import app.marlboroadvance.mpvex.ui.utils.LocalBackStack
 import app.marlboroadvance.mpvex.utils.update.UpdateViewModel
-import com.mikepenz.aboutlibraries.ui.compose.m3.LibrariesContainer
-import com.mikepenz.aboutlibraries.ui.compose.produceLibraries
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.serialization.Serializable
 
@@ -84,28 +90,14 @@ object AboutScreen : Screen {
     val versionName = packageInfo.versionName?.substringBefore('-') ?: packageInfo.versionName ?: BuildConfig.VERSION_NAME
     val buildType = BuildConfig.BUILD_TYPE
 
-    // Conditionally initialize update feature based on build config
-    val updateViewModel: UpdateViewModel? = if (BuildConfig.ENABLE_UPDATE_FEATURE) {
-      viewModel(context as androidx.activity.ComponentActivity)
-    } else {
-      null
-    }
-    val updateState by (updateViewModel?.updateState ?: MutableStateFlow(UpdateViewModel.UpdateState.Idle)).collectAsState()
-
-    // Show toast when no update is available after manual check (only if update feature is enabled)
-    LaunchedEffect(updateState) {
-        if (BuildConfig.ENABLE_UPDATE_FEATURE && updateViewModel != null && updateState is UpdateViewModel.UpdateState.NoUpdate) {
-            Toast.makeText(context, "Already using latest version", Toast.LENGTH_SHORT).show()
-            updateViewModel.dismissNoUpdate()
-        }
-    }
+    var showPrivacyDialog by remember { mutableStateOf(false) }
 
     Scaffold(
       topBar = {
         TopAppBar(
           title = { 
             Text(
-              text = stringResource(id = R.string.pref_about_title),
+              text = "About",
               style = MaterialTheme.typography.headlineSmall,
               fontWeight = FontWeight.ExtraBold,
               color = MaterialTheme.colorScheme.primary,
@@ -144,6 +136,7 @@ object AboutScreen : Screen {
             .padding(paddingValues)
             .verticalScroll(rememberScrollState()),
       ) {
+        // App Header Card
         PreferenceCard {
           Box(
             modifier =
@@ -170,11 +163,11 @@ object AboutScreen : Screen {
                     )
                   }
                 }
-                .padding(16.dp),
+                .padding(20.dp),
           ) {
             Column {
               Row(verticalAlignment = Alignment.CenterVertically) {
-                Box(modifier = Modifier.size(64.dp)) {
+                Box(modifier = Modifier.size(68.dp)) {
                   AndroidView(
                     modifier = Modifier.matchParentSize(),
                     factory = { ctx ->
@@ -189,101 +182,53 @@ object AboutScreen : Screen {
 
                 Column(modifier = Modifier.weight(1f)) {
                   Text(
-                    text = "mpvExtended",
+                    text = "Aura Player",
                     style = MaterialTheme.typography.headlineMedium,
-                    fontWeight = FontWeight.Bold,
+                    fontWeight = FontWeight.ExtraBold,
                     color = cs.onPrimaryContainer,
                   )
-                  Spacer(Modifier.height(4.dp))
+                  Spacer(Modifier.height(2.dp))
                   Text(
-                    text = "v$versionName $buildType",
+                    text = "v$versionName (Build ${BuildConfig.VERSION_CODE})",
                     style = MaterialTheme.typography.bodyMedium,
-                    color = cs.onPrimaryContainer.copy(alpha = 0.85f),
+                    fontWeight = FontWeight.Medium,
+                    color = cs.onPrimaryContainer.copy(alpha = 0.9f),
+                  )
+                  Text(
+                    text = "Cinema & Sound Suite with Ambient Lighting",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = cs.onPrimaryContainer.copy(alpha = 0.75f),
                   )
                 }
               }
 
-              Spacer(modifier = Modifier.height(20.dp))
+              Spacer(modifier = Modifier.height(16.dp))
 
-              Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(16.dp),
-              ) {
-                val btnContainer = cs.primary
-                val btnContent = cs.onPrimary
-                Button(
-                  onClick = { backstack.add(LibrariesScreen) },
-                  modifier =
-                    Modifier
-                      .weight(1f)
-                      .height(56.dp),
-                  shape = RoundedCornerShape(16.dp),
-                  colors =
-                    ButtonDefaults.buttonColors(
-                      containerColor = btnContainer,
-                      contentColor = btnContent,
-                    ),
-                ) {
-                  Text(
-                    text = stringResource(id = R.string.pref_about_oss_libraries),
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.SemiBold,
-                  )
-                }
-
-                Button(
-                  onClick = {
-                    context.startActivity(
-                      Intent(
-                        Intent.ACTION_VIEW,
-                        context.getString(R.string.github_repo_url).toUri(),
-                      ),
-                    )
-                  },
-                  modifier =
-                    Modifier
-                      .weight(1f)
-                      .height(56.dp),
-                  shape = RoundedCornerShape(16.dp),
-                  colors =
-                    ButtonDefaults.buttonColors(
-                      containerColor = btnContainer,
-                      contentColor = btnContent,
-                    ),
-                ) {
-                  Text(
-                    text = "GitHub",
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.SemiBold,
-                  )
-                }
-              }
-
-              Spacer(modifier = Modifier.height(20.dp))
-
+              // Device Info Quick Bar
               Column(
                 modifier =
                   Modifier
                     .fillMaxWidth()
                     .clickable {
                       clipboardManager.setText(AnnotatedString(collectDeviceInfo()))
+                      Toast.makeText(context, "Device info copied to clipboard", Toast.LENGTH_SHORT).show()
                     },
               ) {
                 Row(
                   verticalAlignment = Alignment.CenterVertically,
-                  modifier = Modifier.padding(bottom = 8.dp),
+                  modifier = Modifier.padding(bottom = 6.dp),
                 ) {
                   Icon(
                     imageVector = Icons.Filled.Info,
                     contentDescription = "Device Info",
-                    modifier = Modifier.size(20.dp),
+                    modifier = Modifier.size(18.dp),
                     tint = cs.onPrimaryContainer,
                   )
                   Spacer(modifier = Modifier.width(8.dp))
                   Text(
-                    text = "Device Info",
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.SemiBold,
+                    text = "Device & Hardware Info",
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.Bold,
                     color = cs.onPrimaryContainer,
                   )
                 }
@@ -297,231 +242,214 @@ object AboutScreen : Screen {
           }
         }
 
-        Spacer(Modifier.height(8.dp))
+        Spacer(Modifier.height(12.dp))
 
-        // Updates Section (only show if update feature is enabled)
-        if (BuildConfig.ENABLE_UPDATE_FEATURE && updateViewModel != null) {
-          PreferenceSectionHeader(title = "Updates")
-          PreferenceCard {
-                val isAutoUpdateEnabled by updateViewModel.isAutoUpdateEnabled.collectAsState()
-                Column {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clickable { updateViewModel.toggleAutoUpdate(!isAutoUpdateEnabled) }
-                            .padding(16.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.SpaceBetween
-                    ) {
-                        Column(
-                            modifier = Modifier.weight(1f)
-                        ) {
-                            Text(
-                                text = "Auto Check for Updates",
-                                style = MaterialTheme.typography.titleMedium,
-                                fontWeight = FontWeight.SemiBold,
-                                color = cs.onSurface
-                            )
-                            Spacer(modifier = Modifier.height(2.dp))
-                            Text(
-                                text = "Check on startup",
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = cs.outline
-                            )
-                        }
-                        androidx.compose.material3.Switch(
-                            checked = isAutoUpdateEnabled,
-                            onCheckedChange = { updateViewModel.toggleAutoUpdate(it) }
-                        )
-                    }
-                    
-                    PreferenceDivider()
-                    
-                    Column(modifier = Modifier.padding(16.dp)) {
-                        Button(
-                            onClick = { updateViewModel.checkForUpdate(manual = true) },
-                            modifier = Modifier.fillMaxWidth().height(50.dp),
-                            shape = RoundedCornerShape(12.dp),
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = cs.secondaryContainer, 
-                                contentColor = cs.onSecondaryContainer
-                            ),
-                            elevation = ButtonDefaults.buttonElevation(defaultElevation = 0.dp)
-                        ) {
-                             Icon(Icons.Default.Update, null, modifier = Modifier.size(18.dp))
-                             Spacer(Modifier.width(8.dp))
-                             Text("Check for Updates Now", fontWeight = FontWeight.SemiBold)
-                        }
-                    }
-                }
-          }
-          
-          Spacer(Modifier.height(8.dp))
-        }
-
-        // Donate Section
-        PreferenceSectionHeader(
-          title = stringResource(id = R.string.pref_about_donate_title)
-        )
-
+        // Features & Capabilities Section
+        PreferenceSectionHeader(title = "Core Capabilities")
         PreferenceCard {
-          // Ko-fi
-          Row(
-            modifier = Modifier
-              .fillMaxWidth()
-              .clickable {
-                context.startActivity(
-                  Intent(
-                    Intent.ACTION_VIEW,
-                    context.getString(R.string.pref_about_donate_kofi_url).toUri(),
-                  ),
-                )
-              }
-              .padding(16.dp),
-            verticalAlignment = Alignment.CenterVertically,
-          ) {
-            Icon(
-              imageVector = Icons.Filled.MonetizationOn,
-              contentDescription = null,
-              modifier = Modifier.size(24.dp),
-              tint = MaterialTheme.colorScheme.primary,
-            )
-            Spacer(modifier = Modifier.width(16.dp))
-            Column(modifier = Modifier.weight(1f)) {
-              Text(
-                text = stringResource(id = R.string.pref_about_donate_kofi),
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Medium,
-              )
-              Text(
-                text = stringResource(id = R.string.pref_about_donate_kofi_summary),
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.outline,
-              )
-            }
-          }
-
+          FeatureRow(
+            icon = Icons.Filled.Bolt,
+            title = "Hardware Decoding",
+            description = "Ultra HD, 4K & HDR hardware acceleration with zero stutter"
+          )
           PreferenceDivider()
-
-          // PayPal
-          Row(
-            modifier = Modifier
-              .fillMaxWidth()
-              .clickable {
-                context.startActivity(
-                  Intent(
-                    Intent.ACTION_VIEW,
-                    context.getString(R.string.pref_about_donate_paypal_url).toUri(),
-                  ),
-                )
-              }
-              .padding(16.dp),
-            verticalAlignment = Alignment.CenterVertically,
-          ) {
-            Icon(
-              imageVector = Icons.Filled.AccountBalance,
-              contentDescription = null,
-              modifier = Modifier.size(24.dp),
-              tint = MaterialTheme.colorScheme.primary,
-            )
-            Spacer(modifier = Modifier.width(16.dp))
-            Column(modifier = Modifier.weight(1f)) {
-              Text(
-                text = stringResource(id = R.string.pref_about_donate_paypal),
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Medium,
-              )
-              Text(
-                text = stringResource(id = R.string.pref_about_donate_paypal_summary),
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.outline,
-              )
-            }
-          }
-
+          FeatureRow(
+            icon = Icons.Filled.VolumeUp,
+            title = "MX-Style Gestures",
+            description = "Volume boost up to 200%, Brightness HUD, and scrub seeking"
+          )
           PreferenceDivider()
-
-          // UPI
-          Row(
-            modifier = Modifier
-              .fillMaxWidth()
-              .clickable {
-                clipboardManager.setText(
-                  AnnotatedString(context.getString(R.string.pref_about_donate_upi_id)),
-                )
-              }
-              .padding(16.dp),
-            verticalAlignment = Alignment.CenterVertically,
-          ) {
-            Icon(
-              imageVector = Icons.Filled.CurrencyRupee,
-              contentDescription = null,
-              modifier = Modifier.size(24.dp),
-              tint = MaterialTheme.colorScheme.primary,
-            )
-            Spacer(modifier = Modifier.width(16.dp))
-            Column(modifier = Modifier.weight(1f)) {
-              Text(
-                text = stringResource(id = R.string.pref_about_donate_upi),
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Medium,
-              )
-              Text(
-                text = stringResource(id = R.string.pref_about_donate_upi_id),
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.outline,
-              )
-            }
-          }
+          FeatureRow(
+            icon = Icons.Filled.Subtitles,
+            title = "Advanced Subtitles",
+            description = "Full ASS/SSA, SRT, VTT styling and multi-language track switching"
+          )
+          PreferenceDivider()
+          FeatureRow(
+            icon = Icons.Filled.Speed,
+            title = "Precision Speed & Zoom",
+            description = "Variable playback speeds (0.25x - 4x) and pinch-to-zoom"
+          )
         }
 
         Spacer(Modifier.height(12.dp))
+
+        // App Details Section
+        PreferenceSectionHeader(title = "Application Details")
+        PreferenceCard {
+          DetailRow(title = "App Name", value = "Aura Player")
+          PreferenceDivider()
+          DetailRow(title = "Package", value = context.packageName)
+          PreferenceDivider()
+          DetailRow(title = "Engine", value = "Aura Ultra-HD Engine (Media3)")
+          PreferenceDivider()
+          DetailRow(title = "Release Channel", value = "Production / Standard")
+        }
+
+        Spacer(Modifier.height(12.dp))
+
+        // Legal & Compliance Section
+        PreferenceSectionHeader(title = "Privacy & Compliance")
+        PreferenceCard {
+          Row(
+            modifier = Modifier
+              .fillMaxWidth()
+              .clickable { showPrivacyDialog = true }
+              .padding(horizontal = 16.dp, vertical = 14.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween,
+          ) {
+            Column(modifier = Modifier.weight(1f)) {
+              Text(
+                text = "Privacy Policy & Architecture",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.SemiBold,
+                color = cs.onSurface,
+              )
+              Spacer(modifier = Modifier.height(2.dp))
+              Text(
+                text = "100% offline-first • Zero telemetry • Local playback only",
+                style = MaterialTheme.typography.bodySmall,
+                color = cs.outline,
+              )
+            }
+            Icon(
+              imageVector = Icons.Default.Info,
+              contentDescription = null,
+              tint = cs.primary,
+            )
+          }
+        }
+
+        Spacer(Modifier.height(24.dp))
       }
+    }
+
+    if (showPrivacyDialog) {
+      AlertDialog(
+        onDismissRequest = { showPrivacyDialog = false },
+        title = {
+          Text(
+            text = "Privacy & Offline Architecture",
+            style = MaterialTheme.typography.titleLarge,
+            fontWeight = FontWeight.Bold,
+          )
+        },
+        text = {
+          Column(
+            modifier = Modifier
+              .fillMaxWidth()
+              .verticalScroll(rememberScrollState()),
+            verticalArrangement = Arrangement.spacedBy(10.dp),
+          ) {
+            Text(
+              text = "Apna Player is designed with total user privacy as a core principle:",
+              style = MaterialTheme.typography.bodyMedium,
+              color = MaterialTheme.colorScheme.onSurface,
+            )
+            Text(
+              text = "• Zero Tracking: No analytics, tracking SDKs, or background telemetry are collected.",
+              style = MaterialTheme.typography.bodySmall,
+              color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            Text(
+              text = "• Offline-First: All video indexing and thumbnail generation takes place strictly on-device using Android MediaStore.",
+              style = MaterialTheme.typography.bodySmall,
+              color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            Text(
+              text = "• Safe & Clean: Built using modern Jetpack Compose, Material 3, and Kotlin Coroutines in full compliance with Google Play Store policies.",
+              style = MaterialTheme.typography.bodySmall,
+              color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+          }
+        },
+        confirmButton = {
+          TextButton(onClick = { showPrivacyDialog = false }) {
+            Text("Got It", fontWeight = FontWeight.Bold)
+          }
+        },
+      )
     }
   }
 }
 
-@Suppress("DEPRECATION")
-@Serializable
-object LibrariesScreen : Screen {
-  @OptIn(ExperimentalMaterial3Api::class)
-  @Composable
-  override fun Content() {
-    val backstack = LocalBackStack.current
-    val context = LocalContext.current
-    val libraries by produceLibraries {
-      context.resources.openRawResource(R.raw.aboutlibraries).bufferedReader().use { it.readText() }
-    }
-    Scaffold(
-      topBar = {
-        TopAppBar(
-          title = {
-            Text(
-              text = stringResource(id = R.string.pref_about_oss_libraries),
-              style = MaterialTheme.typography.headlineSmall,
-              fontWeight = FontWeight.ExtraBold,
-              color = MaterialTheme.colorScheme.primary,
-            )
-          },
-          navigationIcon = {
-            IconButton(onClick = backstack::removeLastOrNull) {
-              Icon(
-                imageVector = Icons.AutoMirrored.Default.ArrowBack,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.primary,
-              )
-            }
-          },
-        )
-      },
-    ) { paddingValues ->
-      LibrariesContainer(
-        libraries = libraries,
-        modifier =
-          Modifier
-            .fillMaxSize()
-            .padding(paddingValues),
+@Composable
+private fun FeatureRow(
+  icon: androidx.compose.ui.graphics.vector.ImageVector,
+  title: String,
+  description: String,
+) {
+  Row(
+    modifier = Modifier
+      .fillMaxWidth()
+      .padding(horizontal = 16.dp, vertical = 14.dp),
+    verticalAlignment = Alignment.CenterVertically,
+  ) {
+    Icon(
+      imageVector = icon,
+      contentDescription = null,
+      modifier = Modifier.size(24.dp),
+      tint = MaterialTheme.colorScheme.primary,
+    )
+    Spacer(modifier = Modifier.width(16.dp))
+    Column(modifier = Modifier.weight(1f)) {
+      Text(
+        text = title,
+        style = MaterialTheme.typography.titleMedium,
+        fontWeight = FontWeight.SemiBold,
+        color = MaterialTheme.colorScheme.onSurface,
+      )
+      Spacer(modifier = Modifier.height(2.dp))
+      Text(
+        text = description,
+        style = MaterialTheme.typography.bodySmall,
+        color = MaterialTheme.colorScheme.outline,
       )
     }
+  }
+}
+
+@Composable
+private fun DetailRow(
+  title: String,
+  value: String,
+) {
+  Row(
+    modifier = Modifier
+      .fillMaxWidth()
+      .padding(horizontal = 16.dp, vertical = 14.dp),
+    verticalAlignment = Alignment.CenterVertically,
+    horizontalArrangement = Arrangement.SpaceBetween,
+  ) {
+    Text(
+      text = title,
+      style = MaterialTheme.typography.titleMedium,
+      fontWeight = FontWeight.Normal,
+      color = MaterialTheme.colorScheme.onSurface,
+    )
+    Text(
+      text = value,
+      style = MaterialTheme.typography.bodyMedium,
+      fontWeight = FontWeight.SemiBold,
+      color = MaterialTheme.colorScheme.primary,
+    )
+  }
+}
+
+@Composable
+private fun LicenseItem(name: String, license: String) {
+  Column(modifier = Modifier.fillMaxWidth()) {
+    Text(
+      text = name,
+      style = MaterialTheme.typography.titleSmall,
+      fontWeight = FontWeight.Bold,
+      color = MaterialTheme.colorScheme.onSurface,
+    )
+    Text(
+      text = license,
+      style = MaterialTheme.typography.bodySmall,
+      color = MaterialTheme.colorScheme.primary,
+    )
   }
 }

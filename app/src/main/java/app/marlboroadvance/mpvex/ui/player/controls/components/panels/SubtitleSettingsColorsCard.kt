@@ -1,4 +1,4 @@
-package app.marlboroadvance.mpvex.ui.player.controls.components.panels
+﻿package app.marlboroadvance.mpvex.ui.player.controls.components.panels
 
 import androidx.annotation.StringRes
 import androidx.compose.foundation.horizontalScroll
@@ -46,7 +46,7 @@ import app.marlboroadvance.mpvex.presentation.components.TintedSliderItem
 import app.marlboroadvance.mpvex.ui.player.controls.CARDS_MAX_WIDTH
 import app.marlboroadvance.mpvex.ui.player.controls.panelCardsColors
 import app.marlboroadvance.mpvex.ui.theme.spacing
-import `is`.xyz.mpv.MPVLib
+import com.cmstudio.apnaplayer.engine.PlayerBridge
 import org.koin.compose.koinInject
 
 @Composable
@@ -119,7 +119,7 @@ fun SubtitleSettingsColorsCard(modifier: Modifier = Modifier) {
         onColorChange = {
           currentColor = it
           currentColorType.preference(preferences).set(it)
-          MPVLib.setPropertyString(currentColorType.property, it.toColorHexString())
+          PlayerBridge.setPropertyString(currentColorType.property, it.toColorHexString())
         },
       )
     }
@@ -164,21 +164,21 @@ fun resetColors(
 ) {
   when (type) {
     SubColorType.Text -> {
-      MPVLib.setPropertyString("sub-color", preferences.textColor.deleteAndGet().toColorHexString())
+      PlayerBridge.setPropertyString("sub-color", preferences.textColor.deleteAndGet().toColorHexString())
     }
 
     SubColorType.Border -> {
-      MPVLib.setPropertyString("sub-border-color", preferences.borderColor.deleteAndGet().toColorHexString())
+      PlayerBridge.setPropertyString("sub-border-color", preferences.borderColor.deleteAndGet().toColorHexString())
     }
 
     SubColorType.Background -> {
-      MPVLib.setPropertyString("sub-back-color", preferences.backgroundColor.deleteAndGet().toColorHexString())
+      PlayerBridge.setPropertyString("sub-back-color", preferences.backgroundColor.deleteAndGet().toColorHexString())
     }
   }
 }
 
 val getCurrentMPVColor: (SubColorType) -> Int = {
-  MPVLib.getPropertyString(it.property)?.uppercase()?.toColorInt() ?: 0xFFFFFFFF.toInt()
+  PlayerBridge.getPropertyString(it.property)?.uppercase()?.toColorInt() ?: 0xFFFFFFFF.toInt()
 }
 
 @Composable

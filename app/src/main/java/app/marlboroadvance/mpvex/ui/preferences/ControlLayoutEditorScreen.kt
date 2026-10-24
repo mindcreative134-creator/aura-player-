@@ -427,12 +427,9 @@ private fun IconsLegend() {
                         modifier = Modifier.wrapContentWidth()
                     ) {
                         if (button == PlayerButton.AB_LOOP) {
-                            // Show Autorenew icon for AB_LOOP
-                            Icon(
-                                imageVector = button.icon,
-                                contentDescription = null,
+                            app.marlboroadvance.mpvex.ui.player.controls.components.AbLoopIcon(
                                 tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                                modifier = Modifier.size(20.dp)
+                                size = 20.dp
                             )
                         } else {
                             val modifier = if (button == PlayerButton.VERTICAL_FLIP) {

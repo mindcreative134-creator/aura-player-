@@ -23,11 +23,20 @@ class AppearancePreferences(
   val darkMode = preferenceStore.getEnum("dark_mode", DarkMode.System)
   val appTheme = preferenceStore.getEnum("app_theme", AppTheme.Dynamic)
   val amoledMode = preferenceStore.getBoolean("amoled_mode", false)
+  val liquidGlassSurfaces = preferenceStore.getBoolean("liquid_glass_surfaces", false)
+  val useSystemFont = preferenceStore.getBoolean("use_system_font", false)
   val unlimitedNameLines = preferenceStore.getBoolean("unlimited_name_lines", false)
   val hidePlayerButtonsBackground = preferenceStore.getBoolean("hide_player_buttons_background", false)
   val showUnplayedOldVideoLabel = preferenceStore.getBoolean("show_unplayed_old_video_label", true)
   val unplayedOldVideoDays = preferenceStore.getInt("unplayed_old_video_days", 7)
   val seekbarStyle = preferenceStore.getEnum("seekbar_style", SeekbarStyle.Thick)
+
+  // Navigation tab visibility preferences
+  val showHomeTab = preferenceStore.getBoolean("nav_home_tab", true)
+  val showRecentsTab = preferenceStore.getBoolean("nav_recents_tab", true)
+  val showPlaylistsTab = preferenceStore.getBoolean("nav_playlists_tab", true)
+  val showNetworkTab = preferenceStore.getBoolean("nav_network_tab", true)
+  val showMusicTab = preferenceStore.getBoolean("nav_music_tab", true)
 
   val topLeftControls =
     preferenceStore.getString(
@@ -38,26 +47,45 @@ class AppearancePreferences(
   val topRightControls =
     preferenceStore.getString(
       "top_right_controls",
-      "CURRENT_CHAPTER,DECODER,AUDIO_TRACK,SUBTITLES,MORE_OPTIONS",
+      "CAST,CURRENT_CHAPTER,MORE_OPTIONS",
     )
 
   val bottomRightControls =
     preferenceStore.getString(
       "bottom_right_controls",
-      "FRAME_NAVIGATION,VIDEO_ZOOM,PICTURE_IN_PICTURE,ASPECT_RATIO",
+      "PICTURE_IN_PICTURE,ASPECT_RATIO,VIDEO_ZOOM,FRAME_NAVIGATION,CLIP",
     )
 
   val bottomLeftControls =
     preferenceStore.getString(
       "bottom_left_controls",
-      "BACKGROUND_PLAYBACK,LOCK_CONTROLS,SCREEN_ROTATION,PLAYBACK_SPEED,REPEAT_MODE,SHUFFLE,AB_LOOP",
+      "LOCK_CONTROLS,SCREEN_ROTATION,DECODER,AUDIO_TRACK,SUBTITLES,PLAYBACK_SPEED,REPEAT_MODE,AB_LOOP",
     )
 
   val portraitBottomControls =
     preferenceStore.getString(
       "portrait_bottom_controls",
-      "SCREEN_ROTATION,DECODER,AUDIO_TRACK,SUBTITLES,BOOKMARKS_CHAPTERS,PLAYBACK_SPEED,BACKGROUND_PLAYBACK,REPEAT_MODE,SHUFFLE,VIDEO_ZOOM,FRAME_NAVIGATION,ASPECT_RATIO,PICTURE_IN_PICTURE,LOCK_CONTROLS,MORE_OPTIONS",
+      "LOCK_CONTROLS,SCREEN_ROTATION,DECODER,AUDIO_TRACK,SUBTITLES,PLAYBACK_SPEED,ASPECT_RATIO,PICTURE_IN_PICTURE,BACKGROUND_PLAYBACK,AB_LOOP,MORE_OPTIONS",
     )
+
+  init {
+    val dedupKey = "player_controls_dedup_v1"
+    val dedupPref = preferenceStore.getBoolean(dedupKey, false)
+    if (!dedupPref.get()) {
+      fun cleanList(csv: String): String =
+        csv.split(',')
+          .map { it.trim().uppercase() }
+          .filter { it.isNotBlank() && it != "NONE" }
+          .distinct()
+          .joinToString(",")
+
+      topRightControls.set(cleanList(topRightControls.get()))
+      bottomRightControls.set(cleanList(bottomRightControls.get()))
+      bottomLeftControls.set(cleanList(bottomLeftControls.get()))
+      portraitBottomControls.set(cleanList(portraitBottomControls.get()))
+      dedupPref.set(true)
+    }
+  }
 
   fun parseButtons(
     csv: String,
