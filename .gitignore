@@ -16,4 +16,3 @@ app/release
 .kotlin/
 .vscode/
 *.mp4
-/built_apks/

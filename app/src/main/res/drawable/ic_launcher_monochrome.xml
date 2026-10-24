@@ -3,10 +3,45 @@
     android:height="108dp"
     android:viewportWidth="108"
     android:viewportHeight="108">
+
+    <!-- Monochrome Play Triangle Outline -->
     <path
-        android:fillColor="#FFFFFF"
-        android:pathData="M44.5,36.8 C42.8,35.7 40.5,36.9 40.5,38.9 L40.5,69.1 C40.5,71.1 42.8,72.3 44.5,71.2 L69.5,56.1 C71.2,55.1 71.2,52.9 69.5,51.9 L44.5,36.8 Z" />
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="4.5"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:fillColor="#00000000"
+        android:pathData="M38,34 C38,31.7 40.5,30.3 42.4,31.4 L71.5,49.4 C73.4,50.6 73.4,53.4 71.5,54.6 L42.4,72.6 C40.5,73.7 38,72.3 38,70.0 Z" />
+
+    <!-- Monochrome Equalizer Sound Waves -->
     <path
-        android:fillColor="#FFFFFF"
-        android:pathData="M73,42 L73,66 C73,67.1 73.9,68 75,68 C76.1,68 77,67.1 77,66 L77,42 C77,40.9 76.1,40 75,40 C73.9,40 73,40.9 73,42 Z" />
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="3.2"
+        android:strokeLineCap="round"
+        android:pathData="M33,48 L33,60" />
+    <path
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="3.2"
+        android:strokeLineCap="round"
+        android:pathData="M43,40 L43,68" />
+    <path
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="3.6"
+        android:strokeLineCap="round"
+        android:pathData="M53,28 L53,80" />
+    <path
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="3.2"
+        android:strokeLineCap="round"
+        android:pathData="M61,35 L61,73" />
+    <path
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="3.2"
+        android:strokeLineCap="round"
+        android:pathData="M69,42 L69,66" />
+    <path
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="2.8"
+        android:strokeLineCap="round"
+        android:pathData="M77,47 L77,61" />
 </vector>
