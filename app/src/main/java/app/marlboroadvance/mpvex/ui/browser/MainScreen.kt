@@ -57,6 +57,10 @@ import androidx.compose.material3.MaterialTheme
 import app.marlboroadvance.mpvex.preferences.AppearancePreferences
 import app.marlboroadvance.mpvex.preferences.preference.collectAsState
 import app.marlboroadvance.mpvex.ui.theme.LocalLiquidGlassEnabled
+import app.marlboroadvance.mpvex.ui.theme.aura.AuraTokens
+import androidx.compose.material3.NavigationBarItemDefaults
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalHapticFeedback
 import org.koin.compose.koinInject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -153,6 +157,8 @@ object MainScreen : Screen {
 
     val hideNavigationBar by _shouldHideNavigationBar.collectAsState()
 
+    val haptic = LocalHapticFeedback.current
+
     // Update persistent state whenever tab changes
     LaunchedEffect(selectedTab) {
       persistentSelectedTab = selectedTab
@@ -196,7 +202,7 @@ object MainScreen : Screen {
                   targetOffsetY = { fullHeight -> fullHeight }
                 )
               ) {
-                val navBarShape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp, bottomStart = 0.dp, bottomEnd = 0.dp)
+                val navBarShape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp, bottomStart = 0.dp, bottomEnd = 0.dp)
                 val navBarModifier = if (isLiquidGlass) {
                   Modifier
                     .clip(navBarShape)
@@ -209,10 +215,18 @@ object MainScreen : Screen {
                 }
 
                 val navBarContainerColor = if (isLiquidGlass) {
-                  MaterialTheme.colorScheme.surfaceContainer.copy(alpha = 0.85f)
+                  AuraTokens.CarbonElevated.copy(alpha = 0.90f)
                 } else {
                   MaterialTheme.colorScheme.surfaceContainer
                 }
+
+                val navItemColors = NavigationBarItemDefaults.colors(
+                  selectedIconColor = MaterialTheme.colorScheme.primary,
+                  selectedTextColor = MaterialTheme.colorScheme.primary,
+                  indicatorColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.6f),
+                  unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
+                  unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
+                )
 
                 NavigationBar(
                   containerColor = navBarContainerColor,
@@ -223,7 +237,11 @@ object MainScreen : Screen {
                       icon = { Icon(Icons.Filled.Folder, contentDescription = "Folders") },
                       label = { Text("Folders") },
                       selected = selectedTab == 0,
-                      onClick = { selectedTab = 0 }
+                      colors = navItemColors,
+                      onClick = {
+                        haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                        selectedTab = 0
+                      }
                     )
                   }
                   if (showMusicTab) {
@@ -231,7 +249,11 @@ object MainScreen : Screen {
                       icon = { Icon(Icons.Filled.MusicNote, contentDescription = "Music") },
                       label = { Text("Music") },
                       selected = selectedTab == 1,
-                      onClick = { selectedTab = 1 }
+                      colors = navItemColors,
+                      onClick = {
+                        haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                        selectedTab = 1
+                      }
                     )
                   }
                   if (showRecentsTab) {
@@ -239,7 +261,11 @@ object MainScreen : Screen {
                       icon = { Icon(Icons.Filled.History, contentDescription = "Recents") },
                       label = { Text("Recents") },
                       selected = selectedTab == 2,
-                      onClick = { selectedTab = 2 }
+                      colors = navItemColors,
+                      onClick = {
+                        haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                        selectedTab = 2
+                      }
                     )
                   }
                   if (showPlaylistsTab) {
@@ -247,7 +273,11 @@ object MainScreen : Screen {
                       icon = { Icon(Icons.AutoMirrored.Filled.PlaylistPlay, contentDescription = "Playlists") },
                       label = { Text("Playlists") },
                       selected = selectedTab == 3,
-                      onClick = { selectedTab = 3 }
+                      colors = navItemColors,
+                      onClick = {
+                        haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                        selectedTab = 3
+                      }
                     )
                   }
                   if (showNetworkTab) {
@@ -255,7 +285,11 @@ object MainScreen : Screen {
                       icon = { Icon(Icons.Filled.Wifi, contentDescription = "Network") },
                       label = { Text("Network") },
                       selected = selectedTab == 4,
-                      onClick = { selectedTab = 4 }
+                      colors = navItemColors,
+                      onClick = {
+                        haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                        selectedTab = 4
+                      }
                     )
                   }
                 }

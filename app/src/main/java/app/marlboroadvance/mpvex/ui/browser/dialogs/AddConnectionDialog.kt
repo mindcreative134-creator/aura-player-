@@ -245,13 +245,17 @@ fun AddConnectionSheet(
       }
     },
     confirmButton = {
-      Button(
+      androidx.compose.material3.Button(
         onClick = handleSave,
         enabled = host.isNotBlank() && (isAnonymous || username.isNotBlank()),
+        colors = androidx.compose.material3.ButtonDefaults.buttonColors(
+          containerColor = app.marlboroadvance.mpvex.ui.theme.aura.AuraTokens.AuraCyan,
+          contentColor = androidx.compose.ui.graphics.Color.Black,
+        ),
       ) {
         Text(
           text = "Save",
-          fontWeight = FontWeight.SemiBold,
+          fontWeight = FontWeight.Bold,
         )
       }
     },
@@ -263,8 +267,9 @@ fun AddConnectionSheet(
         )
       }
     },
-    containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
-    tonalElevation = 6.dp,
-    shape = MaterialTheme.shapes.extraLarge,
+    containerColor = app.marlboroadvance.mpvex.ui.theme.aura.AuraTokens.CarbonCard,
+    tonalElevation = 0.dp,
+    shape = androidx.compose.foundation.shape.RoundedCornerShape(24.dp),
   )
 }
+

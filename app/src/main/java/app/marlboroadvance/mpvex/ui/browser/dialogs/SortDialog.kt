@@ -154,9 +154,9 @@ fun SortDialog(
       }
     },
     confirmButton = {},
-    containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
-    tonalElevation = 6.dp,
-    shape = MaterialTheme.shapes.extraLarge,
+    containerColor = app.marlboroadvance.mpvex.ui.theme.aura.AuraTokens.CarbonCard,
+    tonalElevation = 0.dp,
+    shape = RoundedCornerShape(24.dp),
     modifier = modifier,
   )
 }

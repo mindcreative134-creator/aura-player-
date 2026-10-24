@@ -27,19 +27,20 @@ import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import app.marlboroadvance.mpvex.ui.theme.aura.AuraTokens
 
 /**
- * Clean, simple, and elegant buffering indicator for Apna Player.
+ * Signature Aura Player Buffering Indicator.
  * Delivers a crisp, lightweight circular ring with smooth indeterminate rotation
- * and soft ambient glow without unnecessary visual clutter.
+ * and soft ambient cyan glow without unnecessary visual clutter.
  */
 @Composable
-fun ApnaPlayerBufferingIndicator(
+fun AuraPlayerBufferingIndicator(
   modifier: Modifier = Modifier,
   size: Dp = 64.dp,
   ringWidth: Dp = 3.5.dp,
 ) {
-  val infiniteTransition = rememberInfiniteTransition(label = "apna_player_clean_buffering")
+  val infiniteTransition = rememberInfiniteTransition(label = "aura_player_buffering")
 
   // Smooth rotation
   val rotation by infiniteTransition.animateFloat(
@@ -63,8 +64,8 @@ fun ApnaPlayerBufferingIndicator(
     label = "center_pulse",
   )
 
-  val primaryColor = Color(0xFF0D59F2)
-  val accentColor = Color(0xFF38BDF8)
+  val primaryColor = MaterialTheme.colorScheme.primary
+  val accentColor = AuraTokens.AuraCyan
 
   Box(
     modifier = modifier.size(size),
@@ -75,7 +76,7 @@ fun ApnaPlayerBufferingIndicator(
       modifier = Modifier
         .size(size)
         .clip(CircleShape)
-        .background(Color.Black.copy(alpha = 0.65f)),
+        .background(AuraTokens.ObsidianSurface.copy(alpha = 0.75f)),
     )
 
     // Smooth spinning clean arc
@@ -90,7 +91,7 @@ fun ApnaPlayerBufferingIndicator(
 
       // Background subtle track
       drawArc(
-        color = Color.White.copy(alpha = 0.12f),
+        color = Color.White.copy(alpha = 0.10f),
         startAngle = 0f,
         sweepAngle = 360f,
         useCenter = false,
@@ -124,3 +125,20 @@ fun ApnaPlayerBufferingIndicator(
     )
   }
 }
+
+/**
+ * Backward compatibility wrapper for existing call-sites
+ */
+@Composable
+fun ApnaPlayerBufferingIndicator(
+  modifier: Modifier = Modifier,
+  size: Dp = 64.dp,
+  ringWidth: Dp = 3.5.dp,
+) {
+  AuraPlayerBufferingIndicator(
+    modifier = modifier,
+    size = size,
+    ringWidth = ringWidth,
+  )
+}
+

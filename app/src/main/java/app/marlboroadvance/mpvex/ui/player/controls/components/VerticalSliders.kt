@@ -32,9 +32,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import app.marlboroadvance.mpvex.R
+import app.marlboroadvance.mpvex.ui.theme.aura.AuraTokens
 import app.marlboroadvance.mpvex.ui.theme.spacing
 import kotlin.math.roundToInt
 
@@ -61,12 +63,12 @@ fun VerticalSlider(
     modifier =
       modifier
         .height(120.dp)
-        .aspectRatio(0.2f)
+        .aspectRatio(0.22f)
         .clip(RoundedCornerShape(16.dp))
-        .background(MaterialTheme.colorScheme.background)
+        .background(AuraTokens.ObsidianSurface)
         .border(
           width = 1.dp,
-          color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f),
+          color = AuraTokens.CarbonBorder,
           shape = RoundedCornerShape(16.dp),
         ),
     contentAlignment = Alignment.BottomCenter,
@@ -76,7 +78,8 @@ fun VerticalSlider(
       Modifier
         .fillMaxWidth()
         .fillMaxHeight(targetHeight)
-        .background(MaterialTheme.colorScheme.tertiary),
+        .clip(RoundedCornerShape(14.dp))
+        .background(AuraTokens.AuraCyan),
     )
     if (overflowRange != null && overflowValue != null) {
       val overflowHeight by animateFloatAsState(
@@ -87,7 +90,8 @@ fun VerticalSlider(
         Modifier
           .fillMaxWidth()
           .fillMaxHeight(overflowHeight)
-          .background(MaterialTheme.colorScheme.errorContainer),
+          .clip(RoundedCornerShape(14.dp))
+          .background(AuraTokens.AuraSunset),
       )
     }
   }
@@ -106,12 +110,12 @@ fun VerticalSlider(
     modifier =
       modifier
         .height(120.dp)
-        .aspectRatio(0.2f)
+        .aspectRatio(0.22f)
         .clip(RoundedCornerShape(16.dp))
-        .background(MaterialTheme.colorScheme.background)
+        .background(AuraTokens.ObsidianSurface)
         .border(
           width = 1.dp,
-          color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f),
+          color = AuraTokens.CarbonBorder,
           shape = RoundedCornerShape(16.dp),
         ),
     contentAlignment = Alignment.BottomCenter,
@@ -121,7 +125,8 @@ fun VerticalSlider(
       Modifier
         .fillMaxWidth()
         .fillMaxHeight(targetHeight)
-        .background(MaterialTheme.colorScheme.tertiary),
+        .clip(RoundedCornerShape(14.dp))
+        .background(AuraTokens.AuraCyan),
     )
     if (overflowRange != null && overflowValue != null) {
       val overflowHeight by animateFloatAsState(
@@ -132,7 +137,8 @@ fun VerticalSlider(
         Modifier
           .fillMaxWidth()
           .fillMaxHeight(overflowHeight)
-          .background(MaterialTheme.colorScheme.errorContainer),
+          .clip(RoundedCornerShape(14.dp))
+          .background(AuraTokens.AuraSunset),
       )
     }
   }
@@ -147,21 +153,22 @@ fun BrightnessSlider(
   val coercedBrightness = brightness.coerceIn(range)
   Surface(
     modifier = modifier,
-    shape = RoundedCornerShape(20.dp),
-    color = MaterialTheme.colorScheme.surfaceContainer.copy(alpha = 0.55f),
+    shape = RoundedCornerShape(22.dp),
+    color = AuraTokens.CarbonElevated.copy(alpha = 0.88f),
     contentColor = MaterialTheme.colorScheme.onSurface,
     tonalElevation = 0.dp,
     shadowElevation = 0.dp,
-    border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f)),
+    border = BorderStroke(1.dp, AuraTokens.CarbonBorder),
   ) {
     Column(
-      modifier = Modifier.padding(horizontal = 12.dp, vertical = 16.dp),
+      modifier = Modifier.padding(horizontal = 14.dp, vertical = 18.dp),
       horizontalAlignment = Alignment.CenterHorizontally,
       verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.smaller),
     ) {
       Text(
         (coercedBrightness * 100).toInt().toString(),
-        style = MaterialTheme.typography.bodySmall,
+        style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
+        color = AuraTokens.AuraCyan,
       )
       VerticalSlider(
         coercedBrightness,
@@ -175,6 +182,7 @@ fun BrightnessSlider(
           else -> Icons.Default.BrightnessMedium
         },
         contentDescription = null,
+        tint = AuraTokens.AuraCyan,
       )
     }
   }
@@ -192,23 +200,24 @@ fun VolumeSlider(
   val percentage = (percentage(volume, range) * 100).roundToInt()
   Surface(
     modifier = modifier,
-    shape = RoundedCornerShape(20.dp),
-    color = MaterialTheme.colorScheme.surfaceContainer.copy(alpha = 0.55f),
+    shape = RoundedCornerShape(22.dp),
+    color = AuraTokens.CarbonElevated.copy(alpha = 0.88f),
     contentColor = MaterialTheme.colorScheme.onSurface,
     tonalElevation = 0.dp,
     shadowElevation = 0.dp,
-    border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f)),
+    border = BorderStroke(1.dp, AuraTokens.CarbonBorder),
   ) {
     Column(
-      modifier = Modifier.padding(horizontal = 12.dp, vertical = 16.dp),
+      modifier = Modifier.padding(horizontal = 14.dp, vertical = 18.dp),
       horizontalAlignment = Alignment.CenterHorizontally,
       verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.smaller),
     ) {
       val boostVolume = mpvVolume - 100
       Text(
         getVolumeSliderText(volume, mpvVolume, boostVolume, percentage, displayAsPercentage),
-        style = MaterialTheme.typography.bodySmall,
+        style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
         textAlign = TextAlign.Center,
+        color = if (boostVolume > 0) AuraTokens.AuraSunset else AuraTokens.AuraCyan,
       )
       VerticalSlider(
         if (displayAsPercentage) percentage else volume,
@@ -225,6 +234,7 @@ fun VolumeSlider(
           else -> Icons.AutoMirrored.Default.VolumeOff
         },
         contentDescription = null,
+        tint = if (boostVolume > 0) AuraTokens.AuraSunset else AuraTokens.AuraCyan,
       )
     }
   }

@@ -38,6 +38,7 @@ import app.marlboroadvance.mpvex.ui.player.VideoAspect
 import app.marlboroadvance.mpvex.ui.player.controls.components.ControlsButton
 import app.marlboroadvance.mpvex.ui.theme.controlColor
 import app.marlboroadvance.mpvex.ui.theme.spacing
+import app.marlboroadvance.mpvex.ui.theme.aura.AuraTokens
 import dev.vivvvek.seeker.Segment
 
 @Composable
@@ -84,9 +85,7 @@ fun TopLeftPlayerControlsLandscape(
           if (hideBackground) {
             Color.Transparent
           } else {
-            MaterialTheme.colorScheme.surfaceContainer.copy(
-              alpha = 0.55f,
-            )
+            AuraTokens.CarbonElevated.copy(alpha = 0.85f)
           },
         contentColor = if (hideBackground) controlColor else MaterialTheme.colorScheme.onSurface,
         tonalElevation = 0.dp,
@@ -97,7 +96,7 @@ fun TopLeftPlayerControlsLandscape(
           } else {
             BorderStroke(
               1.dp,
-              MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f),
+              AuraTokens.CarbonBorder,
             )
           },
       ) {

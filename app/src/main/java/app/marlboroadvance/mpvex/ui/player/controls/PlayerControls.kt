@@ -1,4 +1,4 @@
-﻿package app.marlboroadvance.mpvex.ui.player.controls
+package app.marlboroadvance.mpvex.ui.player.controls
 
 import androidx.activity.compose.LocalActivity
 import androidx.compose.animation.AnimatedVisibility
@@ -57,7 +57,9 @@ import androidx.compose.material.icons.filled.SkipPrevious
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
+import app.marlboroadvance.mpvex.presentation.components.AuraPlayerBufferingIndicator
 import app.marlboroadvance.mpvex.presentation.components.ApnaPlayerBufferingIndicator
+import app.marlboroadvance.mpvex.ui.theme.aura.AuraTokens
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.LocalRippleConfiguration
 import androidx.compose.material3.MaterialTheme
@@ -645,7 +647,7 @@ fun PlayerControls(
               centerTo(parent)
             },
         ) {
-          ApnaPlayerBufferingIndicator(
+          AuraPlayerBufferingIndicator(
             modifier = Modifier.size(76.dp),
           )
         }
@@ -662,7 +664,6 @@ fun PlayerControls(
                 bottom.linkTo(bottomRightControls.top, spacing.large)
               } else {
                 top.linkTo(parent.top)
-                bottom.linkTo(parent.bottom)
               }
             },
         ) {
@@ -671,7 +672,7 @@ fun PlayerControls(
 
           when {
             pausedForCache == true && showLoadingCircle -> {
-              ApnaPlayerBufferingIndicator(
+              AuraPlayerBufferingIndicator(
                 modifier = Modifier.size(76.dp),
               )
             }
@@ -679,7 +680,7 @@ fun PlayerControls(
             else -> {
               val buttonShadow =
                 Brush.radialGradient(
-                  0.0f to Color.Black.copy(alpha = 0.3f),
+                  0.0f to AuraTokens.AuraCyan.copy(alpha = 0.30f),
                   0.7f to Color.Transparent,
                   1.0f to Color.Transparent,
                 )
@@ -711,7 +712,7 @@ fun PlayerControls(
                     shape = CircleShape,
                     color =
                       if (!hideBackground) {
-                        MaterialTheme.colorScheme.surfaceContainer.copy(alpha = 0.55f)
+                        AuraTokens.CarbonCard.copy(alpha = 0.85f)
                       } else {
                         Color.Transparent
                       },
@@ -720,7 +721,7 @@ fun PlayerControls(
                     shadowElevation = 0.dp,
                     border =
                       if (!hideBackground) {
-                        BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f))
+                        BorderStroke(1.dp, AuraTokens.CarbonBorder)
                       } else {
                         null
                       },
@@ -747,7 +748,7 @@ fun PlayerControls(
                   Surface(
                     modifier =
                       Modifier
-                        .size(64.dp)
+                        .size(72.dp)
                         .clip(CircleShape)
                         .clickable(interaction, ripple(), onClick = {
                           resetControlsTimestamp = System.currentTimeMillis()
@@ -763,16 +764,16 @@ fun PlayerControls(
                     shape = CircleShape,
                     color =
                       if (!hideBackground) {
-                        MaterialTheme.colorScheme.surfaceContainer.copy(alpha = 0.55f)
+                        AuraTokens.CarbonElevated.copy(alpha = 0.85f)
                       } else {
                         Color.Transparent
                       },
-                    contentColor = if (hideBackground) controlColor else MaterialTheme.colorScheme.onSurface,
+                    contentColor = AuraTokens.AuraCyan,
                     tonalElevation = 0.dp,
                     shadowElevation = 0.dp,
                     border =
                       if (!hideBackground) {
-                        BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f))
+                        BorderStroke(1.5.dp, AuraTokens.AuraCyan.copy(alpha = 0.65f))
                       } else {
                         null
                       },
@@ -783,7 +784,7 @@ fun PlayerControls(
                         .fillMaxSize()
                         .padding(MaterialTheme.spacing.medium),
                       contentDescription = null,
-                      colorFilter = ColorFilter.tint(LocalContentColor.current),
+                      colorFilter = ColorFilter.tint(AuraTokens.AuraCyan),
                     )
                   }
 
@@ -809,7 +810,7 @@ fun PlayerControls(
                     shape = CircleShape,
                     color =
                       if (!hideBackground) {
-                        MaterialTheme.colorScheme.surfaceContainer.copy(alpha = 0.55f)
+                        AuraTokens.CarbonCard.copy(alpha = 0.85f)
                       } else {
                         Color.Transparent
                       },
@@ -818,7 +819,7 @@ fun PlayerControls(
                     shadowElevation = 0.dp,
                     border =
                       if (!hideBackground) {
-                        BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f))
+                        BorderStroke(1.dp, AuraTokens.CarbonBorder)
                       } else {
                         null
                       },
@@ -846,7 +847,7 @@ fun PlayerControls(
                 Surface(
                   modifier =
                     Modifier
-                      .size(64.dp)
+                      .size(72.dp)
                       .clip(CircleShape)
                       .clickable(interaction, ripple(), onClick = {
                         resetControlsTimestamp = System.currentTimeMillis()
@@ -862,16 +863,16 @@ fun PlayerControls(
                   shape = CircleShape,
                   color =
                     if (!hideBackground) {
-                      MaterialTheme.colorScheme.surfaceContainer.copy(alpha = 0.55f)
+                      AuraTokens.CarbonElevated.copy(alpha = 0.85f)
                     } else {
                       Color.Transparent
                     },
-                  contentColor = if (hideBackground) controlColor else MaterialTheme.colorScheme.onSurface,
+                  contentColor = AuraTokens.AuraCyan,
                   tonalElevation = 0.dp,
                   shadowElevation = 0.dp,
                   border =
                     if (!hideBackground) {
-                      BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f))
+                      BorderStroke(1.5.dp, AuraTokens.AuraCyan.copy(alpha = 0.65f))
                     } else {
                       null
                     },
@@ -882,7 +883,7 @@ fun PlayerControls(
                       .fillMaxSize()
                       .padding(MaterialTheme.spacing.medium),
                     contentDescription = null,
-                    colorFilter = ColorFilter.tint(LocalContentColor.current),
+                    colorFilter = ColorFilter.tint(AuraTokens.AuraCyan),
                   )
                 }
               }

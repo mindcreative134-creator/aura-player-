@@ -67,6 +67,7 @@ import app.marlboroadvance.mpvex.repository.MediaFileRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.koin.compose.koinInject
+import app.marlboroadvance.mpvex.ui.theme.aura.AuraTokens
 import kotlin.math.pow
 import kotlin.math.roundToInt
 
@@ -115,20 +116,20 @@ fun FolderCard(
         onClick = onClick,
         onLongClick = onLongClick,
       ),
-    shape = RoundedCornerShape(16.dp),
+    shape = RoundedCornerShape(18.dp),
     colors = CardDefaults.cardColors(
       containerColor = if (isSelected) {
-        MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.35f)
+        AuraTokens.AuraCyan.copy(alpha = 0.16f)
       } else {
-        MaterialTheme.colorScheme.surfaceContainerLow
+        AuraTokens.CarbonCard
       }
     ),
     border = BorderStroke(
-      width = 1.dp,
+      width = if (isSelected) 1.5.dp else 1.dp,
       color = if (isSelected) {
-        MaterialTheme.colorScheme.primary
+        AuraTokens.AuraCyan
       } else {
-        MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.22f)
+        AuraTokens.CarbonBorder
       }
     ),
   ) {

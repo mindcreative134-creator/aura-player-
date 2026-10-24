@@ -54,6 +54,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.withContext
+import app.marlboroadvance.mpvex.ui.theme.aura.AuraTokens
 import org.koin.compose.koinInject
 import kotlin.math.roundToInt
 
@@ -117,20 +118,20 @@ fun VideoCard(
         onClick = onClick,
         onLongClick = onLongClick,
       ),
-    shape = RoundedCornerShape(16.dp),
+    shape = RoundedCornerShape(18.dp),
     colors = CardDefaults.cardColors(
       containerColor = if (isSelected) {
-        MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.35f)
+        AuraTokens.AuraCyan.copy(alpha = 0.16f)
       } else {
-        MaterialTheme.colorScheme.surfaceContainerLow
+        AuraTokens.CarbonCard
       }
     ),
     border = BorderStroke(
-      width = 1.dp,
+      width = if (isSelected) 1.5.dp else 1.dp,
       color = if (isSelected) {
-        MaterialTheme.colorScheme.primary
+        AuraTokens.AuraCyan
       } else {
-        MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.22f)
+        AuraTokens.CarbonBorder
       }
     ),
   ) {
@@ -289,7 +290,7 @@ fun VideoCard(
                 modifier = Modifier
                   .fillMaxHeight()
                   .fillMaxWidth(progressPercentage)
-                  .background(MaterialTheme.colorScheme.primary),
+                  .background(AuraTokens.AuraCyan),
               )
             }
           }
@@ -597,7 +598,7 @@ fun VideoCard(
                   Modifier
                     .fillMaxHeight()
                     .fillMaxWidth(progressPercentage)
-                    .background(MaterialTheme.colorScheme.primary),
+                    .background(AuraTokens.AuraCyan),
               )
             }
           }

@@ -62,6 +62,7 @@ import app.marlboroadvance.mpvex.preferences.preference.collectAsState
 import app.marlboroadvance.mpvex.presentation.Screen
 import app.marlboroadvance.mpvex.ui.utils.LocalBackStack
 import kotlinx.serialization.Serializable
+import app.marlboroadvance.mpvex.ui.theme.aura.AuraTokens
 import me.zhanghai.compose.preference.ProvidePreferenceLocals
 import me.zhanghai.compose.preference.SwitchPreference
 import org.koin.compose.koinInject
@@ -105,7 +106,7 @@ object PreferencesScreen : Screen {
               Icon(
                 Icons.Outlined.Search,
                 contentDescription = "Search Settings",
-                tint = MaterialTheme.colorScheme.primary,
+                tint = AuraTokens.AuraCyan,
               )
             }
           },
@@ -127,27 +128,27 @@ object PreferencesScreen : Screen {
                 .fillMaxWidth()
                 .padding(horizontal = 16.dp, vertical = 6.dp)
                 .clickable { backstack.add(SettingsSearchScreen) },
-              shape = RoundedCornerShape(16.dp),
-              color = MaterialTheme.colorScheme.surfaceContainerLow,
-              border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.2f)),
+              shape = RoundedCornerShape(18.dp),
+              color = AuraTokens.CarbonCard,
+              border = BorderStroke(1.dp, AuraTokens.CarbonBorder),
             ) {
               Row(
                 modifier = Modifier
                   .fillMaxWidth()
-                  .padding(horizontal = 16.dp, vertical = 12.dp),
+                  .padding(horizontal = 16.dp, vertical = 14.dp),
                 verticalAlignment = Alignment.CenterVertically,
               ) {
                 Icon(
                   imageVector = Icons.Outlined.Search,
                   contentDescription = null,
-                  tint = MaterialTheme.colorScheme.outline,
+                  tint = AuraTokens.AuraCyan,
                   modifier = Modifier.size(20.dp),
                 )
                 Spacer(modifier = Modifier.width(12.dp))
                 Text(
                   text = "Search settings, toggles & parameters...",
                   style = MaterialTheme.typography.bodyMedium,
-                  color = MaterialTheme.colorScheme.outline,
+                  color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f),
                 )
               }
             }

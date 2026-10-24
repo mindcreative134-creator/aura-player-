@@ -22,6 +22,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.shape.RoundedCornerShape
+import app.marlboroadvance.mpvex.ui.theme.aura.AuraTokens
+
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun DeleteConfirmationDialog(
@@ -41,8 +45,9 @@ fun DeleteConfirmationDialog(
     title = {
       Text(
         text = "Delete $itemCount $itemText?",
-        style = MaterialTheme.typography.headlineMedium,
+        style = MaterialTheme.typography.headlineSmall,
         fontWeight = FontWeight.Bold,
+        color = MaterialTheme.colorScheme.onSurface,
       )
     },
     text = {
@@ -52,16 +57,17 @@ fun DeleteConfirmationDialog(
         Card(
           colors =
             CardDefaults.cardColors(
-              containerColor = MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.5f),
+              containerColor = AuraTokens.ObsidianSurface,
             ),
-          shape = MaterialTheme.shapes.extraLarge,
+          shape = RoundedCornerShape(16.dp),
+          border = BorderStroke(1.dp, AuraTokens.AuraSunset.copy(alpha = 0.4f)),
           modifier = Modifier.fillMaxWidth(),
         ) {
           Text(
             text = "This action cannot be undone. The selected item${if (itemCount == 1) "" else "s"} will be permanently deleted.",
-            style = MaterialTheme.typography.bodyLarge,
+            style = MaterialTheme.typography.bodyMedium,
             fontWeight = FontWeight.Medium,
-            color = MaterialTheme.colorScheme.onErrorContainer,
+            color = AuraTokens.AuraSunset,
             modifier = Modifier.padding(16.dp),
           )
         }
@@ -70,9 +76,10 @@ fun DeleteConfirmationDialog(
           Card(
             colors =
               CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.4f),
+                containerColor = AuraTokens.CarbonElevated,
               ),
-            shape = MaterialTheme.shapes.extraLarge,
+            shape = RoundedCornerShape(16.dp),
+            border = BorderStroke(1.dp, AuraTokens.CarbonBorder),
             modifier = Modifier.fillMaxWidth(),
           ) {
             Column(
@@ -94,12 +101,12 @@ fun DeleteConfirmationDialog(
                   ) {
                     Text(
                       text = "${index + 1}. ",
-                      style = MaterialTheme.typography.bodyLarge,
-                      color = MaterialTheme.colorScheme.onSurface,
+                      style = MaterialTheme.typography.bodyMedium,
+                      color = AuraTokens.AuraCyan,
                     )
                     Text(
                       text = name,
-                      style = MaterialTheme.typography.bodyLarge,
+                      style = MaterialTheme.typography.bodyMedium,
                       color = MaterialTheme.colorScheme.onSurface,
                       modifier = Modifier.weight(1f),
                     )
@@ -119,10 +126,10 @@ fun DeleteConfirmationDialog(
         },
         colors =
           ButtonDefaults.buttonColors(
-            containerColor = MaterialTheme.colorScheme.error,
-            contentColor = MaterialTheme.colorScheme.onError,
+            containerColor = AuraTokens.AuraSunset,
+            contentColor = androidx.compose.ui.graphics.Color.White,
           ),
-        shape = MaterialTheme.shapes.extraLarge,
+        shape = RoundedCornerShape(16.dp),
       ) {
         Text(
           text = "Delete",
@@ -133,13 +140,13 @@ fun DeleteConfirmationDialog(
     dismissButton = {
       TextButton(
         onClick = onDismiss,
-        shape = MaterialTheme.shapes.extraLarge,
+        shape = RoundedCornerShape(16.dp),
       ) {
         Text("Cancel", fontWeight = FontWeight.Medium)
       }
     },
-    containerColor = MaterialTheme.colorScheme.surface,
-    tonalElevation = 6.dp,
-    shape = MaterialTheme.shapes.extraLarge,
+    containerColor = AuraTokens.CarbonCard,
+    tonalElevation = 0.dp,
+    shape = RoundedCornerShape(24.dp),
   )
 }

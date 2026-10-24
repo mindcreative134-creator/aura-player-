@@ -32,11 +32,10 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import app.marlboroadvance.mpvex.ui.theme.AppTheme
-
+import app.marlboroadvance.mpvex.ui.theme.aura.AuraTokens
 
 /**
  * A theme preview card that displays a mini preview of the app UI with the theme's colors.
- * Inspired by Aniyomi's theme picker design.
  */
 @Composable
 fun ThemePreviewCard(
@@ -48,12 +47,11 @@ fun ThemePreviewCard(
 ) {
     val colorScheme = if (isDarkMode) theme.getDarkColorScheme() else theme.getLightColorScheme()
     
-    // Use the current MaterialTheme primary for selection to ensure visibility
-    val selectionColor = MaterialTheme.colorScheme.primary
+    val selectionColor = AuraTokens.AuraCyan
     
-    val borderWidth = if (isSelected) 3.dp else 1.dp
+    val borderWidth = if (isSelected) 2.5.dp else 1.dp
 
-    val borderColor = if (isSelected) selectionColor else Color.Transparent
+    val borderColor = if (isSelected) selectionColor else AuraTokens.CarbonBorder
 
     val elevation = if (isSelected) 8.dp else 2.dp
 
@@ -73,16 +71,16 @@ fun ThemePreviewCard(
                 .size(width = 90.dp, height = 140.dp)
                 .shadow(
                     elevation = elevation,
-                    shape = RoundedCornerShape(12.dp),
-                    ambientColor = if (isSelected) selectionColor.copy(alpha = 0.3f) else Color.Black.copy(alpha = 0.2f),
-                    spotColor = if (isSelected) selectionColor.copy(alpha = 0.3f) else Color.Black.copy(alpha = 0.2f),
+                    shape = RoundedCornerShape(16.dp),
+                    ambientColor = if (isSelected) selectionColor.copy(alpha = 0.35f) else Color.Black.copy(alpha = 0.2f),
+                    spotColor = if (isSelected) selectionColor.copy(alpha = 0.35f) else Color.Black.copy(alpha = 0.2f),
                 )
-                .clip(RoundedCornerShape(12.dp))
+                .clip(RoundedCornerShape(16.dp))
                 .background(colorScheme.surface)
                 .border(
                     width = borderWidth,
                     color = borderColor,
-                    shape = RoundedCornerShape(12.dp)
+                    shape = RoundedCornerShape(16.dp)
                 ),
         ) {
             // Inner content
@@ -169,7 +167,7 @@ fun ThemePreviewCard(
             fontSize = 11.sp,
             fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
             color = if (isSelected) {
-                MaterialTheme.colorScheme.primary
+                AuraTokens.AuraCyan
             } else {
                 MaterialTheme.colorScheme.onSurface
             },

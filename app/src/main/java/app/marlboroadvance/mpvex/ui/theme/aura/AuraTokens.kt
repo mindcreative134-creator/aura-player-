@@ -19,9 +19,12 @@ object AuraTokens {
     // Foundational Palette - Pure Obsidian & Carbon Grays
     val VoidBlack = Color(0xFF060709)
     val ObsidianDark = Color(0xFF0C0E12)
+    val ObsidianSurface = Color(0xFF0C0E12)
     val CarbonElevated = Color(0xFF14171F)
+    val CarbonCard = Color(0xFF14171F)
     val SlateSurface = Color(0xFF1B202A)
     val BorderSubtle = Color(0xFF282E3D)
+    val CarbonBorder = Color(0xFF282E3D)
     val BorderHighlight = Color(0xFF3B445A)
 
     val PureWhite = Color(0xFFFFFFFF)

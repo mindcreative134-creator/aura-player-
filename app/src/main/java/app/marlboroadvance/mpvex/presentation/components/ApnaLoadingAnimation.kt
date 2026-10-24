@@ -30,19 +30,20 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import app.marlboroadvance.mpvex.ui.theme.aura.AuraTokens
 
 /**
- * Clean, simple, and modern animated loading indicator for Apna Player.
- * Features a minimalist gradient spinner ring with clear, elegant typography.
+ * Signature Aura animated loading indicator.
+ * Delivers a crisp, luminous gradient spinner ring with clear, elegant typography.
  */
 @Composable
-fun ApnaLoadingAnimation(
+fun AuraLoadingAnimation(
   modifier: Modifier = Modifier,
   size: Dp = 64.dp,
   title: String? = null,
   subtitle: String? = null,
 ) {
-  val infiniteTransition = rememberInfiniteTransition(label = "apna_clean_loading")
+  val infiniteTransition = rememberInfiniteTransition(label = "aura_loading")
 
   val rotation by infiniteTransition.animateFloat(
     initialValue = 0f,
@@ -55,7 +56,7 @@ fun ApnaLoadingAnimation(
   )
 
   val primaryColor = MaterialTheme.colorScheme.primary
-  val secondaryColor = MaterialTheme.colorScheme.tertiary
+  val secondaryColor = AuraTokens.AuraCyan
 
   Column(
     modifier = modifier,
@@ -71,13 +72,13 @@ fun ApnaLoadingAnimation(
           .size(size)
           .rotate(rotation)
       ) {
-        val strokeWidthPx = 4.dp.toPx()
+        val strokeWidthPx = 3.5.dp.toPx()
         val arcSize = Size(size.toPx() - strokeWidthPx, size.toPx() - strokeWidthPx)
         val topLeft = Offset(strokeWidthPx / 2f, strokeWidthPx / 2f)
 
         // Subtle background track
         drawArc(
-          color = primaryColor.copy(alpha = 0.15f),
+          color = primaryColor.copy(alpha = 0.12f),
           startAngle = 0f,
           sweepAngle = 360f,
           useCenter = false,
@@ -123,3 +124,22 @@ fun ApnaLoadingAnimation(
     }
   }
 }
+
+/**
+ * Backward compatibility wrapper for existing call-sites
+ */
+@Composable
+fun ApnaLoadingAnimation(
+  modifier: Modifier = Modifier,
+  size: Dp = 64.dp,
+  title: String? = null,
+  subtitle: String? = null,
+) {
+  AuraLoadingAnimation(
+    modifier = modifier,
+    size = size,
+    title = title,
+    subtitle = subtitle,
+  )
+}
+
