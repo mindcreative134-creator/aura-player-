@@ -65,7 +65,7 @@ class AiSubtitleManager(private val context: Context) {
         return AiConfig(provider, apiKey, targetLang)
     }
 
-    fun saveConfig(config: AiConfig) {
+    fun saveConfig(config: AiConfig): Result<Unit> {
         val trimmedKey = config.apiKey.trim()
         val editor = prefs.edit()
             .putString(KEY_PROVIDER, config.provider.name)
@@ -76,16 +76,20 @@ class AiSubtitleManager(private val context: Context) {
             if (encrypted != null) {
                 editor.putString(KEY_API_KEY_ENCRYPTED, encrypted)
                 editor.remove(KEY_API_KEY_PLAINTEXT)
+                editor.apply()
+                return Result.success(Unit)
             } else {
-                // If hardware keystore fails on unsupported system, fallback securely
-                editor.putString(KEY_API_KEY_PLAINTEXT, trimmedKey)
+                // Strictly refuse plaintext fallback storage for privacy compliance
+                Log.e(TAG, "Failed to encrypt API key using Android KeyStore; refusing to store plaintext")
+                editor.apply() // Provider and language changes are saved
+                return Result.failure(IllegalStateException("Could not securely encrypt API key using Android KeyStore"))
             }
         } else {
             editor.remove(KEY_API_KEY_ENCRYPTED)
             editor.remove(KEY_API_KEY_PLAINTEXT)
+            editor.apply()
+            return Result.success(Unit)
         }
-
-        editor.apply()
     }
 
     /**
@@ -172,7 +176,7 @@ class AiSubtitleManager(private val context: Context) {
                 return@withContext Result.failure(Exception(safeError))
             }
 
-            val body = response.body?.string().orEmpty()
+            val body = response.body.use { it.string() }
             val outDir = File(context.cacheDir, "ai_subtitles").apply { mkdirs() }
             val outFile = File(outDir, "${audioFile.nameWithoutExtension}.whisper.ai.srt")
             outFile.writeText(body)
@@ -250,7 +254,7 @@ class AiSubtitleManager(private val context: Context) {
                 return Result.failure(Exception(sanitizeError(response.code, "Translation")))
             }
 
-            val body = response.body?.string().orEmpty()
+            val body = response.body.use { it.string() }
             val json = JSONObject(body)
             val content = json.getJSONArray("choices")
                 .getJSONObject(0)
@@ -295,7 +299,7 @@ class AiSubtitleManager(private val context: Context) {
                 return Result.failure(Exception(sanitizeError(response.code, "Anthropic translation")))
             }
 
-            val body = response.body?.string().orEmpty()
+            val body = response.body.use { it.string() }
             val json = JSONObject(body)
             val content = json.getJSONArray("content")
                 .getJSONObject(0)
@@ -350,6 +354,7 @@ class AiSubtitleManager(private val context: Context) {
     }
 
     companion object {
+        private const val TAG = "AiSubtitleManager"
         private const val KEYSTORE_ALIAS = "aura_ai_key"
         private const val KEY_PROVIDER = "ai_provider"
         private const val KEY_API_KEY_PLAINTEXT = "ai_api_key"

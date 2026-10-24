@@ -1,13 +1,23 @@
 <?xml version="1.0" encoding="utf-8"?>
 <network-security-config>
-    <!-- Allow cleartext (HTTP) traffic for all domains -->
-    <!-- This is necessary for WebDAV, FTP, SMB, and other network protocols that may use HTTP -->
+    <!--
+        Allow cleartext (HTTP) traffic — required for local network protocols:
+        WebDAV (often HTTP on LAN), FTP, SMB over HTTP-based tunnels, and NanoHTTPD local server.
+        Cleartext is NOT used for any external AI API calls (those use HTTPS only).
+    -->
     <base-config cleartextTrafficPermitted="true">
         <trust-anchors>
-            <!-- Trust system certificates -->
+            <!-- Trust system certificates only in production builds -->
             <certificates src="system" />
-            <!-- Trust user-added certificates (for corporate/self-signed certs) -->
-            <certificates src="user" />
         </trust-anchors>
     </base-config>
+
+    <!-- In debug builds, also trust user-installed certificates for development proxy tools -->
+    <debug-overrides>
+        <trust-anchors>
+            <certificates src="system" />
+            <certificates src="user" />
+        </trust-anchors>
+    </debug-overrides>
 </network-security-config>
+

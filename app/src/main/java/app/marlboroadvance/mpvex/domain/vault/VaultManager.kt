@@ -5,9 +5,9 @@ import android.content.Context
 import android.content.IntentSender
 import android.media.MediaScannerConnection
 import android.net.Uri
-import android.os.Build
 import android.os.Environment
 import android.provider.DocumentsContract
+import android.util.AtomicFile
 import android.util.Log
 import app.marlboroadvance.mpvex.utils.security.SecureKeyStoreHelper
 import kotlinx.coroutines.Dispatchers
@@ -166,34 +166,72 @@ object VaultManager {
   @Synchronized
   fun getVaultItems(context: Context): List<VaultItem> {
     val file = getIndexFile(context)
-    if (!file.exists()) return emptyList()
-    return try {
-      val content = file.readText()
-      json.decodeFromString<List<VaultItem>>(content)
-    } catch (e: Exception) {
-      Log.e(TAG, "Error reading vault index", e)
-      emptyList()
+    val atomicFile = AtomicFile(file)
+    var items: List<VaultItem> = emptyList()
+
+    if (file.exists() || File(file.parentFile, "${file.name}.bak").exists()) {
+      try {
+        val bytes = atomicFile.readFully()
+        val content = String(bytes, Charsets.UTF_8)
+        items = json.decodeFromString<List<VaultItem>>(content)
+      } catch (e: Exception) {
+        Log.e(TAG, "Error reading vault index", e)
+      }
     }
+
+    // Orphan Recovery: Scan vault folder for valid media files not present in index
+    val vaultDir = getVaultDir(context)
+    val files = vaultDir.listFiles { f ->
+      f.isFile && !f.name.endsWith(".tmp") && !f.name.endsWith(".bak") &&
+      f.name != ".nomedia" && f.name != INDEX_FILE_NAME && f.length() > 0L
+    } ?: emptyArray()
+
+    val indexedPaths = items.map { it.vaultFilePath }.toSet()
+    val recovered = mutableListOf<VaultItem>()
+    for (f in files) {
+      if (f.absolutePath !in indexedPaths) {
+        recovered.add(
+          VaultItem(
+            id = f.nameWithoutExtension,
+            fileName = f.name,
+            originalPath = "",
+            sizeBytes = f.length(),
+            dateAdded = f.lastModified(),
+            vaultFilePath = f.absolutePath,
+          )
+        )
+      }
+    }
+
+    if (recovered.isNotEmpty()) {
+      Log.i(TAG, "Recovered ${recovered.size} orphaned media file(s) into vault index")
+      val merged = items + recovered
+      saveVaultItems(context, merged)
+      return merged
+    }
+
+    return items
   }
 
   @Synchronized
-  private fun saveVaultItems(context: Context, items: List<VaultItem>) {
+  fun saveVaultItems(context: Context, items: List<VaultItem>): Boolean {
     val file = getIndexFile(context)
-    val tmpFile = File(file.parentFile, "${file.name}.tmp")
-    try {
+    val atomicFile = AtomicFile(file)
+    var stream: FileOutputStream? = null
+    return try {
       val content = json.encodeToString(items)
-      FileOutputStream(tmpFile).use { fos ->
-        fos.write(content.toByteArray(Charsets.UTF_8))
-        fos.flush()
-        fos.fd.sync()
-      }
-      if (file.exists()) {
-        file.delete()
-      }
-      tmpFile.renameTo(file)
+      val bytes = content.toByteArray(Charsets.UTF_8)
+      stream = atomicFile.startWrite()
+      stream.write(bytes)
+      stream.flush()
+      atomicFile.finishWrite(stream)
+      true
     } catch (e: Exception) {
       Log.e(TAG, "Error saving vault index atomically", e)
-      if (tmpFile.exists()) tmpFile.delete()
+      if (stream != null) {
+        atomicFile.failWrite(stream)
+      }
+      false
     }
   }
 
@@ -256,11 +294,16 @@ object VaultManager {
           vaultFilePath = targetFile.absolutePath,
         )
 
-        // 4. Update index safely
+        // 4. Update index safely - MUST BE VERIFIED BEFORE DELETING ORIGINAL
         currentItems.add(0, item)
-        saveVaultItems(context, currentItems)
+        val indexSaved = saveVaultItems(context, currentItems)
+        if (!indexSaved) {
+          Log.e(TAG, "Index save failed; aborting vault addition and preserving original file")
+          targetFile.delete()
+          return@withContext VaultAddResult.Failed("Failed to durably commit vault index. Original file is preserved.")
+        }
 
-        // 5. Explicitly verify deletion of original
+        // 5. Explicitly verify deletion of original ONLY AFTER index is saved
         val originalDeleted = try {
           sourceFile.delete()
         } catch (e: Exception) {
@@ -332,12 +375,17 @@ object VaultManager {
           vaultFilePath = targetFile.absolutePath,
         )
 
-        // 3. Update index safely
+        // 3. Update index safely - MUST BE VERIFIED BEFORE DELETING ORIGINAL
         val currentItems = getVaultItems(context).toMutableList()
         currentItems.add(0, item)
-        saveVaultItems(context, currentItems)
+        val indexSaved = saveVaultItems(context, currentItems)
+        if (!indexSaved) {
+          Log.e(TAG, "Index save failed; aborting vault addition and preserving original URI")
+          targetFile.delete()
+          return@withContext VaultAddResult.Failed("Failed to durably commit vault index. Original file is preserved.")
+        }
 
-        // 4. Attempt deletion of original URI with explicit outcome checking
+        // 4. Attempt deletion of original URI with explicit outcome checking ONLY AFTER index is saved
         var deleted = false
         try {
           if (DocumentsContract.isDocumentUri(context, uri)) {
@@ -387,39 +435,61 @@ object VaultManager {
           return@withContext Result.failure(IllegalStateException("Vault file missing from storage"))
         }
 
-        // Determine destination path
-        var destFile: File
+        // Determine destination directory
         val origFile = if (item.originalPath.startsWith("/")) File(item.originalPath) else null
         val destDir = origFile?.parentFile
-        if (destDir != null && destDir.exists() && destDir.canWrite()) {
-          destFile = origFile
+        val targetDir = if (destDir != null && destDir.exists() && destDir.canWrite()) {
+          destDir
         } else {
           val moviesDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_MOVIES)
           val restoredDir = File(moviesDir, "Restored")
           if (!restoredDir.exists()) restoredDir.mkdirs()
-          destFile = File(restoredDir, item.fileName)
+          restoredDir
+        }
+
+        // Conflict handling: Generate a unique filename if destination already exists
+        var destFile = File(targetDir, item.fileName)
+        if (destFile.exists()) {
+          val baseName = destFile.nameWithoutExtension
+          val extension = destFile.extension
+          var counter = 1
+          while (destFile.exists()) {
+            val candidateName = if (extension.isNotEmpty()) "$baseName ($counter).$extension" else "$baseName ($counter)"
+            destFile = File(targetDir, candidateName)
+            counter++
+          }
         }
 
         // Copy out of vault via temporary file
         val destTmp = File(destFile.parentFile, "${destFile.name}.tmp")
+        var bytesCopied = 0L
         FileInputStream(vaultFile).use { input ->
           FileOutputStream(destTmp).use { output ->
-            input.copyTo(output)
+            bytesCopied = input.copyTo(output)
             output.flush()
             output.fd.sync()
           }
         }
 
-        if (destFile.exists()) destFile.delete()
+        if (bytesCopied != vaultFile.length() || !destTmp.exists() || destTmp.length() == 0L) {
+          if (destTmp.exists()) destTmp.delete()
+          return@withContext Result.failure(IllegalStateException("Failed to verify restored file integrity"))
+        }
+
         if (!destTmp.renameTo(destFile)) {
           if (destTmp.exists()) destTmp.delete()
           return@withContext Result.failure(IllegalStateException("Failed to move restored file to destination"))
         }
 
-        // Remove from vault only after destination is verified
-        vaultFile.delete()
+        // Update index BEFORE removing the vault copy
         currentItems.removeAll { it.id == itemId }
-        saveVaultItems(context, currentItems)
+        val indexSaved = saveVaultItems(context, currentItems)
+        if (!indexSaved) {
+          Log.w(TAG, "Index update failed during restore; vault copy preserved to prevent data loss")
+        } else {
+          // Remove from vault only after destination and index are verified
+          vaultFile.delete()
+        }
 
         // Trigger MediaScanner so restored video appears in gallery / browser immediately
         MediaScannerConnection.scanFile(
@@ -443,13 +513,18 @@ object VaultManager {
         val item = currentItems.find { it.id == itemId } ?: return@withContext false
 
         val vaultFile = File(item.vaultFilePath)
-        if (vaultFile.exists()) {
-          vaultFile.delete()
-        }
 
         currentItems.removeAll { it.id == itemId }
-        saveVaultItems(context, currentItems)
-        true
+        val indexSaved = saveVaultItems(context, currentItems)
+        if (indexSaved) {
+          if (vaultFile.exists()) {
+            vaultFile.delete()
+          }
+          true
+        } else {
+          Log.e(TAG, "Failed to update vault index during deletion")
+          false
+        }
       } catch (e: Exception) {
         Log.e(TAG, "Failed to delete item from vault", e)
         false

@@ -51,13 +51,13 @@ You may grant or revoke permissions at any time via Android System Settings (**S
 
 ---
 
-## 4. Local Data Storage, Vault & Encryption
+## 4. Local Data Storage, Private Vault & Security
 
 All app-related data is stored locally on your device:
 
 - **Playback History & Positions:** Saved in a local SQLite/Room database on your device to let you resume playback where you left off.
-- **Private Vault:** Videos moved to the Private Vault are copied into the app's isolated private sandbox directory (`files/.vault`) with a `.nomedia` marker to prevent indexing by public gallery apps. Vault access is protected by an in-app PIN verified using cryptographic PBKDF2-HMAC-SHA256 hashing with random salts and attempt throttling (rate limiting) to prevent brute-force attacks.
-- **API Key Storage:** User-provided third-party AI API keys are encrypted at rest using the hardware-backed **Android Keystore system** (AES-256-GCM). Plaintext keys are never written to unencrypted storage or logs.
+- **Private Vault:** Videos moved to the Private Vault are copied into the app's isolated private sandbox directory (`files/.vault`) with a `.nomedia` marker to prevent indexing by public gallery apps. Vault access is protected by an in-app PIN verified using cryptographic PBKDF2-HMAC-SHA256 hashing with random salts and attempt throttling (rate limiting) to prevent brute-force attacks. Media files themselves reside in this application-private filesystem sandbox rather than encrypted on a per-file cryptographic level.
+- **API Key Storage:** User-provided third-party AI API keys are encrypted at rest using the **Android Keystore system** (AES-256-GCM). Plaintext keys are never written to unencrypted storage or logs.
 - **Data Deletion:** You can clear your playback history at any time in the app settings, or clear all application data via Android System Settings (**Settings > Apps > Aura Player > Storage > Clear Data**). Uninstalling the app permanently deletes all local data.
 
 ---
