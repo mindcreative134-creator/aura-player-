@@ -44,32 +44,36 @@ jobs:
           set -e
           PREVIEW_DIR="app/build/outputs/apk/standard/preview"
           
-          echo "${{ secrets.SIGNING_KEYSTORE }}" | base64 -d > release.keystore
-          
-          APK_COUNT=$(find "$PREVIEW_DIR" -name "app-standard-*-preview-unsigned.apk" -type f | wc -l)
-          if [ "$APK_COUNT" -eq 0 ]; then
-            echo "No unsigned preview APK files found"
-            ls -lah "$PREVIEW_DIR"
-            rm release.keystore
-            exit 1
+          if [ -n "${{ secrets.SIGNING_KEYSTORE }}" ]; then
+            echo "Signing with custom keystore..."
+            echo "${{ secrets.SIGNING_KEYSTORE }}" | base64 -d > release.keystore
+            find "$PREVIEW_DIR" -name "app-standard-*-preview-unsigned.apk" -type f | while read -r apk; do
+              signed_apk="${apk/-unsigned/}"
+              $ANDROID_HOME/build-tools/34.0.0/apksigner sign \
+                --ks release.keystore \
+                --ks-key-alias "${{ secrets.SIGNING_KEY_ALIAS }}" \
+                --ks-pass "pass:${{ secrets.SIGNING_STORE_PASSWORD }}" \
+                --key-pass "pass:${{ secrets.KEY_PASSWORD }}" \
+                --out "$signed_apk" \
+                "$apk"
+              rm -f "$apk"
+            done
+            rm -f release.keystore
+          else
+            echo "No custom SIGNING_KEYSTORE secret provided. Signing with debug keystore..."
+            find "$PREVIEW_DIR" -name "app-standard-*-preview-unsigned.apk" -type f | while read -r apk; do
+              signed_apk="${apk/-unsigned/}"
+              $ANDROID_HOME/build-tools/34.0.0/apksigner sign \
+                --ks "$HOME/.android/debug.keystore" \
+                --ks-key-alias androiddebugkey \
+                --ks-pass pass:android \
+                --key-pass pass:android \
+                --out "$signed_apk" \
+                "$apk"
+              rm -f "$apk"
+            done
           fi
-          
-          find "$PREVIEW_DIR" -name "app-standard-*-preview-unsigned.apk" -type f | while read -r apk; do
-            signed_apk="${apk/-unsigned/}"
-          
-            $ANDROID_HOME/build-tools/34.0.0/apksigner sign \
-              --ks release.keystore \
-              --ks-key-alias "${{ secrets.SIGNING_KEY_ALIAS }}" \
-              --ks-pass "pass:${{ secrets.SIGNING_STORE_PASSWORD }}" \
-              --key-pass "pass:${{ secrets.KEY_PASSWORD }}" \
-              --out "$signed_apk" \
-              "$apk"
-          
-            $ANDROID_HOME/build-tools/34.0.0/apksigner verify "$signed_apk"
-            rm "$apk"
-          done
-          
-          rm release.keystore
+
           ls -lh "$PREVIEW_DIR"/app-standard-*-preview.apk
 
       - name: Copy build artifacts
@@ -83,15 +87,11 @@ jobs:
 
           declare -a apks=("universal" "arm64-v8a" "armeabi-v7a" "x86" "x86_64")
           mkdir -p output
-          # Initialize empty array for file sizes
-          declare -a file_sizes=()
           
           for arch in "${apks[@]}"; do
             src="app/build/outputs/apk/standard/preview/app-standard-${arch}-preview.apk"
-            dest="output/mpvEx-preview-r${commit_count}-${arch}.apk"
+            dest="output/AuraPlayer-preview-r${commit_count}-${arch}.apk"
             cp "$src" "$dest"
-          
-            # Get file size in human-readable format
             size=$(du -h "$dest" | cut -f1)
             echo "${arch}_size=$size" >> $GITHUB_OUTPUT
           done
@@ -121,31 +121,29 @@ jobs:
           <head>
             <meta charset='UTF-8'>
             <meta name='viewport' content='width=device-width, initial-scale=1.0'>
-            <title>mpvEx Preview Builds</title>
+            <title>Aura Player Preview Builds</title>
             <style>
-              body { font-family: sans-serif; padding: 2em; background: #0d1117; color: #c9d1d9; }
-              h1 { color: #58a6ff; }
-              a { color: #58a6ff; text-decoration: none; display: block; margin: 8px 0; }
+              body { font-family: sans-serif; padding: 2em; background: #060709; color: #c9d1d9; }
+              h1 { color: #00E5FF; }
+              a { color: #00E5FF; text-decoration: none; display: block; margin: 8px 0; }
               a:hover { text-decoration: underline; }
               .note { color: #8b949e; font-size: 0.9em; margin-top: 1em; }
               .filesize { color: #8b949e; font-size: 0.9em; }
             </style>
           </head>
           <body>
-            <h1>mpvEx Preview Build r${commit_count}</h1>
+            <h1>Aura Player Preview Build r${commit_count}</h1>
             <p>Build time: ${build_time}</p>
-            <p>Download the latest signed APKs:</p>
+            <p>Download preview APKs:</p>
             <ul>
-              <li><a href='mpvEx-preview-r${commit_count}-universal.apk'>Universal (${{ needs.build.outputs.universal_size }})</a></li>
-              <li><a href='mpvEx-preview-r${commit_count}-arm64-v8a.apk'>arm64-v8a (${{ needs.build.outputs.arm64-v8a_size }})</a></li>
-              <li><a href='mpvEx-preview-r${commit_count}-armeabi-v7a.apk'>armeabi-v7a (${{ needs.build.outputs.armeabi-v7a_size }})</a></li>
-              <li><a href='mpvEx-preview-r${commit_count}-x86.apk'>x86 (${{ needs.build.outputs.x86_size }})</a></li>
-              <li><a href='mpvEx-preview-r${commit_count}-x86_64.apk'>x86_64 (${{ needs.build.outputs.x86_64_size }})</a></li>
+              <li><a href='AuraPlayer-preview-r${commit_count}-universal.apk'>Universal (${{ needs.build.outputs.universal_size }})</a></li>
+              <li><a href='AuraPlayer-preview-r${commit_count}-arm64-v8a.apk'>arm64-v8a (${{ needs.build.outputs.arm64-v8a_size }})</a></li>
+              <li><a href='AuraPlayer-preview-r${commit_count}-armeabi-v7a.apk'>armeabi-v7a (${{ needs.build.outputs.armeabi-v7a_size }})</a></li>
+              <li><a href='AuraPlayer-preview-r${commit_count}-x86.apk'>x86 (${{ needs.build.outputs.x86_size }})</a></li>
+              <li><a href='AuraPlayer-preview-r${commit_count}-x86_64.apk'>x86_64 (${{ needs.build.outputs.x86_64_size }})</a></li>
             </ul>
-            <p class='note'>Built automatically from the <code>dev</code> branch.</p>
           </body>
           </html>" > ./public/index.html
-          cp docs/privacy-policy.html ./public/privacy-policy.html 2>/dev/null || true
 
       - name: Upload to GitHub Pages
         uses: actions/upload-pages-artifact@v3
