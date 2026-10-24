@@ -78,6 +78,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import app.marlboroadvance.mpvex.domain.vault.VaultItem
 import app.marlboroadvance.mpvex.domain.vault.VaultManager
+import app.marlboroadvance.mpvex.domain.vault.VaultAddResult
+import app.marlboroadvance.mpvex.domain.vault.PinVerificationResult
 import app.marlboroadvance.mpvex.presentation.Screen
 import app.marlboroadvance.mpvex.ui.player.PlayerActivity
 import app.marlboroadvance.mpvex.ui.utils.LocalBackStack
@@ -122,6 +124,9 @@ object PrivateVaultScreen : Screen {
       }
     }
 
+    var showRemainingOriginalsDialog by remember { mutableStateOf(false) }
+    var remainingOriginalsCount by remember { mutableStateOf(0) }
+
     // Video picker launcher to add videos to vault
     val videoPickerLauncher = rememberLauncherForActivityResult(
       contract = ActivityResultContracts.OpenMultipleDocuments(),
@@ -129,7 +134,8 @@ object PrivateVaultScreen : Screen {
       if (uris.isNotEmpty()) {
         isLoading = true
         scope.launch(Dispatchers.IO) {
-          var addedCount = 0
+          var movedCount = 0
+          var copiedCount = 0
           uris.forEach { uri ->
             try {
               var displayName: String? = null
@@ -141,9 +147,13 @@ object PrivateVaultScreen : Screen {
                   }
                 }
               }
-              val result = VaultManager.addToVault(context, uri, displayName)
-              if (result.isSuccess) {
-                addedCount++
+              when (val result = VaultManager.addToVault(context, uri, displayName)) {
+                is VaultAddResult.Moved -> movedCount++
+                is VaultAddResult.CopiedOriginalRemains -> copiedCount++
+                is VaultAddResult.RequiresDeleteConfirmation -> copiedCount++
+                is VaultAddResult.Failed -> {
+                  android.util.Log.w("PrivateVault", "Failed to add to vault: ${result.message}")
+                }
               }
             } catch (e: Exception) {
               e.printStackTrace()
@@ -152,11 +162,16 @@ object PrivateVaultScreen : Screen {
           withContext(Dispatchers.Main) {
             isLoading = false
             refreshItems()
-            Toast.makeText(
-              context,
-              "Added $addedCount video(s) to Private Vault.",
-              Toast.LENGTH_SHORT,
-            ).show()
+            if (copiedCount > 0) {
+              remainingOriginalsCount = copiedCount
+              showRemainingOriginalsDialog = true
+            } else if (movedCount > 0) {
+              Toast.makeText(
+                context,
+                "Moved $movedCount video(s) to Private Vault. Originals deleted from gallery.",
+                Toast.LENGTH_LONG,
+              ).show()
+            }
           }
         }
       }
@@ -247,12 +262,20 @@ object PrivateVaultScreen : Screen {
                       }
                     }
                   } else {
-                    if (VaultManager.verifyPin(context, updated)) {
-                      isUnlocked = true
-                      currentPinInput = ""
-                    } else {
-                      errorMessage = "Incorrect PIN. Try again."
-                      currentPinInput = ""
+                    when (val res = VaultManager.verifyPinWithRateLimit(context, updated)) {
+                      is PinVerificationResult.Success -> {
+                        isUnlocked = true
+                        currentPinInput = ""
+                        errorMessage = null
+                      }
+                      is PinVerificationResult.Incorrect -> {
+                        errorMessage = "Incorrect PIN. ${res.remainingAttempts} attempt(s) remaining."
+                        currentPinInput = ""
+                      }
+                      is PinVerificationResult.LockedOut -> {
+                        errorMessage = "Too many failed attempts. Try again in ${res.lockoutSecondsRemaining}s."
+                        currentPinInput = ""
+                      }
                     }
                   }
                 }
@@ -317,31 +340,22 @@ object PrivateVaultScreen : Screen {
         }
       }
     }
-  }
 
-  private fun copyUriToTempFile(context: Context, uri: Uri): File? {
-    return try {
-      val contentResolver = context.contentResolver
-      var name = "vault_video_${System.currentTimeMillis()}"
-      contentResolver.query(uri, null, null, null, null)?.use { cursor ->
-        if (cursor.moveToFirst()) {
-          val nameIndex = cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME)
-          if (nameIndex != -1) {
-            val displayName = cursor.getString(nameIndex)
-            if (!displayName.isNullOrBlank()) name = displayName
+    if (showRemainingOriginalsDialog) {
+      AlertDialog(
+        onDismissRequest = { showRemainingOriginalsDialog = false },
+        title = { Text("Original File Remains in Gallery") },
+        text = {
+          Text(
+            "$remainingOriginalsCount video(s) were safely copied into your Private Vault. However, Android storage permissions prevented deleting the original file(s) automatically.\n\nTo ensure complete privacy, please delete the original video(s) manually from your device gallery."
+          )
+        },
+        confirmButton = {
+          Button(onClick = { showRemainingOriginalsDialog = false }) {
+            Text("Understood")
           }
-        }
-      }
-      val tempFile = File(context.cacheDir, name)
-      contentResolver.openInputStream(uri)?.use { input ->
-        FileOutputStream(tempFile).use { output ->
-          input.copyTo(output)
-        }
-      }
-      tempFile
-    } catch (e: Exception) {
-      e.printStackTrace()
-      null
+        },
+      )
     }
   }
 

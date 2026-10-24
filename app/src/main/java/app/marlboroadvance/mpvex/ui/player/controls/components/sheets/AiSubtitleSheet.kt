@@ -214,7 +214,14 @@ fun AiSubtitleSheet(
                 )
             }
 
-            Spacer(modifier = Modifier.height(12.dp))
+            Text(
+                text = "Privacy Notice: Subtitle text or audio file will be sent directly from your device to the selected AI provider using your personal API key under their terms of service.",
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.75f),
+                modifier = Modifier.padding(vertical = 4.dp)
+            )
+
+            Spacer(modifier = Modifier.height(10.dp))
 
             // Action Buttons
             Row(

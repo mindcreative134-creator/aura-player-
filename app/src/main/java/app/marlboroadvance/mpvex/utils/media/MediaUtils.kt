@@ -163,18 +163,45 @@ object MediaUtils {
       return
     }
 
-    fun toSharableUri(v: Video): android.net.Uri? =
-      v.uri.takeIf { it.scheme.equals("content", true) } ?: run {
-        try {
-          FileProvider.getUriForFile(context, BuildConfig.APPLICATION_ID + ".provider", File(v.path))
-        } catch (e: IllegalArgumentException) {
-          android.util.Log.e("MediaUtils", "FileProvider failed for ${v.path}: ${e.message}")
-          null
-        } catch (e: Exception) {
-          android.util.Log.e("MediaUtils", "Failed to generate URI for ${v.path}", e)
-          null
-        }
+    fun toSharableUri(v: Video): android.net.Uri? {
+      if (v.uri.scheme.equals("content", true)) {
+        return v.uri
       }
+      // Query MediaStore for content URI
+      try {
+        val projection = arrayOf(android.provider.MediaStore.Video.Media._ID)
+        val selection = "${android.provider.MediaStore.Video.Media.DATA} = ?"
+        val selectionArgs = arrayOf(v.path)
+        context.contentResolver.query(
+          android.provider.MediaStore.Video.Media.EXTERNAL_CONTENT_URI,
+          projection,
+          selection,
+          selectionArgs,
+          null
+        )?.use { cursor ->
+          if (cursor.moveToFirst()) {
+            val idIndex = cursor.getColumnIndex(android.provider.MediaStore.Video.Media._ID)
+            if (idIndex != -1) {
+              val id = cursor.getLong(idIndex)
+              return android.content.ContentUris.withAppendedId(
+                android.provider.MediaStore.Video.Media.EXTERNAL_CONTENT_URI,
+                id
+              )
+            }
+          }
+        }
+      } catch (e: Exception) {
+        android.util.Log.w("MediaUtils", "MediaStore query failed for ${v.path}: ${e.message}")
+      }
+
+      // Fallback to FileProvider for app-scoped files
+      return try {
+        FileProvider.getUriForFile(context, BuildConfig.APPLICATION_ID + ".provider", File(v.path))
+      } catch (e: Exception) {
+        android.util.Log.e("MediaUtils", "FileProvider cannot serve ${v.path}: ${e.message}")
+        null
+      }
+    }
 
     val uris = videos.mapNotNull { toSharableUri(it) }
 

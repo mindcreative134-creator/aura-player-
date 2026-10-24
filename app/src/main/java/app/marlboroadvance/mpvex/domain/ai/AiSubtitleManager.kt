@@ -1,6 +1,8 @@
 package app.marlboroadvance.mpvex.domain.ai
 
 import android.content.Context
+import android.util.Log
+import app.marlboroadvance.mpvex.utils.security.SecureKeyStoreHelper
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.MediaType.Companion.toMediaType
@@ -39,17 +41,51 @@ class AiSubtitleManager(private val context: Context) {
     fun getConfig(): AiConfig {
         val providerStr = prefs.getString(KEY_PROVIDER, AiProvider.GROQ.name) ?: AiProvider.GROQ.name
         val provider = runCatching { AiProvider.valueOf(providerStr) }.getOrDefault(AiProvider.GROQ)
-        val apiKey = prefs.getString(KEY_API_KEY, "") ?: ""
         val targetLang = prefs.getString(KEY_TARGET_LANG, "Hindi") ?: "Hindi"
+
+        // Decrypt API key from AndroidKeyStore with migration fallback
+        val encryptedKey = prefs.getString(KEY_API_KEY_ENCRYPTED, null)
+        val apiKey = if (!encryptedKey.isNullOrBlank()) {
+            SecureKeyStoreHelper.decrypt(KEYSTORE_ALIAS, encryptedKey) ?: ""
+        } else {
+            // Legacy migration: check if plaintext key exists
+            val plaintextKey = prefs.getString(KEY_API_KEY_PLAINTEXT, "") ?: ""
+            if (plaintextKey.isNotBlank()) {
+                val encrypted = SecureKeyStoreHelper.encrypt(KEYSTORE_ALIAS, plaintextKey)
+                if (encrypted != null) {
+                    prefs.edit()
+                        .putString(KEY_API_KEY_ENCRYPTED, encrypted)
+                        .remove(KEY_API_KEY_PLAINTEXT)
+                        .apply()
+                }
+            }
+            plaintextKey
+        }
+
         return AiConfig(provider, apiKey, targetLang)
     }
 
     fun saveConfig(config: AiConfig) {
-        prefs.edit()
+        val trimmedKey = config.apiKey.trim()
+        val editor = prefs.edit()
             .putString(KEY_PROVIDER, config.provider.name)
-            .putString(KEY_API_KEY, config.apiKey.trim())
             .putString(KEY_TARGET_LANG, config.targetLanguage.trim())
-            .apply()
+
+        if (trimmedKey.isNotBlank()) {
+            val encrypted = SecureKeyStoreHelper.encrypt(KEYSTORE_ALIAS, trimmedKey)
+            if (encrypted != null) {
+                editor.putString(KEY_API_KEY_ENCRYPTED, encrypted)
+                editor.remove(KEY_API_KEY_PLAINTEXT)
+            } else {
+                // If hardware keystore fails on unsupported system, fallback securely
+                editor.putString(KEY_API_KEY_PLAINTEXT, trimmedKey)
+            }
+        } else {
+            editor.remove(KEY_API_KEY_ENCRYPTED)
+            editor.remove(KEY_API_KEY_PLAINTEXT)
+        }
+
+        editor.apply()
     }
 
     /**
@@ -63,7 +99,7 @@ class AiSubtitleManager(private val context: Context) {
     ): Result<File> = withContext(Dispatchers.IO) {
         val config = getConfig()
         if (config.apiKey.isBlank()) {
-            return@withContext Result.failure(IllegalStateException("AI API Key enter karein"))
+            return@withContext Result.failure(IllegalStateException("AI API Key required. Please configure your key in settings."))
         }
 
         val text = runCatching { subtitleFile.readText() }.getOrElse {
@@ -94,6 +130,7 @@ class AiSubtitleManager(private val context: Context) {
 
     /**
      * Transcribes audio directly to .srt subtitles using Whisper API.
+     * Uploads the selected audio file to the configured third-party Whisper endpoint.
      */
     suspend fun transcribeAudioToSrt(
         audioFile: File,
@@ -101,14 +138,14 @@ class AiSubtitleManager(private val context: Context) {
     ): Result<File> = withContext(Dispatchers.IO) {
         val config = getConfig()
         if (config.apiKey.isBlank()) {
-            return@withContext Result.failure(IllegalStateException("AI API Key enter karein"))
+            return@withContext Result.failure(IllegalStateException("AI API Key required. Please configure your key in settings."))
         }
 
         val endpoint = when (config.provider) {
             AiProvider.GROQ -> "https://api.groq.com/openai/v1/audio/transcriptions"
             AiProvider.OPENAI -> "https://api.openai.com/v1/audio/transcriptions"
             AiProvider.ANTHROPIC -> return@withContext Result.failure(
-                UnsupportedOperationException("Anthropic doesn't support Whisper speech-to-text. Use Groq or OpenAI.")
+                UnsupportedOperationException("Anthropic does not support Whisper speech-to-text. Please select Groq or OpenAI.")
             )
         }
 
@@ -130,18 +167,19 @@ class AiSubtitleManager(private val context: Context) {
 
         try {
             val response = client.newCall(request).execute()
-            val body = response.body?.string().orEmpty()
             if (!response.isSuccessful) {
-                return@withContext Result.failure(Exception("Whisper API error ${response.code}: $body"))
+                val safeError = sanitizeError(response.code, "Whisper transcription")
+                return@withContext Result.failure(Exception(safeError))
             }
 
+            val body = response.body?.string().orEmpty()
             val outDir = File(context.cacheDir, "ai_subtitles").apply { mkdirs() }
             val outFile = File(outDir, "${audioFile.nameWithoutExtension}.whisper.ai.srt")
             outFile.writeText(body)
 
             Result.success(outFile)
         } catch (e: Exception) {
-            Result.failure(e)
+            Result.failure(Exception("Transcription network failure: ${e.message}"))
         }
     }
 
@@ -208,11 +246,11 @@ class AiSubtitleManager(private val context: Context) {
 
         return try {
             val response = client.newCall(request).execute()
-            val body = response.body?.string().orEmpty()
             if (!response.isSuccessful) {
-                return Result.failure(Exception("AI API error ${response.code}: $body"))
+                return Result.failure(Exception(sanitizeError(response.code, "Translation")))
             }
 
+            val body = response.body?.string().orEmpty()
             val json = JSONObject(body)
             val content = json.getJSONArray("choices")
                 .getJSONObject(0)
@@ -221,7 +259,7 @@ class AiSubtitleManager(private val context: Context) {
                 .trim()
             Result.success(cleanSrtOutput(content))
         } catch (e: Exception) {
-            Result.failure(e)
+            Result.failure(Exception("AI request error: ${e.message}"))
         }
     }
 
@@ -253,11 +291,11 @@ class AiSubtitleManager(private val context: Context) {
 
         return try {
             val response = client.newCall(request).execute()
-            val body = response.body?.string().orEmpty()
             if (!response.isSuccessful) {
-                return Result.failure(Exception("Anthropic API error ${response.code}: $body"))
+                return Result.failure(Exception(sanitizeError(response.code, "Anthropic translation")))
             }
 
+            val body = response.body?.string().orEmpty()
             val json = JSONObject(body)
             val content = json.getJSONArray("content")
                 .getJSONObject(0)
@@ -265,7 +303,17 @@ class AiSubtitleManager(private val context: Context) {
                 .trim()
             Result.success(cleanSrtOutput(content))
         } catch (e: Exception) {
-            Result.failure(e)
+            Result.failure(Exception("AI request error: ${e.message}"))
+        }
+    }
+
+    private fun sanitizeError(statusCode: Int, operation: String): String {
+        return when (statusCode) {
+            401 -> "$operation failed: Invalid API key (HTTP 401). Please check your key in settings."
+            403 -> "$operation failed: Access denied or forbidden (HTTP 403)."
+            429 -> "$operation failed: API rate limit or quota exceeded (HTTP 429). Please try again later."
+            500, 502, 503, 504 -> "$operation failed: Provider service temporarily unavailable (HTTP $statusCode)."
+            else -> "$operation request failed with HTTP status $statusCode."
         }
     }
 
@@ -302,8 +350,10 @@ class AiSubtitleManager(private val context: Context) {
     }
 
     companion object {
+        private const val KEYSTORE_ALIAS = "aura_ai_key"
         private const val KEY_PROVIDER = "ai_provider"
-        private const val KEY_API_KEY = "ai_api_key"
+        private const val KEY_API_KEY_PLAINTEXT = "ai_api_key"
+        private const val KEY_API_KEY_ENCRYPTED = "ai_api_key_enc"
         private const val KEY_TARGET_LANG = "ai_target_lang"
 
         @Volatile

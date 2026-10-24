@@ -31,7 +31,7 @@ We do not collect or monitor any personal or device data:
 - **Personal Information:** No names, email addresses, phone numbers, or physical addresses.
 - **Device Identifiers:** No IMEI, Android ID, MAC address, advertising ID, or hardware fingerprints.
 - **Usage Telemetry:** No analytics libraries, event trackers, or usage heatmaps.
-- **Media Content:** Local media files (videos, songs, photos) are never uploaded to our servers. If and only if you explicitly configure and initiate the optional AI Subtitle Translation / Transcription feature, only the designated subtitle text or audio excerpt is sent directly to your selected third-party AI provider (Groq, OpenAI, or Anthropic) using your own API key.
+- **Media Content:** Local media files (videos, songs, photos) are never collected or uploaded to any server operated by Aura Player.
 
 ---
 
@@ -41,9 +41,9 @@ To function properly as a media player, Aura Player requests the following Andro
 
 | Permission | Category | Purpose |
 | :--- | :--- | :--- |
-| `READ_MEDIA_VIDEO` / `READ_MEDIA_AUDIO` / `READ_EXTERNAL_STORAGE` | Storage | Allows the app to scan, browse, display thumbnails, read media tags (via MediaInfo), and play local audio/video files. |
+| `READ_MEDIA_VIDEO` / `READ_MEDIA_AUDIO` / `READ_EXTERNAL_STORAGE` | Storage | Allows the app to scan, browse, display thumbnails, read media tags (via MediaInfo), and play local audio/video files. `READ_EXTERNAL_STORAGE` is strictly limited to Android 12 and below (`maxSdkVersion="32"`). |
 | `MANAGE_EXTERNAL_STORAGE` *(Standard standalone flavor only)* | All Files Access | Enables advanced file management (move, rename, delete files, subtitle loading across arbitrary directories, USB OTG drives). *Strictly removed from Google Play Store builds.* |
-| `INTERNET` | Network | Required exclusively to play user-requested network streams (via "Stream Link", HTTP/HLS/DASH/RTSP), fetch synchronized lyrics (LRCLib), play online radio (RadioBrowser), and communicate with AI APIs if configured. |
+| `INTERNET` | Network | Required exclusively to play user-requested network streams (via "Stream Link", HTTP/HLS/DASH/RTSP), fetch synchronized lyrics (LRCLib), play online radio (RadioBrowser), and communicate with AI APIs if explicitly configured by the user. |
 | `FOREGROUND_SERVICE` & `FOREGROUND_SERVICE_MEDIA_PLAYBACK` | Background Playback | Allows uninterrupted audio and video playback when navigating outside the app, using Picture-in-Picture (PiP), or turning off the screen. |
 | `POST_NOTIFICATIONS` | Notifications | Displays ongoing playback controls (play, pause, seek, track info) on Android 13+. |
 
@@ -51,28 +51,49 @@ You may grant or revoke permissions at any time via Android System Settings (**S
 
 ---
 
-## 4. Local Data Storage & User Data Control
+## 4. Local Data Storage, Vault & Encryption
 
 All app-related data is stored locally on your device:
 
 - **Playback History & Positions:** Saved in a local SQLite/Room database on your device to let you resume playback where you left off.
-- **App Preferences & Vault:** Playback speed, gestures, subtitle preferences, and player settings are saved in Android DataStore/SharedPreferences. Files placed in the Private Vault are moved to the app's isolated private sandbox directory (`.vault`) guarded by an in-app PIN code and hidden from device galleries with a `.nomedia` marker.
+- **Private Vault:** Videos moved to the Private Vault are copied into the app's isolated private sandbox directory (`files/.vault`) with a `.nomedia` marker to prevent indexing by public gallery apps. Vault access is protected by an in-app PIN verified using cryptographic PBKDF2-HMAC-SHA256 hashing with random salts and attempt throttling (rate limiting) to prevent brute-force attacks.
+- **API Key Storage:** User-provided third-party AI API keys are encrypted at rest using the hardware-backed **Android Keystore system** (AES-256-GCM). Plaintext keys are never written to unencrypted storage or logs.
 - **Data Deletion:** You can clear your playback history at any time in the app settings, or clear all application data via Android System Settings (**Settings > Apps > Aura Player > Storage > Clear Data**). Uninstalling the app permanently deletes all local data.
 
 ---
 
-## 5. Network Streaming, Online Services & AI Providers
+## 5. Network Streaming, Online Services & Optional AI Processing
 
+### Network Streaming & Online Directories
 - **Network Streams:** Direct connections are established from your device to the specified stream URL (HTTP/HTTPS/HLS/RTSP/RTMP).
 - **Online Radio & Lyrics:** Stations are fetched from public community directories (RadioBrowser, LRCLib) directly from your device.
-- **Optional AI Subtitles & Transcription:** If you choose to configure an AI provider for subtitle translation or speech-to-text, data is transmitted directly from your device to the chosen provider's official API endpoint (Groq, OpenAI, or Anthropic) utilizing your personal API key. We do not operate any intermediate proxy servers and do not collect, view, or log these requests. Your API keys are kept strictly within private local app storage.
-- **No Third-Party Analytics or Ads:** No data is shared with data brokers, advertisers, or analytics platforms.
+
+### Optional AI Subtitles & Transcription
+Aura Player includes an optional AI-assisted subtitle translation and speech-to-text transcription feature. This feature is completely inactive by default and requires explicit configuration and initiation by the user:
+
+1. **User Initiation:** Data is only transmitted when the user explicitly clicks the "Translate" or "Whisper Sub" action button in the AI Subtitle dialog.
+2. **Data Transmitted for Subtitle Translation:** The text cues and dialogue lines of the selected subtitle file (`.srt`) are sent to the user-chosen provider's chat completion endpoint.
+3. **Data Transmitted for Speech-to-Text Transcription:** The complete audio file (or audio extracted from the video) is uploaded directly to the user-chosen provider's transcription endpoint.
+4. **Supported Third-Party Providers & Endpoints:**
+   - **Groq Inc.:**
+     - Translation: `https://api.groq.com/openai/v1/chat/completions`
+     - Transcription: `https://api.groq.com/openai/v1/audio/transcriptions`
+     - Governed by [Groq Privacy Policy](https://groq.com/privacy-policy/)
+   - **OpenAI LLC:**
+     - Translation: `https://api.openai.com/v1/chat/completions`
+     - Transcription: `https://api.openai.com/v1/audio/transcriptions`
+     - Governed by [OpenAI Privacy Policy](https://openai.com/policies/privacy-policy/)
+   - **Anthropic PBC:**
+     - Translation: `https://api.anthropic.com/v1/messages`
+     - Governed by [Anthropic Privacy Policy](https://www.anthropic.com/legal/privacy)
+5. **No Intermediate Servers:** Requests are made directly from your device to the official API endpoints using your personal API key. Aura Player developers do not operate any intermediary proxy servers and never intercept, inspect, or log your API keys, subtitle text, or audio recordings.
+6. **Third-Party Processing:** Third-party AI providers process submitted data according to their own terms and privacy policies.
 
 ---
 
 ## 6. Crash Reporting
 
-Aura Player provides an on-device crash dialog (`CrashActivity`) for diagnosing unexpected crashes locally. Crash logs are **never** transmitted automatically.
+Aura Player provides an on-device crash dialog (`CrashActivity`) for diagnosing unexpected crashes locally. Crash logs are **never** transmitted automatically. If you choose to share crash logs, you do so manually using Android's standard share sheet.
 
 ---
 

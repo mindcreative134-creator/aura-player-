@@ -108,6 +108,7 @@ import app.marlboroadvance.mpvex.utils.media.CopyPasteOps
 import app.marlboroadvance.mpvex.utils.media.MediaUtils
 import app.marlboroadvance.mpvex.utils.sort.SortUtils
 import app.marlboroadvance.mpvex.domain.vault.VaultManager
+import app.marlboroadvance.mpvex.domain.vault.VaultAddResult
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -228,6 +229,7 @@ data class VideoListScreen(
     val movingToPrivateSpace = rememberSaveable { mutableStateOf(false) }
     val showPrivateSpaceCompletionDialog = rememberSaveable { mutableStateOf(false) }
     val privateSpaceMovedCount = remember { mutableIntStateOf(0) }
+    val privateSpaceCopiedCount = remember { mutableIntStateOf(0) }
 
     val displayFolderName = videos.firstOrNull()?.bucketDisplayName ?: folderName
 
@@ -422,16 +424,21 @@ data class VideoListScreen(
               val selectedVideos = selectionManager.getSelectedItems()
               coroutineScope.launch {
                 movingToPrivateSpace.value = true
-                val count = withContext(Dispatchers.IO) {
-                  var moved = 0
+                var moved = 0
+                var copied = 0
+                withContext(Dispatchers.IO) {
                   for (v in selectedVideos) {
-                    val result = VaultManager.addToVault(context, v.uri, v.displayName)
-                    if (result.isSuccess) moved++
+                    when (VaultManager.addToVault(context, v.uri, v.displayName)) {
+                      is VaultAddResult.Moved -> moved++
+                      is VaultAddResult.CopiedOriginalRemains -> copied++
+                      is VaultAddResult.RequiresDeleteConfirmation -> copied++
+                      is VaultAddResult.Failed -> {}
+                    }
                   }
-                  moved
                 }
                 movingToPrivateSpace.value = false
-                privateSpaceMovedCount.intValue = count
+                privateSpaceMovedCount.intValue = moved
+                privateSpaceCopiedCount.intValue = copied
                 showPrivateSpaceCompletionDialog.value = true
                 selectionManager.clear()
                 viewModel.refresh()
@@ -542,19 +549,27 @@ data class VideoListScreen(
 
       // Private Space Completion Dialog
       if (showPrivateSpaceCompletionDialog.value) {
+        val moved = privateSpaceMovedCount.intValue
+        val copied = privateSpaceCopiedCount.intValue
+        val message = when {
+          copied > 0 && moved > 0 ->
+            "Successfully moved $moved video(s) to Private Vault.\n\nNotice: $copied video(s) were copied to the vault safely, but system permissions prevented deleting the originals automatically. Please delete the originals manually from your gallery to keep them private."
+          copied > 0 ->
+            "Copied $copied video(s) to Private Vault safely.\n\nNotice: System permissions prevented deleting the original files automatically. Please delete the originals manually from your gallery to keep them private."
+          else ->
+            "Successfully moved $moved video(s) to Private Vault.\n\nTo access your hidden videos, tap the Lock icon at the top of the main screen or open Private Vault from the menu."
+        }
         androidx.compose.material3.AlertDialog(
           onDismissRequest = { showPrivateSpaceCompletionDialog.value = false },
           title = {
             Text(
-              text = "Moved to Private Space",
+              text = if (copied > 0 && moved == 0) "Copied to Vault" else "Moved to Private Space",
               style = MaterialTheme.typography.headlineSmall,
             )
           },
           text = {
             Text(
-              text =
-                "Successfully moved ${privateSpaceMovedCount.intValue} video(s) to Private Vault.\n\n" +
-                  "To access your hidden videos, tap the Lock icon at the top of the main screen or open Private Vault from the menu.",
+              text = message,
               style = MaterialTheme.typography.bodyMedium,
             )
           },

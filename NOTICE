@@ -1,43 +1,126 @@
-Apna Player (Aura Player)
+Aura Player
 Copyright (c) 2024-2026 MindCreative / CMStudio
 
-This product includes software developed by third-party open-source projects:
+This product includes software developed by third-party open-source projects.
+Below is the inventory of components, source origins, and respective licenses:
 
+================================================================================
 1. Google AndroidX Media3 (ExoPlayer)
-   Copyright (c) 2022-2024 The Android Open Source Project
-   Licensed under the Apache License, Version 2.0.
-   https://github.com/androidx/media
+================================================================================
+Source: https://github.com/androidx/media
+Version: 1.5.1
+License: Apache License, Version 2.0
+Copyright (c) 2022-2025 The Android Open Source Project
 
+================================================================================
 2. mpv-android and mpvEx
-   Copyright (c) 2016-2024 mpv-android contributors
-   Copyright (c) 2023-2024 mpvEx contributors (MarlboroAdvance)
-   Portions of the user interface architecture, controls design, and player bridge concepts
-   are derived from or inspired by mpv-android and mpvEx.
-   https://github.com/mpv-android/mpv-android
-   https://github.com/marlboro-advance/mpvEx
+================================================================================
+Source:
+  - mpvEx: https://github.com/marlboro-advance/mpvEx
+  - mpv-android: https://github.com/mpv-android/mpv-android
+License: MIT License (mpvEx / mpv-android UI components)
+Copyright (c) 2016-2024 mpv-android contributors
+Copyright (c) 2023-2024 mpvEx contributors (MarlboroAdvance)
+Note: Aura Player's media playback engine is implemented using native AndroidX Media3
+ExoPlayer. The user interface layout, gestures, and settings architecture originate
+from or are adapted from mpvEx and mpv-android under the MIT License.
 
+================================================================================
 3. MediaInfo (mediainfo-android)
-   Copyright (c) 2002-2024 MediaArea.net SARL
-   MediaInfo library is licensed under the GNU Lesser General Public License (LGPL), version 2.1 or later.
-   ZenLib library is licensed under the BSD 2-Clause License.
-   https://mediaarea.net/MediaInfo
+================================================================================
+Source: https://mediaarea.net/MediaInfo
+Wrapper Source: https://github.com/marlboro-advance/mediainfo-android
+Version: 1.0.2
+Licenses:
+  - MediaInfoLib: GNU Lesser General Public License (LGPL), Version 2.1 or later
+  - ZenLib: BSD 2-Clause License
+Copyright (c) 2002-2024 MediaArea.net SARL
+LGPL Compliance Notice:
+MediaInfo is linked dynamically as a shared native library (.so via JNI).
+Users have the right to inspect, modify, or replace the shared library.
+The upstream source code is accessible at https://mediaarea.net/en/MediaInfo/Download/Source
 
-4. NanoHTTPD
-   Copyright (c) 2012-2013 by Paul S. Hawke, 2001-2013 by Jarno Elonen, 2010 by Konstantinos Togias
-   Licensed under the BSD 3-Clause License.
-   https://github.com/NanoHttpd/nanohttpd
+================================================================================
+4. Network Protocol Libraries
+================================================================================
+- SMBJ (SMB2/SMB3 client for local network storage)
+  Source: https://github.com/hierynomus/smbj
+  Version: 0.14.0
+  License: Apache License 2.0
+  Copyright (c) 2017-2024 Jeroen van Erp
 
-5. Jetpack Compose & Android Support Libraries
-   Copyright (c) 2005-2024 The Android Open Source Project
-   Licensed under the Apache License, Version 2.0.
-   https://developer.android.com/jetpack
+- Apache Commons Net (FTP / FTPS client)
+  Source: https://commons.apache.org/proper/commons-net/
+  Version: 3.13.0
+  License: Apache License 2.0
+  Copyright (c) 2001-2024 The Apache Software Foundation
 
-6. Koin Dependency Injection
-   Copyright (c) 2017-2024 Arnaud Giuliani and Kotzilla
-   Licensed under the Apache License, Version 2.0.
-   https://insert-koin.io/
+- Sardine-Android (WebDAV client)
+  Source: https://github.com/thegrizzlylabs/sardine-android
+  Version: 0.8
+  License: Apache License 2.0
+  Copyright (c) 2015-2024 The Grizzly Labs
 
-7. OkHttp
-   Copyright (c) 2019 Square, Inc.
-   Licensed under the Apache License, Version 2.0.
-   https://square.github.io/okhttp/
+- NanoHTTPD (Lightweight embedded HTTP server for local stream playback)
+  Source: https://github.com/NanoHttpd/nanohttpd
+  Version: 2.3.1
+  License: BSD 3-Clause License
+  Copyright (c) 2012-2013 by Paul S. Hawke, 2001-2013 by Jarno Elonen, 2010 by Konstantinos Togias
+
+================================================================================
+5. User Interface & Utility Libraries
+================================================================================
+- Seeker (Video scrubber / slider component)
+  Source: https://github.com/abdallahmehiz/seeker
+  Version: 2.0.1
+  License: Apache License 2.0
+  Copyright (c) 2023-2024 AbdAllah Mehiz
+
+- LazyColumnScrollbar
+  Source: https://github.com/nanihadesuka/LazyColumnScrollbar
+  Version: 2.2.0
+  License: Apache License 2.0
+  Copyright (c) 2021-2024 Nanihadesuka
+
+- Reorderable (Drag-and-drop list reordering)
+  Source: https://github.com/calvin-sh/reorderable
+  Version: 3.0.0
+  License: Apache License 2.0
+  Copyright (c) 2023-2024 Calvin Liang
+
+- TrueTypeParser-Light (Font parsing utility)
+  Source: https://github.com/yubyf/truetypeparser-light
+  Version: 2.1.4
+  License: Apache License 2.0
+  Copyright (c) 2019-2024 Yubyf
+
+- Compose Preference
+  Source: https://github.com/zhanghai/ComposePreference
+  Version: 2.2.0
+  License: Apache License 2.0
+  Copyright (c) 2022-2024 Hai Zhang
+
+- Jsoup HTML Parser (Online subtitle discovery)
+  Source: https://jsoup.org/
+  Version: 1.18.1
+  License: MIT License
+  Copyright (c) 2009-2024 Jonathan Hedley
+
+- OkHttp
+  Source: https://square.github.io/okhttp/
+  Version: 5.3.2
+  License: Apache License 2.0
+  Copyright (c) 2019 Square, Inc.
+
+- Koin Dependency Injection
+  Source: https://insert-koin.io/
+  Version: 4.2.0
+  License: Apache License 2.0
+  Copyright (c) 2017-2024 Arnaud Giuliani and Kotzilla
+
+================================================================================
+6. AndroidX, Jetpack & Kotlin
+================================================================================
+Source: https://android.googlesource.com/
+License: Apache License 2.0
+Copyright (c) 2005-2026 The Android Open Source Project

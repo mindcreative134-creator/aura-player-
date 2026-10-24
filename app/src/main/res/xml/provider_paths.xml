@@ -1,21 +1,22 @@
 <?xml version="1.0" encoding="utf-8"?>
 <paths>
+    <!-- App internal cache directory (e.g. crash logs, mediainfo text exports, temporary subtitle files) -->
     <cache-path
         name="cache_files"
         path="." />
+
+    <!-- App internal files directory -->
     <files-path
         name="files_path"
         path="." />
-    <!-- Allow sharing files from external storage (e.g., /storage/emulated/0/...) -->
-    <external-path
-        name="external_storage"
-        path="." />
-    <!-- Allow sharing files from secondary external storage (e.g., /storage/xxxx-xxxx/..., external SD cards) -->
-    <external-files-path
-        name="external_files_storage"
-        path="." />
-    <!-- Allow sharing files from external cache directory (used for downloaded APK updates) -->
+
+    <!-- App-specific external cache directory (e.g. downloaded APK updates) -->
     <external-cache-path
         name="external_cache"
+        path="." />
+
+    <!-- App-specific external files directory (strictly scoped to Android/data/com.cmstudio.auraplayer/files) -->
+    <external-files-path
+        name="external_files_storage"
         path="." />
 </paths>
