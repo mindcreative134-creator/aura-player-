@@ -343,7 +343,7 @@ object AboutScreen : Screen {
             verticalArrangement = Arrangement.spacedBy(10.dp),
           ) {
             Text(
-              text = "Apna Player is designed with total user privacy as a core principle:",
+              text = "Aura Player is designed with total user privacy as a core principle:",
               style = MaterialTheme.typography.bodyMedium,
               color = MaterialTheme.colorScheme.onSurface,
             )

@@ -1,4 +1,4 @@
-﻿package app.marlboroadvance.mpvex.ui.player.controls.components.sheets
+package app.marlboroadvance.mpvex.ui.player.controls.components.sheets
 
 import android.media.MediaScannerConnection
 import android.os.Environment
@@ -297,7 +297,7 @@ val scope = rememberCoroutineScope()
             verticalAlignment = Alignment.CenterVertically,
           ) {
             Text(
-              text = "⚡ Apna Player Native Engine (Google Media3 / HW+)",
+              text = "⚡ Aura Cinema Engine (Media3 / HW+)",
               style = MaterialTheme.typography.titleSmall,
               color = MaterialTheme.colorScheme.primary,
             )

@@ -1,4 +1,4 @@
-﻿package app.marlboroadvance.mpvex.ui.player.controls.components.sheets
+package app.marlboroadvance.mpvex.ui.player.controls.components.sheets
 
 import android.content.ClipData
 import android.content.ClipboardManager
@@ -347,7 +347,7 @@ fun VideoClipSheet(
           onClick = {
             runCatching {
               val title = viewModel.currentMediaTitle.ifBlank { "Video" }
-              val clipShareText = "🎬 $title\n⏱️ Clip Segment: ${PlayerBridgeUtils.prettyTime(startSeconds)} ➔ ${PlayerBridgeUtils.prettyTime(endSeconds)} (${PlayerBridgeUtils.prettyTime(clipDuration)})\nSaved via Apna Player"
+              val clipShareText = "🎬 $title\n⏱️ Clip Segment: ${PlayerBridgeUtils.prettyTime(startSeconds)} ➔ ${PlayerBridgeUtils.prettyTime(endSeconds)} (${PlayerBridgeUtils.prettyTime(clipDuration)})\nSaved via Aura Player"
               val sendIntent = android.content.Intent().apply {
                 action = android.content.Intent.ACTION_SEND
                 putExtra(android.content.Intent.EXTRA_TEXT, clipShareText)

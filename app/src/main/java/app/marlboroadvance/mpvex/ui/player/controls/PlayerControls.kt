@@ -51,12 +51,14 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.FastForward
+import androidx.compose.material.icons.filled.FastRewind
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.SkipNext
 import androidx.compose.material.icons.filled.SkipPrevious
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import app.marlboroadvance.mpvex.presentation.components.AuraPlayerBufferingIndicator
 import app.marlboroadvance.mpvex.presentation.components.ApnaPlayerBufferingIndicator
 import app.marlboroadvance.mpvex.ui.theme.aura.AuraTokens
@@ -686,205 +688,151 @@ fun PlayerControls(
                 )
 
               if (playlistMode && viewModel.hasPlaylistSupport()) {
-                androidx.compose.foundation.layout.Row(
-                  horizontalArrangement = Arrangement.spacedBy(24.dp),
-                  verticalAlignment = Alignment.CenterVertically,
+                Surface(
+                  shape = RoundedCornerShape(50),
+                  color = if (!hideBackground) AuraTokens.CarbonElevated.copy(alpha = 0.85f) else Color.Transparent,
+                  border = if (!hideBackground) BorderStroke(1.dp, AuraTokens.CarbonBorder) else null,
+                  modifier = Modifier.clip(RoundedCornerShape(50)),
                 ) {
-                  Surface(
-                    modifier =
-                      Modifier
-                        .size(56.dp)
-                        .clip(CircleShape)
-                        .clickable(
-                          enabled = viewModel.hasPrevious(),
-                          onClick = {
-                            resetControlsTimestamp = System.currentTimeMillis()
-                            if (viewModel.hasPrevious()) viewModel.playPrevious()
-                          },
-                        )
-                        .then(
-                          if (hideBackground) {
-                            Modifier.background(brush = buttonShadow, shape = CircleShape)
-                          } else {
-                            Modifier
-                          },
-                        ),
-                    shape = CircleShape,
-                    color =
-                      if (!hideBackground) {
-                        AuraTokens.CarbonCard.copy(alpha = 0.85f)
-                      } else {
-                        Color.Transparent
-                      },
-                    contentColor = MaterialTheme.colorScheme.onSurface,
-                    tonalElevation = 0.dp,
-                    shadowElevation = 0.dp,
-                    border =
-                      if (!hideBackground) {
-                        BorderStroke(1.dp, AuraTokens.CarbonBorder)
-                      } else {
-                        null
-                      },
+                  Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(10.dp),
+                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
                   ) {
-                    Icon(
-                      imageVector = Icons.Default.SkipPrevious,
-                      contentDescription = "Previous",
-                      tint =
-                        if (viewModel.hasPrevious()) {
-                          if (hideBackground) controlColor else MaterialTheme.colorScheme.onSurface
+                    IconButton(
+                      enabled = viewModel.hasPrevious(),
+                      onClick = {
+                        resetControlsTimestamp = System.currentTimeMillis()
+                        if (viewModel.hasPrevious()) viewModel.playPrevious()
+                      },
+                      modifier = Modifier.size(44.dp),
+                    ) {
+                      Icon(
+                        imageVector = Icons.Default.SkipPrevious,
+                        contentDescription = "Previous",
+                        tint = if (viewModel.hasPrevious()) {
+                          if (hideBackground) controlColor else Color.White
                         } else {
-                          if (hideBackground) {
-                            controlColor.copy(alpha = 0.38f)
-                          } else {
-                            MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
-                          }
+                          Color.White.copy(alpha = 0.38f)
                         },
-                      modifier = Modifier
-                        .fillMaxSize()
-                        .padding(MaterialTheme.spacing.small),
-                    )
-                  }
+                        modifier = Modifier.size(26.dp),
+                      )
+                    }
 
-                  Surface(
-                    modifier =
-                      Modifier
-                        .size(72.dp)
+                    Box(
+                      modifier = Modifier
+                        .size(60.dp)
                         .clip(CircleShape)
+                        .background(
+                          if (hideBackground) Color.Transparent else AuraTokens.AuraCyan.copy(alpha = 0.16f),
+                          CircleShape,
+                        )
                         .clickable(interaction, ripple(), onClick = {
                           resetControlsTimestamp = System.currentTimeMillis()
                           viewModel.pauseUnpause()
-                        })
-                        .then(
-                          if (hideBackground) {
-                            Modifier.background(brush = buttonShadow, shape = CircleShape)
-                          } else {
-                            Modifier
-                          },
-                        ),
-                    shape = CircleShape,
-                    color =
-                      if (!hideBackground) {
-                        AuraTokens.CarbonElevated.copy(alpha = 0.85f)
-                      } else {
-                        Color.Transparent
-                      },
-                    contentColor = AuraTokens.AuraCyan,
-                    tonalElevation = 0.dp,
-                    shadowElevation = 0.dp,
-                    border =
-                      if (!hideBackground) {
-                        BorderStroke(1.5.dp, AuraTokens.AuraCyan.copy(alpha = 0.65f))
-                      } else {
-                        null
-                      },
-                  ) {
-                    Image(
-                      painter = rememberAnimatedVectorPainter(icon, paused == false),
-                      modifier = Modifier
-                        .fillMaxSize()
-                        .padding(MaterialTheme.spacing.medium),
-                      contentDescription = null,
-                      colorFilter = ColorFilter.tint(AuraTokens.AuraCyan),
-                    )
-                  }
+                        }),
+                      contentAlignment = Alignment.Center,
+                    ) {
+                      Image(
+                        painter = rememberAnimatedVectorPainter(icon, paused == false),
+                        modifier = Modifier
+                          .size(36.dp)
+                          .padding(MaterialTheme.spacing.extraSmall),
+                        contentDescription = null,
+                        colorFilter = ColorFilter.tint(AuraTokens.AuraCyan),
+                      )
+                    }
 
-                  Surface(
-                    modifier =
-                      Modifier
-                        .size(56.dp)
-                        .clip(CircleShape)
-                        .clickable(
-                          enabled = viewModel.hasNext(),
-                          onClick = {
-                            resetControlsTimestamp = System.currentTimeMillis()
-                            if (viewModel.hasNext()) viewModel.playNext()
-                          },
-                        )
-                        .then(
-                          if (hideBackground) {
-                            Modifier.background(brush = buttonShadow, shape = CircleShape)
-                          } else {
-                            Modifier
-                          },
-                        ),
-                    shape = CircleShape,
-                    color =
-                      if (!hideBackground) {
-                        AuraTokens.CarbonCard.copy(alpha = 0.85f)
-                      } else {
-                        Color.Transparent
+                    IconButton(
+                      enabled = viewModel.hasNext(),
+                      onClick = {
+                        resetControlsTimestamp = System.currentTimeMillis()
+                        if (viewModel.hasNext()) viewModel.playNext()
                       },
-                    contentColor = MaterialTheme.colorScheme.onSurface,
-                    tonalElevation = 0.dp,
-                    shadowElevation = 0.dp,
-                    border =
-                      if (!hideBackground) {
-                        BorderStroke(1.dp, AuraTokens.CarbonBorder)
-                      } else {
-                        null
-                      },
-                  ) {
-                    Icon(
-                      imageVector = Icons.Default.SkipNext,
-                      contentDescription = "Next",
-                      tint =
-                        if (viewModel.hasNext()) {
-                          if (hideBackground) controlColor else MaterialTheme.colorScheme.onSurface
+                      modifier = Modifier.size(44.dp),
+                    ) {
+                      Icon(
+                        imageVector = Icons.Default.SkipNext,
+                        contentDescription = "Next",
+                        tint = if (viewModel.hasNext()) {
+                          if (hideBackground) controlColor else Color.White
                         } else {
-                          if (hideBackground) {
-                            controlColor.copy(alpha = 0.38f)
-                          } else {
-                            MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
-                          }
+                          Color.White.copy(alpha = 0.38f)
                         },
-                      modifier = Modifier
-                        .fillMaxSize()
-                        .padding(MaterialTheme.spacing.small),
-                    )
+                        modifier = Modifier.size(26.dp),
+                      )
+                    }
                   }
                 }
               } else {
                 Surface(
-                  modifier =
-                    Modifier
-                      .size(72.dp)
-                      .clip(CircleShape)
-                      .clickable(interaction, ripple(), onClick = {
-                        resetControlsTimestamp = System.currentTimeMillis()
-                        viewModel.pauseUnpause()
-                      })
-                      .then(
-                        if (hideBackground) {
-                          Modifier.background(brush = buttonShadow, shape = CircleShape)
-                        } else {
-                          Modifier
-                        },
-                      ),
-                  shape = CircleShape,
-                  color =
-                    if (!hideBackground) {
-                      AuraTokens.CarbonElevated.copy(alpha = 0.85f)
-                    } else {
-                      Color.Transparent
-                    },
-                  contentColor = AuraTokens.AuraCyan,
-                  tonalElevation = 0.dp,
-                  shadowElevation = 0.dp,
-                  border =
-                    if (!hideBackground) {
-                      BorderStroke(1.5.dp, AuraTokens.AuraCyan.copy(alpha = 0.65f))
-                    } else {
-                      null
-                    },
+                  shape = RoundedCornerShape(50),
+                  color = if (!hideBackground) AuraTokens.CarbonElevated.copy(alpha = 0.85f) else Color.Transparent,
+                  border = if (!hideBackground) BorderStroke(1.dp, AuraTokens.CarbonBorder) else null,
+                  modifier = Modifier.clip(RoundedCornerShape(50)),
                 ) {
-                  Image(
-                    painter = rememberAnimatedVectorPainter(icon, paused == false),
-                    modifier = Modifier
-                      .fillMaxSize()
-                      .padding(MaterialTheme.spacing.medium),
-                    contentDescription = null,
-                    colorFilter = ColorFilter.tint(AuraTokens.AuraCyan),
-                  )
+                  Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(10.dp),
+                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+                  ) {
+                    // Rewind 10s
+                    IconButton(
+                      onClick = {
+                        resetControlsTimestamp = System.currentTimeMillis()
+                        PlayerBridge.command("seek", "-10", "relative")
+                      },
+                      modifier = Modifier.size(44.dp),
+                    ) {
+                      Icon(
+                        imageVector = Icons.Filled.FastRewind,
+                        contentDescription = "Rewind 10s",
+                        tint = if (hideBackground) controlColor else Color.White,
+                        modifier = Modifier.size(26.dp),
+                      )
+                    }
+
+                    // Center Play/Pause button
+                    Box(
+                      modifier = Modifier
+                        .size(60.dp)
+                        .clip(CircleShape)
+                        .background(
+                          if (hideBackground) Color.Transparent else AuraTokens.AuraCyan.copy(alpha = 0.16f),
+                          CircleShape,
+                        )
+                        .clickable(interaction, ripple(), onClick = {
+                          resetControlsTimestamp = System.currentTimeMillis()
+                          viewModel.pauseUnpause()
+                        }),
+                      contentAlignment = Alignment.Center,
+                    ) {
+                      Image(
+                        painter = rememberAnimatedVectorPainter(icon, paused == false),
+                        modifier = Modifier
+                          .size(36.dp)
+                          .padding(MaterialTheme.spacing.extraSmall),
+                        contentDescription = null,
+                        colorFilter = ColorFilter.tint(AuraTokens.AuraCyan),
+                      )
+                    }
+
+                    // Forward 10s
+                    IconButton(
+                      onClick = {
+                        resetControlsTimestamp = System.currentTimeMillis()
+                        PlayerBridge.command("seek", "10", "relative")
+                      },
+                      modifier = Modifier.size(44.dp),
+                    ) {
+                      Icon(
+                        imageVector = Icons.Filled.FastForward,
+                        contentDescription = "Forward 10s",
+                        tint = if (hideBackground) controlColor else Color.White,
+                        modifier = Modifier.size(26.dp),
+                      )
+                    }
+                  }
                 }
               }
             }

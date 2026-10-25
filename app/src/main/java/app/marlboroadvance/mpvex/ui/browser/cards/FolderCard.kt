@@ -24,6 +24,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Folder
+import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.PlayCircleFilled
 import androidx.compose.material.icons.filled.PushPin
@@ -109,6 +110,18 @@ fun FolderCard(
   // Remove the redundant folder name from the path
   val parentPath = folder.path.substringBeforeLast("/", folder.path)
 
+  val folderColor = remember(folder.name) {
+    val lower = folder.name.lowercase()
+    when {
+      lower.contains("camera") || lower.contains("dcim") -> Color(0xFFFF7A00)
+      lower.contains("download") -> Color(0xFFFFB800)
+      lower.contains("movie") || lower.contains("video") || lower.contains("film") || lower.contains("camtasia") -> Color(0xFF00E676)
+      lower.contains("music") || lower.contains("audio") || lower.contains("song") -> Color(0xFF7C4DFF)
+      lower.contains("facebook") || lower.contains("whatsapp") || lower.contains("telegram") || lower.contains("inshot") -> Color(0xFF2979FF)
+      else -> AuraTokens.AuraCyan
+    }
+  }
+
   Card(
     modifier = modifier
       .fillMaxWidth()
@@ -180,7 +193,7 @@ fun FolderCard(
             modifier = Modifier
               .size(68.dp)
               .clip(RoundedCornerShape(16.dp))
-              .background(MaterialTheme.colorScheme.surfaceContainerHigh)
+              .background(folderColor.copy(alpha = if (AuraTheme.isDark) 0.16f else 0.10f))
               .combinedClickable(
                 onClick = onThumbClick,
                 onLongClick = onLongClick,
@@ -190,8 +203,8 @@ fun FolderCard(
             Icon(
               customIcon ?: Icons.Filled.Folder,
               contentDescription = "Folder",
-              modifier = Modifier.size(52.dp),
-              tint = MaterialTheme.colorScheme.secondary,
+              modifier = Modifier.size(44.dp),
+              tint = folderColor,
             )
 
           if (isPinned) {
@@ -285,26 +298,28 @@ fun FolderCard(
         verticalAlignment = Alignment.CenterVertically,
       ) {
         Box(
-          modifier = Modifier.size(54.dp),
+          modifier = Modifier.size(52.dp),
           contentAlignment = Alignment.Center,
         ) {
-          Box(
+          Surface(
+            shape = RoundedCornerShape(13.dp),
+            color = folderColor.copy(alpha = if (AuraTheme.isDark) 0.18f else 0.12f),
             modifier = Modifier
-              .size(48.dp)
-              .clip(RoundedCornerShape(12.dp))
-              .background(AuraTheme.accent.copy(alpha = if (AuraTheme.isDark) 0.16f else 0.10f))
+              .size(46.dp)
               .combinedClickable(
                 onClick = onThumbClick,
                 onLongClick = onLongClick,
               ),
-            contentAlignment = Alignment.Center,
           ) {
-            Icon(
-              customIcon ?: Icons.Filled.Folder,
-              contentDescription = "Folder",
-              modifier = Modifier.size(28.dp),
-              tint = AuraTheme.accent,
-            )
+            Box(contentAlignment = Alignment.Center) {
+              Icon(
+                customIcon ?: Icons.Filled.Folder,
+                contentDescription = "Folder",
+                modifier = Modifier.size(24.dp),
+                tint = folderColor,
+              )
+            }
+          }
 
           if (isPinned) {
             Surface(
@@ -346,8 +361,8 @@ fun FolderCard(
             }
           }
         }
-      }
-      Spacer(modifier = Modifier.width(12.dp))
+
+        Spacer(modifier = Modifier.width(12.dp))
         Column(
           modifier = Modifier.weight(1f),
         ) {
@@ -444,17 +459,29 @@ fun FolderCard(
           }
         }
 
-        if (onQuickPlay != null && folder.videoCount > 0) {
+        if (onLongClick != null) {
+          IconButton(
+            onClick = onLongClick,
+            modifier = Modifier.size(36.dp),
+          ) {
+            Icon(
+              imageVector = Icons.Filled.MoreVert,
+              contentDescription = "Folder Options",
+              tint = AuraTheme.textSecondary.copy(alpha = 0.55f),
+              modifier = Modifier.size(20.dp),
+            )
+          }
+        } else if (onQuickPlay != null && folder.videoCount > 0) {
           IconButton(
             onClick = onQuickPlay,
             modifier = Modifier
               .size(36.dp)
-              .background(AuraTheme.accent.copy(alpha = 0.12f), CircleShape),
+              .background(folderColor.copy(alpha = 0.12f), CircleShape),
           ) {
             Icon(
               imageVector = Icons.Filled.PlayArrow,
               contentDescription = "Quick Play",
-              tint = AuraTheme.accent,
+              tint = folderColor,
               modifier = Modifier.size(20.dp),
             )
           }

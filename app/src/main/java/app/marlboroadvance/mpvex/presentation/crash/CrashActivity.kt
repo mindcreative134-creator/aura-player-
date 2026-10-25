@@ -1,4 +1,4 @@
-﻿package app.marlboroadvance.mpvex.presentation.crash
+package app.marlboroadvance.mpvex.presentation.crash
 
 import android.app.Activity
 import android.content.ClipData
@@ -181,22 +181,22 @@ class CrashActivity : ComponentActivity() {
 
     fun sanitizeDiagnosticLogs(text: String): String {
       return text
-        .replace("app.marlboroadvance.mpvex", "com.apnaplayer.media")
-        .replace("app.marlboroadvance", "com.apnaplayer")
-        .replace("marlboroadvance", "apnaplayer")
-        .replace("mpvex", "apnaplayer", ignoreCase = true)
-        .replace("mpvEx", "Apna Player")
-        .replace("MpvEx", "ApnaPlayer")
-        .replace("Media3 ExoPlayer 1.5.1", "Apna Ultra-HD Core")
-        .replace("Media3 ExoPlayer", "Apna Ultra-HD Core")
-        .replace("Google Media3 Pipeline", "Apna Direct Hardware Pipeline")
+        .replace("app.marlboroadvance.mpvex", "com.cmstudio.auraplayer")
+        .replace("app.marlboroadvance", "com.cmstudio")
+        .replace("marlboroadvance", "auraplayer")
+        .replace("mpvex", "auraplayer", ignoreCase = true)
+        .replace("mpvEx", "Aura Player")
+        .replace("MpvEx", "AuraPlayer")
+        .replace("Media3 ExoPlayer 1.5.1", "Aura Cinema Core")
+        .replace("Media3 ExoPlayer", "Aura Cinema Core")
+        .replace("Google Media3 Pipeline", "Aura Direct Hardware Pipeline")
         .replace("MediaCodec HW", "Hardware Video Codec")
-        .replace("ExoPlayer", "ApnaPlayerCore")
-        .replace("libplacebo", "ApnaColorPipeline")
-        .replace("Media3", "ApnaMedia")
+        .replace("ExoPlayer", "AuraPlayerCore")
+        .replace("libplacebo", "AuraColorPipeline")
+        .replace("Media3", "AuraMedia")
         .replace("MPVView", "PlayerSurfaceView")
         .replace("PlayerBridge", "PlayerCoreLib")
-        .replace("MPV", "ApnaPlayer")
+        .replace("MPV", "AuraPlayer")
     }
 
     fun concatLogs(
@@ -229,9 +229,9 @@ class CrashActivity : ComponentActivity() {
 
     fun collectDeviceInfo(): String =
       """
-      App: Apna Player
+      App: Aura Player
       App version: ${BuildConfig.VERSION_NAME}
-      Engine: Apna Ultra-HD Hardware Engine
+      Engine: Aura Cinema Hardware Engine
       Display Pipeline: Direct Surface (Hardware Accelerated)
       Audio Pipeline: Direct MediaStream
       Android version: ${Build.VERSION.RELEASE} (API ${Build.VERSION.SDK_INT})

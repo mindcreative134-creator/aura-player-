@@ -30,6 +30,11 @@ import app.marlboroadvance.mpvex.preferences.preference.collectAsState
 import app.marlboroadvance.mpvex.domain.network.NetworkFile
 import androidx.compose.foundation.combinedClickable
 import org.koin.compose.koinInject
+import androidx.compose.foundation.BorderStroke
+import app.marlboroadvance.mpvex.ui.theme.aura.AuraTheme
+import app.marlboroadvance.mpvex.ui.theme.aura.AuraTokens
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.sp
 
 @Composable
 fun NetworkFolderCard(
@@ -51,45 +56,46 @@ fun NetworkFolderCard(
           onClick = onClick,
           onLongClick = onLongClick,
         ),
-    colors = CardDefaults.cardColors(containerColor = Color.Transparent),
+    shape = RoundedCornerShape(16.dp),
+    colors = CardDefaults.cardColors(
+      containerColor = if (isSelected) AuraTheme.selectedContainer else AuraTheme.cardBackground,
+    ),
+    border = BorderStroke(
+      1.dp,
+      if (isSelected) AuraTheme.accent.copy(alpha = 0.5f) else AuraTheme.cardBorder,
+    ),
   ) {
     Row(
       modifier =
         Modifier
           .fillMaxWidth()
-          .background(
-            if (isSelected) MaterialTheme.colorScheme.tertiary.copy(alpha = 0.3f) else Color.Transparent,
-          )
-          .padding(16.dp),
+          .padding(horizontal = 14.dp, vertical = 12.dp),
       verticalAlignment = Alignment.CenterVertically,
     ) {
       Box(
         modifier =
           Modifier
-            .size(64.dp)
-            .clip(RoundedCornerShape(12.dp))
-            .background(MaterialTheme.colorScheme.surfaceContainerHigh)
-            .combinedClickable(
-              onClick = onClick,
-              onLongClick = onLongClick,
-            ),
+            .size(48.dp)
+            .clip(RoundedCornerShape(13.dp))
+            .background(AuraTheme.accent.copy(alpha = 0.12f)),
         contentAlignment = Alignment.Center,
       ) {
         Icon(
           Icons.Filled.Folder,
           contentDescription = "Folder",
-          modifier = Modifier.size(48.dp),
-          tint = MaterialTheme.colorScheme.secondary,
+          modifier = Modifier.size(26.dp),
+          tint = AuraTheme.accent,
         )
       }
-      Spacer(modifier = Modifier.width(16.dp))
+      Spacer(modifier = Modifier.width(14.dp))
       Column(
         modifier = Modifier.weight(1f),
       ) {
         Text(
           file.name,
-          style = MaterialTheme.typography.titleMedium,
-          color = MaterialTheme.colorScheme.onSurface,
+          style = MaterialTheme.typography.titleMedium.copy(fontSize = 15.sp),
+          fontWeight = FontWeight.SemiBold,
+          color = AuraTheme.textPrimary,
           maxLines = maxLines,
           overflow = TextOverflow.Ellipsis,
         )
@@ -97,3 +103,4 @@ fun NetworkFolderCard(
     }
   }
 }
+

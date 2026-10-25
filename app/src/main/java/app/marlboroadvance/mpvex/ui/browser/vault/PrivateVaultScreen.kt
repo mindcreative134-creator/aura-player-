@@ -12,8 +12,11 @@ import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import app.marlboroadvance.mpvex.ui.theme.aura.AuraTheme
+import app.marlboroadvance.mpvex.ui.theme.aura.AuraTokens
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -584,8 +587,9 @@ object PrivateVaultScreen : Screen {
         .clickable { onPlay() },
       shape = RoundedCornerShape(16.dp),
       colors = CardDefaults.cardColors(
-        containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+        containerColor = AuraTheme.cardBackground,
       ),
+      border = BorderStroke(1.dp, AuraTheme.cardBorder),
     ) {
       Row(
         modifier = Modifier
@@ -594,15 +598,15 @@ object PrivateVaultScreen : Screen {
         verticalAlignment = Alignment.CenterVertically,
       ) {
         Surface(
-          shape = RoundedCornerShape(10.dp),
-          color = MaterialTheme.colorScheme.primaryContainer,
+          shape = RoundedCornerShape(12.dp),
+          color = AuraTheme.accent.copy(alpha = 0.12f),
           modifier = Modifier.size(48.dp),
         ) {
           Box(contentAlignment = Alignment.Center) {
             Icon(
               imageVector = Icons.Default.PlayCircleOutline,
               contentDescription = null,
-              tint = MaterialTheme.colorScheme.onPrimaryContainer,
+              tint = AuraTheme.accent,
               modifier = Modifier.size(28.dp),
             )
           }
@@ -617,7 +621,7 @@ object PrivateVaultScreen : Screen {
             fontWeight = FontWeight.SemiBold,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
-            color = MaterialTheme.colorScheme.onSurface,
+            color = AuraTheme.textPrimary,
           )
           Spacer(modifier = Modifier.height(3.dp))
           val formattedSize = remember(item.sizeBytes) {
@@ -630,7 +634,7 @@ object PrivateVaultScreen : Screen {
           Text(
             text = "$formattedSize • Hidden $dateStr",
             style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            color = AuraTheme.textSecondary,
           )
         }
 

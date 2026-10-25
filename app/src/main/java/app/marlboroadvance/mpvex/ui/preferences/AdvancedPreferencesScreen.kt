@@ -230,7 +230,7 @@ object AdvancedPreferencesScreen : Screen {
                   )
                   Spacer(modifier = Modifier.width(10.dp))
                   Text(
-                    text = "Apna Player Core Architecture",
+                    text = "Aura Player Core Architecture",
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onSurface,

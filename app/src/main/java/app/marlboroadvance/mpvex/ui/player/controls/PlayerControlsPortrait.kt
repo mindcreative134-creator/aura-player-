@@ -26,6 +26,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import app.marlboroadvance.mpvex.preferences.PlayerButton
@@ -61,7 +62,7 @@ fun TopPlayerControlsPortrait(
         ControlsButton(
           icon = Icons.AutoMirrored.Default.ArrowBack,
           onClick = onBackPress,
-          color = if (hideBackground) controlColor else MaterialTheme.colorScheme.onSurface,
+          color = if (hideBackground) controlColor else Color.White,
         )
 
         val titleInteractionSource = remember { androidx.compose.foundation.interaction.MutableInteractionSource() }
@@ -86,7 +87,7 @@ fun TopPlayerControlsPortrait(
               } else {
                 AuraTokens.CarbonElevated.copy(alpha = 0.85f)
               },
-            contentColor = if (hideBackground) controlColor else MaterialTheme.colorScheme.onSurface,
+            contentColor = if (hideBackground) controlColor else Color.White,
             tonalElevation = 0.dp,
             shadowElevation = 0.dp,
             border =
@@ -116,14 +117,14 @@ fun TopPlayerControlsPortrait(
                   maxLines = 1,
                   overflow = TextOverflow.Visible,
                   fontFamily = FontFamily.Monospace,
-                  color = MaterialTheme.colorScheme.primary,
+                  color = AuraTokens.AuraCyan,
                 )
                 Text(
                   text = Typography.bullet.toString(),
                   textAlign = androidx.compose.ui.text.style.TextAlign.Center,
                   style = MaterialTheme.typography.bodyMedium,
                   maxLines = 1,
-                  color = if (hideBackground) controlColor else MaterialTheme.colorScheme.onSurface,
+                  color = if (hideBackground) controlColor else Color.White.copy(alpha = 0.7f),
                   overflow = TextOverflow.Clip,
                 )
               }
@@ -133,7 +134,8 @@ fun TopPlayerControlsPortrait(
                 overflow = TextOverflow.Ellipsis,
                 style = MaterialTheme.typography.bodyMedium,
                 fontFamily = FontFamily.Monospace,
-                color = if (hideBackground) controlColor else MaterialTheme.colorScheme.onSurface,
+                fontWeight = FontWeight.SemiBold,
+                color = if (hideBackground) controlColor else Color.White,
                 modifier = Modifier.weight(1f, fill = false),
               )
             }

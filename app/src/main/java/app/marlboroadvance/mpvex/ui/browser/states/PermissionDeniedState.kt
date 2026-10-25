@@ -156,12 +156,12 @@ fun PermissionDeniedState(
             Text(
               text = if (isPlayStoreBuild) {
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                  "Apna Player requires \"Photos and videos\" permission to access and play your video files stored on your device."
+                  "Aura Player requires \"Photos and videos\" permission to access and play your video files stored on your device."
                 } else {
-                  "Apna Player requires \"Storage\" permission to access and play your media files stored on your device."
+                  "Aura Player requires \"Storage\" permission to access and play your media files stored on your device."
                 }
               } else {
-                "Apna Player requires \"All file access\" permission to discover media and subtitles on your device due to a change in security policy in Android 11 and later versions."
+                "Aura Player requires \"All file access\" permission to discover media and subtitles on your device due to a change in security policy in Android 11 and later versions."
               },
               style = MaterialTheme.typography.bodyLarge,
               color = MaterialTheme.colorScheme.onSurface,
@@ -262,7 +262,7 @@ fun PermissionDeniedState(
           if (isPlayStoreBuild) {
             // Play Store build explanation
             Text(
-              text = "Apna Player needs access to your video files to provide its core functionality as a media player.",
+              text = "Aura Player needs access to your video files to provide its core functionality as a media player.",
               style = MaterialTheme.typography.bodyMedium,
               color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
@@ -292,7 +292,7 @@ fun PermissionDeniedState(
           } else {
             // Standard build explanation
             Text(
-              text = "Apna Player requires storage access permission as it's essential for the app to find all media and subtitle files on your device, including the ones that are not indexed by the system.",
+              text = "Aura Player requires storage access permission as it's essential for the app to find all media and subtitle files on your device, including the ones that are not indexed by the system.",
               style = MaterialTheme.typography.bodyMedium,
               color = MaterialTheme.colorScheme.onSurfaceVariant,
             )

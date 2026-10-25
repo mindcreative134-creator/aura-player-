@@ -35,6 +35,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForwardIos
 import androidx.compose.material.icons.automirrored.filled.QueueMusic
 import androidx.compose.material.icons.automirrored.filled.ViewList
+import androidx.compose.material.icons.filled.Audiotrack
 import androidx.compose.material.icons.filled.Folder
 import androidx.compose.material.icons.filled.GridView
 import androidx.compose.material.icons.filled.History
@@ -199,6 +200,7 @@ fun HomeDashboardHeader(
     AuraQuickAccessGrid(
       totalVideosCount = totalVideosCount,
       totalFoldersCount = totalFoldersCount,
+      recentCount = recentVideos.size,
       pinnedCount = pinnedCount,
       onAllVideosClick = onAllVideosClick,
       onFoldersClick = { onScrollToFolders?.invoke() },
@@ -466,12 +468,14 @@ private fun AuraContinueWatchingHero(
 }
 
 /**
- * Aura Quick Access Grid (2 columns x 3 rows)
+ * Aura Quick Access Grid (2 columns x 2 rows + quick utility pills)
+ * Matches Reference Image 1 "nPlayer Pro" aesthetic
  */
 @Composable
 private fun AuraQuickAccessGrid(
   totalVideosCount: Int,
   totalFoldersCount: Int,
+  recentCount: Int,
   pinnedCount: Int,
   onAllVideosClick: () -> Unit,
   onFoldersClick: () -> Unit,
@@ -481,64 +485,127 @@ private fun AuraQuickAccessGrid(
   onDownloadsClick: () -> Unit,
   palette: AuraHomePalette,
 ) {
-  val isDark = palette.isDark
-  val cyanAccent = AuraTokens.AuraCyan
-  val sunsetAccent = AuraTokens.AuraSunset
-  val skyAccent = Color(0xFF38BDF8)
-  val emeraldAccent = AuraTokens.AuraEmerald
+  val pinkAccent = Color(0xFFFF3B7A)
+  val goldAccent = Color(0xFFFFB300)
+  val blueAccent = Color(0xFF2979FF)
+  val orangeAccent = Color(0xFFFF6D00)
 
   Column(
     modifier = Modifier.fillMaxWidth(),
-    verticalArrangement = Arrangement.spacedBy(8.dp),
+    verticalArrangement = Arrangement.spacedBy(10.dp),
   ) {
-    // Row 1: All Media | Favorites
+    // Row 1: Recent | Favorite
     Row(
       modifier = Modifier.fillMaxWidth(),
-      horizontalArrangement = Arrangement.spacedBy(8.dp),
+      horizontalArrangement = Arrangement.spacedBy(10.dp),
     ) {
       AuraQuickActionCard(
-        title = "All Media",
-        subtitle = "$totalVideosCount files",
-        icon = Icons.Filled.VideoLibrary,
-        iconTint = if (isDark) cyanAccent else palette.accentColor,
+        title = "Recent",
+        subtitle = if (recentCount > 0) "$recentCount Files" else "History",
+        icon = Icons.Filled.History,
+        iconTint = pinkAccent,
         onClick = onAllVideosClick,
         palette = palette,
         modifier = Modifier.weight(1f),
       )
       AuraQuickActionCard(
-        title = "Favorites",
-        subtitle = "$pinnedCount pinned",
+        title = "Favorite",
+        subtitle = "$pinnedCount Files",
         icon = Icons.Filled.Star,
-        iconTint = if (isDark) sunsetAccent else Color(0xFFD97706),
+        iconTint = goldAccent,
         onClick = onFavoritesClick,
         palette = palette,
         modifier = Modifier.weight(1f),
       )
     }
 
-    // Row 2: Playlists | Stream URL
+    // Row 2: Audio | Video
     Row(
       modifier = Modifier.fillMaxWidth(),
-      horizontalArrangement = Arrangement.spacedBy(8.dp),
+      horizontalArrangement = Arrangement.spacedBy(10.dp),
     ) {
       AuraQuickActionCard(
-        title = "Playlists",
-        subtitle = "Custom queues",
-        icon = Icons.AutoMirrored.Filled.QueueMusic,
-        iconTint = if (isDark) skyAccent else Color(0xFF0284C7),
+        title = "Audio",
+        subtitle = "Music Library",
+        icon = Icons.Filled.Audiotrack,
+        iconTint = blueAccent,
         onClick = onPlaylistsClick,
         palette = palette,
         modifier = Modifier.weight(1f),
       )
       AuraQuickActionCard(
-        title = "Stream URL",
-        subtitle = "Direct stream",
-        icon = Icons.Filled.PlayCircle,
-        iconTint = if (isDark) emeraldAccent else Color(0xFF059669),
-        onClick = onStreamClick,
+        title = "Video",
+        subtitle = "$totalVideosCount Files",
+        icon = Icons.Filled.Movie,
+        iconTint = orangeAccent,
+        onClick = onFoldersClick,
         palette = palette,
         modifier = Modifier.weight(1f),
       )
+    }
+
+    // Secondary Utilities: Playlists | Stream URL
+    Row(
+      modifier = Modifier.fillMaxWidth(),
+      horizontalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+      Surface(
+        shape = RoundedCornerShape(12.dp),
+        color = palette.cardBg,
+        border = BorderStroke(1.dp, palette.cardBorder),
+        modifier = Modifier
+          .weight(1f)
+          .clip(RoundedCornerShape(12.dp))
+          .clickable(onClick = onPlaylistsClick),
+      ) {
+        Row(
+          modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+          verticalAlignment = Alignment.CenterVertically,
+          horizontalArrangement = Arrangement.Center,
+        ) {
+          Icon(
+            imageVector = Icons.AutoMirrored.Filled.QueueMusic,
+            contentDescription = null,
+            tint = Color(0xFF38BDF8),
+            modifier = Modifier.size(16.dp),
+          )
+          Spacer(modifier = Modifier.width(6.dp))
+          Text(
+            text = "Playlists",
+            style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.SemiBold),
+            color = palette.textPrimary,
+          )
+        }
+      }
+
+      Surface(
+        shape = RoundedCornerShape(12.dp),
+        color = palette.cardBg,
+        border = BorderStroke(1.dp, palette.cardBorder),
+        modifier = Modifier
+          .weight(1f)
+          .clip(RoundedCornerShape(12.dp))
+          .clickable(onClick = onStreamClick),
+      ) {
+        Row(
+          modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+          verticalAlignment = Alignment.CenterVertically,
+          horizontalArrangement = Arrangement.Center,
+        ) {
+          Icon(
+            imageVector = Icons.Filled.PlayCircle,
+            contentDescription = null,
+            tint = AuraTokens.AuraEmerald,
+            modifier = Modifier.size(16.dp),
+          )
+          Spacer(modifier = Modifier.width(6.dp))
+          Text(
+            text = "Stream URL",
+            style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.SemiBold),
+            color = palette.textPrimary,
+          )
+        }
+      }
     }
   }
 }
@@ -554,55 +621,47 @@ private fun AuraQuickActionCard(
   modifier: Modifier = Modifier,
 ) {
   Card(
-    shape = RoundedCornerShape(12.dp),
+    shape = RoundedCornerShape(18.dp),
     colors = CardDefaults.cardColors(containerColor = palette.cardBg),
     border = BorderStroke(1.dp, palette.cardBorder),
     modifier = modifier
-      .clip(RoundedCornerShape(12.dp))
+      .clip(RoundedCornerShape(18.dp))
       .clickable(onClick = onClick),
   ) {
-    Row(
+    Column(
       modifier = Modifier
         .fillMaxWidth()
-        .padding(horizontal = 10.dp, vertical = 8.dp),
-      verticalAlignment = Alignment.CenterVertically,
-      horizontalArrangement = Arrangement.spacedBy(8.dp),
+        .padding(14.dp),
     ) {
       Surface(
-        shape = RoundedCornerShape(8.dp),
-        color = iconTint.copy(alpha = 0.14f),
-        modifier = Modifier.size(32.dp),
+        shape = RoundedCornerShape(12.dp),
+        color = iconTint.copy(alpha = if (palette.isDark) 0.18f else 0.12f),
+        modifier = Modifier.size(40.dp),
       ) {
         Box(contentAlignment = Alignment.Center) {
           Icon(
             imageVector = icon,
             contentDescription = null,
             tint = iconTint,
-            modifier = Modifier.size(17.dp),
+            modifier = Modifier.size(22.dp),
           )
         }
       }
-      Column(modifier = Modifier.weight(1f)) {
-        Text(
-          text = title,
-          style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.SemiBold, fontSize = 12.5.sp),
-          color = palette.textPrimary,
-          maxLines = 1,
-          overflow = TextOverflow.Ellipsis,
-        )
-        Text(
-          text = subtitle,
-          style = MaterialTheme.typography.bodySmall.copy(fontSize = 10.sp),
-          color = palette.textMuted,
-          maxLines = 1,
-          overflow = TextOverflow.Ellipsis,
-        )
-      }
-      Icon(
-        imageVector = Icons.AutoMirrored.Filled.ArrowForwardIos,
-        contentDescription = null,
-        tint = palette.textMuted.copy(alpha = 0.35f),
-        modifier = Modifier.size(11.dp),
+      Spacer(modifier = Modifier.height(14.dp))
+      Text(
+        text = title,
+        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold, fontSize = 15.sp),
+        color = palette.textPrimary,
+        maxLines = 1,
+        overflow = TextOverflow.Ellipsis,
+      )
+      Spacer(modifier = Modifier.height(2.dp))
+      Text(
+        text = subtitle,
+        style = MaterialTheme.typography.bodySmall.copy(fontSize = 11.5.sp),
+        color = palette.textMuted,
+        maxLines = 1,
+        overflow = TextOverflow.Ellipsis,
       )
     }
   }
@@ -841,7 +900,7 @@ private fun AuraStorageSectionRibbon(
         modifier = Modifier.size(18.dp),
       )
       Text(
-        text = "DIRECTORIES",
+        text = "FREQUENTLY USED",
         style = MaterialTheme.typography.labelMedium.copy(
           fontWeight = FontWeight.ExtraBold,
           letterSpacing = 0.6.sp,

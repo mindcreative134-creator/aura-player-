@@ -1,4 +1,4 @@
-﻿package app.marlboroadvance.mpvex.ui.player.controls.components.sheets
+package app.marlboroadvance.mpvex.ui.player.controls.components.sheets
 
 import android.content.ClipData
 import android.content.ClipboardManager
@@ -227,10 +227,10 @@ fun DiagnosticsSheet(
         Button(
           onClick = {
             val log = buildString {
-              appendLine("=== MPV EX Playback Diagnostic Report ===")
-              appendLine("App: MPV EX (Apna Player 1.3.1)")
+              appendLine("=== Aura Player Playback Diagnostic Report ===")
+              appendLine("App: Aura Player (com.cmstudio.auraplayer)")
               appendLine("Device: ${Build.MANUFACTURER} ${Build.MODEL} (Android ${Build.VERSION.RELEASE}, API ${Build.VERSION.SDK_INT})")
-              appendLine("Engine: Google Media3 ExoPlayer HW+")
+              appendLine("Engine: Aura Media3 HW+ Pipeline")
               appendLine("Resolution: ${stats.resolution} (${stats.colorInfo})")
               appendLine("Video Codec: ${stats.videoCodec} via ${stats.activeVideoDecoder}")
               appendLine("Video FPS: ${stats.videoFps} | Dropped Frames: ${stats.droppedFrames}")
@@ -242,7 +242,7 @@ fun DiagnosticsSheet(
               }
             }
             val cm = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-            cm.setPrimaryClip(ClipData.newPlainText("MPV EX Diagnostics", log))
+            cm.setPrimaryClip(ClipData.newPlainText("Aura Player Diagnostics", log))
             Toast.makeText(context, "Diagnostic report copied to clipboard", Toast.LENGTH_SHORT).show()
           },
           modifier = Modifier.weight(1f),

@@ -27,6 +27,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.foundation.BorderStroke
+import app.marlboroadvance.mpvex.ui.theme.aura.AuraTheme
 import app.marlboroadvance.mpvex.domain.network.NetworkConnection
 
 @Composable
@@ -46,8 +48,9 @@ fun NetworkConnectionCard(
   Card(
     modifier = modifier.fillMaxWidth(),
     colors = CardDefaults.cardColors(
-      containerColor = MaterialTheme.colorScheme.surfaceContainer,
+      containerColor = AuraTheme.cardBackground,
     ),
+    border = BorderStroke(1.dp, AuraTheme.cardBorder),
   ) {
     Column(
       modifier = Modifier
@@ -65,12 +68,12 @@ fun NetworkConnectionCard(
             text = connection.name,
             style = MaterialTheme.typography.titleMedium,
             fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.onSurface,
+            color = AuraTheme.textPrimary,
           )
           Text(
             text = "${connection.protocol.displayName} • ${connection.host}:${connection.port}",
             style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            color = AuraTheme.textSecondary,
           )
         }
 

@@ -792,7 +792,7 @@ private fun VideoListContent(
                 contentPadding = PaddingValues(
                   start = 8.dp,
                   end = 8.dp,
-                  bottom = if (showFloatingBottomBar) 88.dp else 16.dp
+                  bottom = if (showFloatingBottomBar) 88.dp else 96.dp
                 ),
               horizontalArrangement = Arrangement.spacedBy(8.dp),
               verticalArrangement = Arrangement.spacedBy(8.dp),
@@ -846,7 +846,7 @@ private fun VideoListContent(
                 contentPadding = PaddingValues(
                   start = 8.dp,
                   end = 8.dp,
-                  bottom = if (showFloatingBottomBar) 88.dp else 16.dp
+                  bottom = if (showFloatingBottomBar) 88.dp else 96.dp
                 ),
             ) {
               items(

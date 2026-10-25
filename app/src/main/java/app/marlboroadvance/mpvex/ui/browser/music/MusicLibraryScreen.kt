@@ -109,6 +109,9 @@ import app.marlboroadvance.mpvex.ui.utils.LocalBackStack
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 import org.koin.compose.koinInject
+import androidx.compose.foundation.BorderStroke
+import app.marlboroadvance.mpvex.ui.theme.aura.AuraTheme
+import app.marlboroadvance.mpvex.ui.theme.aura.AuraTokens
 
 @Serializable
 object MusicLibraryScreen : Screen {
@@ -392,7 +395,7 @@ fun MusicLibraryScreenContent(
                     )
                     Spacer(modifier = Modifier.height(16.dp))
                     Text(
-                        "Phone ke gaane dikhane ke liye audio permission chahiye.",
+                        "Storage or audio permission is required to display your music tracks.",
                         textAlign = TextAlign.Center,
                         style = MaterialTheme.typography.bodyLarge
                     )
@@ -401,7 +404,7 @@ fun MusicLibraryScreenContent(
                         modifier = Modifier.padding(top = 16.dp),
                         shape = RoundedCornerShape(12.dp)
                     ) {
-                        Text("Permission dein")
+                        Text("Grant Permission")
                     }
                 }
             } else when (tab) {
@@ -492,7 +495,7 @@ private fun SongsTab(
                     )
                     Spacer(modifier = Modifier.height(8.dp))
                     Text(
-                        "Koi gaana nahi mila",
+                        "No songs found",
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         style = MaterialTheme.typography.bodyMedium
                     )
@@ -516,10 +519,14 @@ private fun SongsTab(
                         shape = RoundedCornerShape(14.dp),
                         colors = CardDefaults.cardColors(
                             containerColor = if (isCurrent) {
-                                MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.35f)
+                                AuraTheme.selectedContainer
                             } else {
-                                MaterialTheme.colorScheme.surfaceContainerLow
+                                AuraTheme.cardBackground
                             }
+                        ),
+                        border = BorderStroke(
+                            1.dp,
+                            if (isCurrent) AuraTheme.accent.copy(alpha = 0.5f) else AuraTheme.cardBorder
                         )
                     ) {
                         Row(
@@ -544,7 +551,7 @@ private fun SongsTab(
                                     overflow = TextOverflow.Ellipsis,
                                     style = MaterialTheme.typography.bodyLarge,
                                     fontWeight = if (isCurrent) FontWeight.Bold else FontWeight.SemiBold,
-                                    color = if (isCurrent) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
+                                    color = if (isCurrent) AuraTheme.accent else AuraTheme.textPrimary
                                 )
                                 Spacer(modifier = Modifier.height(2.dp))
                                 Text(
@@ -552,7 +559,7 @@ private fun SongsTab(
                                     maxLines = 1,
                                     overflow = TextOverflow.Ellipsis,
                                     style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    color = AuraTheme.textSecondary
                                 )
                             }
 
@@ -588,7 +595,7 @@ private fun SongsTab(
                                         )
                                         if (playlistNames.isEmpty()) {
                                             DropdownMenuItem(
-                                                text = { Text("Pehle playlist banayein") },
+                                                text = { Text("Create a playlist first") },
                                                 onClick = { menu = false }
                                             )
                                         }
@@ -618,7 +625,7 @@ private fun SongsTab(
 private fun AlbumsTab(albums: List<AlbumItem>, vm: MusicViewModel) {
     if (albums.isEmpty()) {
         Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-            Text("Koi album nahi mila", color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Text("No albums found", color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
     } else {
         LazyVerticalGrid(
@@ -637,8 +644,9 @@ private fun AlbumsTab(albums: List<AlbumItem>, vm: MusicViewModel) {
                         .clickable { vm.playSongs(album.songs) },
                     shape = RoundedCornerShape(16.dp),
                     colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.surfaceContainerLow
-                    )
+                        containerColor = AuraTheme.cardBackground
+                    ),
+                    border = BorderStroke(1.dp, AuraTheme.cardBorder)
                 ) {
                     Column {
                         AlbumArt(
@@ -655,13 +663,14 @@ private fun AlbumsTab(albums: List<AlbumItem>, vm: MusicViewModel) {
                                 fontWeight = FontWeight.Bold,
                                 maxLines = 1,
                                 overflow = TextOverflow.Ellipsis,
-                                style = MaterialTheme.typography.bodyMedium
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = AuraTheme.textPrimary
                             )
                             Spacer(modifier = Modifier.height(2.dp))
                             Text(
                                 text = album.artist,
                                 style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                color = AuraTheme.textSecondary,
                                 maxLines = 1,
                                 overflow = TextOverflow.Ellipsis
                             )
@@ -690,7 +699,7 @@ private fun AlbumsTab(albums: List<AlbumItem>, vm: MusicViewModel) {
 private fun ArtistsTab(artists: List<ArtistItem>, vm: MusicViewModel) {
     if (artists.isEmpty()) {
         Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-            Text("Koi artist nahi mila", color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Text("No artists found", color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
     } else {
         LazyColumn(
@@ -707,8 +716,9 @@ private fun ArtistsTab(artists: List<ArtistItem>, vm: MusicViewModel) {
                         .clickable { vm.playSongs(artist.songs) },
                     shape = RoundedCornerShape(14.dp),
                     colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.surfaceContainerLow
-                    )
+                        containerColor = AuraTheme.cardBackground
+                    ),
+                    border = BorderStroke(1.dp, AuraTheme.cardBorder)
                 ) {
                     Row(
                         modifier = Modifier
@@ -731,13 +741,14 @@ private fun ArtistsTab(artists: List<ArtistItem>, vm: MusicViewModel) {
                                 fontWeight = FontWeight.Bold,
                                 style = MaterialTheme.typography.bodyLarge,
                                 maxLines = 1,
-                                overflow = TextOverflow.Ellipsis
+                                overflow = TextOverflow.Ellipsis,
+                                color = AuraTheme.textPrimary
                             )
                             Spacer(modifier = Modifier.height(2.dp))
                             Text(
                                 text = "${artist.songs.size} songs",
                                 style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                                color = AuraTheme.textSecondary
                             )
                         }
 
@@ -781,7 +792,7 @@ private fun PlaylistsTab(vm: MusicViewModel, playlists: Map<String, List<Long>>)
             ) {
                 Icon(Icons.Rounded.Add, contentDescription = null, modifier = Modifier.size(18.dp))
                 Spacer(modifier = Modifier.width(4.dp))
-                Text("Nayi Playlist")
+                Text("New Playlist")
             }
 
             Text(
@@ -802,7 +813,7 @@ private fun PlaylistsTab(vm: MusicViewModel, playlists: Map<String, List<Long>>)
                     )
                     Spacer(modifier = Modifier.height(8.dp))
                     Text(
-                        "Koi playlist nahi hai",
+                        "No playlists yet",
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         style = MaterialTheme.typography.bodyMedium
                     )
@@ -823,8 +834,9 @@ private fun PlaylistsTab(vm: MusicViewModel, playlists: Map<String, List<Long>>)
                             .clickable { vm.playSongs(vm.playlistSongs(name)) },
                         shape = RoundedCornerShape(14.dp),
                         colors = CardDefaults.cardColors(
-                            containerColor = MaterialTheme.colorScheme.surfaceContainerLow
-                        )
+                            containerColor = AuraTheme.cardBackground
+                        ),
+                        border = BorderStroke(1.dp, AuraTheme.cardBorder)
                     ) {
                         Row(
                             modifier = Modifier
@@ -855,13 +867,14 @@ private fun PlaylistsTab(vm: MusicViewModel, playlists: Map<String, List<Long>>)
                                     fontWeight = FontWeight.Bold,
                                     style = MaterialTheme.typography.bodyLarge,
                                     maxLines = 1,
-                                    overflow = TextOverflow.Ellipsis
+                                    overflow = TextOverflow.Ellipsis,
+                                    color = AuraTheme.textPrimary
                                 )
                                 Spacer(modifier = Modifier.height(2.dp))
                                 Text(
                                     text = "$count songs",
                                     style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    color = AuraTheme.textSecondary
                                 )
                             }
 
@@ -886,13 +899,13 @@ private fun PlaylistsTab(vm: MusicViewModel, playlists: Map<String, List<Long>>)
     if (showCreate) {
         AlertDialog(
             onDismissRequest = { showCreate = false },
-            title = { Text("Nayi Playlist") },
+            title = { Text("New Playlist") },
             text = {
                 OutlinedTextField(
                     value = newName,
                     onValueChange = { newName = it },
                     singleLine = true,
-                    label = { Text("Playlist ka naam") },
+                    label = { Text("Playlist name") },
                     shape = RoundedCornerShape(12.dp),
                     modifier = Modifier.fillMaxWidth()
                 )
@@ -906,7 +919,7 @@ private fun PlaylistsTab(vm: MusicViewModel, playlists: Map<String, List<Long>>)
                     },
                     shape = RoundedCornerShape(10.dp)
                 ) {
-                    Text("Banayein")
+                    Text("Create")
                 }
             },
             dismissButton = {
@@ -917,3 +930,4 @@ private fun PlaylistsTab(vm: MusicViewModel, playlists: Map<String, List<Long>>)
         )
     }
 }
+

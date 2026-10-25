@@ -60,7 +60,7 @@ fun TopLeftPlayerControlsLandscape(
     ControlsButton(
       icon = Icons.AutoMirrored.Default.ArrowBack,
       onClick = onBackPress,
-      color = if (hideBackground) controlColor else MaterialTheme.colorScheme.onSurface,
+      color = if (hideBackground) controlColor else Color.White,
       modifier = Modifier.size(45.dp),
     )
 
@@ -87,7 +87,7 @@ fun TopLeftPlayerControlsLandscape(
           } else {
             AuraTokens.CarbonElevated.copy(alpha = 0.85f)
           },
-        contentColor = if (hideBackground) controlColor else MaterialTheme.colorScheme.onSurface,
+        contentColor = if (hideBackground) controlColor else Color.White,
         tonalElevation = 0.dp,
         shadowElevation = 0.dp,
         border =
@@ -117,14 +117,14 @@ fun TopLeftPlayerControlsLandscape(
               maxLines = 1,
               overflow = TextOverflow.Visible,
               fontFamily = FontFamily.Monospace,
-              color = MaterialTheme.colorScheme.primary,
+              color = AuraTokens.AuraCyan,
             )
             Text(
               text = Typography.bullet.toString(),
               textAlign = androidx.compose.ui.text.style.TextAlign.Center,
               style = MaterialTheme.typography.bodyMedium,
               maxLines = 1,
-              color = if (hideBackground) controlColor else MaterialTheme.colorScheme.onSurface,
+              color = if (hideBackground) controlColor else Color.White.copy(alpha = 0.7f),
               overflow = TextOverflow.Clip,
             )
           }
@@ -134,7 +134,8 @@ fun TopLeftPlayerControlsLandscape(
             overflow = TextOverflow.Ellipsis,
             style = MaterialTheme.typography.bodyMedium,
             fontFamily = FontFamily.Monospace,
-            color = if (hideBackground) controlColor else MaterialTheme.colorScheme.onSurface,
+            fontWeight = androidx.compose.ui.text.font.FontWeight.SemiBold,
+            color = if (hideBackground) controlColor else Color.White,
             modifier = Modifier.weight(1f, fill = false),
           )
         }

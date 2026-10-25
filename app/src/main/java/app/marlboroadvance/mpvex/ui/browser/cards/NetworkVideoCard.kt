@@ -37,6 +37,10 @@ import org.koin.compose.koinInject
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import androidx.compose.foundation.BorderStroke
+import app.marlboroadvance.mpvex.ui.theme.aura.AuraTheme
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.sp
 
 @Composable
 fun NetworkVideoCard(
@@ -53,7 +57,7 @@ fun NetworkVideoCard(
   val showSizeChip by browserPreferences.showSizeChip.collectAsState()
   val maxLines = if (unlimitedNameLines) Int.MAX_VALUE else 2
 
-  val thumbSizeDp = 64.dp
+  val thumbSizeDp = 54.dp
 
   Card(
     modifier =
@@ -63,85 +67,82 @@ fun NetworkVideoCard(
           onClick = onClick,
           onLongClick = onLongClick,
         ),
-    colors = CardDefaults.cardColors(containerColor = Color.Transparent),
+    shape = RoundedCornerShape(16.dp),
+    colors = CardDefaults.cardColors(
+      containerColor = if (isSelected) AuraTheme.selectedContainer else AuraTheme.cardBackground,
+    ),
+    border = BorderStroke(
+      1.dp,
+      if (isSelected) AuraTheme.accent.copy(alpha = 0.5f) else AuraTheme.cardBorder,
+    ),
   ) {
     Row(
       modifier =
         Modifier
           .fillMaxWidth()
-          .background(
-            if (isSelected) {
-              MaterialTheme.colorScheme.tertiary.copy(alpha = 0.3f)
-            } else {
-              Color.Transparent
-            },
-          )
-          .padding(16.dp),
+          .padding(horizontal = 14.dp, vertical = 12.dp),
       verticalAlignment = Alignment.CenterVertically,
     ) {
-      // Square thumbnail matching folder icon size
       Box(
         modifier =
           Modifier
             .size(thumbSizeDp)
             .clip(RoundedCornerShape(12.dp))
-            .background(MaterialTheme.colorScheme.surfaceContainerHigh)
-            .combinedClickable(
-              onClick = onClick,
-              onLongClick = onLongClick,
-            ),
+            .background(AuraTheme.accent.copy(alpha = 0.12f)),
         contentAlignment = Alignment.Center,
       ) {
-        // Play icon overlay
         Icon(
           Icons.Filled.PlayArrow,
           contentDescription = "Play",
-          modifier = Modifier.size(48.dp),
-          tint = MaterialTheme.colorScheme.secondary,
+          modifier = Modifier.size(28.dp),
+          tint = AuraTheme.accent,
         )
       }
-      Spacer(modifier = Modifier.width(16.dp))
+      Spacer(modifier = Modifier.width(14.dp))
       Column(
         modifier = Modifier.weight(1f),
       ) {
         Text(
           file.name,
-          style = MaterialTheme.typography.titleSmall,
-          color = MaterialTheme.colorScheme.onSurface,
+          style = MaterialTheme.typography.titleMedium.copy(fontSize = 15.sp),
+          fontWeight = FontWeight.SemiBold,
+          color = AuraTheme.textPrimary,
           maxLines = maxLines,
           overflow = TextOverflow.Ellipsis,
         )
         Spacer(modifier = Modifier.height(4.dp))
         FlowRow(
-          horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(4.dp),
+          horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(6.dp),
           verticalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(4.dp)
         ) {
           if (showSizeChip && file.size > 0) {
             Text(
               formatFileSize(file.size),
               style = MaterialTheme.typography.labelSmall,
+              fontWeight = FontWeight.Medium,
               modifier =
                 Modifier
                   .background(
-                    MaterialTheme.colorScheme.surfaceContainerHigh,
-                    RoundedCornerShape(8.dp),
+                    AuraTheme.chipBackground,
+                    RoundedCornerShape(6.dp),
                   )
-                  .padding(horizontal = 8.dp, vertical = 4.dp),
-              color = MaterialTheme.colorScheme.onSurface,
+                  .padding(horizontal = 7.dp, vertical = 3.dp),
+              color = AuraTheme.chipContent,
             )
           }
           if (file.lastModified > 0) {
             Text(
               formatDate(file.lastModified),
               style = MaterialTheme.typography.labelSmall,
+              fontWeight = FontWeight.Medium,
               modifier =
                 Modifier
                   .background(
-                    MaterialTheme.colorScheme.surfaceContainerHigh,
-                    RoundedCornerShape(8.dp),
+                    AuraTheme.chipBackground,
+                    RoundedCornerShape(6.dp),
                   )
-                  .padding(horizontal = 8.dp, vertical = 4.dp),
-              color = MaterialTheme.colorScheme.onSurface,
+                  .padding(horizontal = 7.dp, vertical = 3.dp),
+              color = AuraTheme.chipContent,
             )
           }
         }
