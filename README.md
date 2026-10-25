@@ -6,7 +6,7 @@
 ### Ultra-Fast, High-Fidelity Local & Network Media Player for Android
 *Crafted with Jetpack Compose • Obsidian & Carbon Design System • Media3 HW+ Pipeline*
 
-[![Release](https://img.shields.io/badge/Release-v1.3.1--Aura-00E5FF.svg?style=for-the-badge&logo=android)](https://github.com/mindcreative134-creator/aura-player-/releases)
+[![Release](https://img.shields.io/badge/Release-v1.4.0--Aura-00E5FF.svg?style=for-the-badge&logo=android)](https://github.com/mindcreative134-creator/aura-player-/releases)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg?style=for-the-badge)](LICENSE)
 [![Target Android](https://img.shields.io/badge/Target-Android%2015%20(API%2035)-00C853.svg?style=for-the-badge&logo=android)](app/build.gradle.kts)
 [![Kotlin](https://img.shields.io/badge/Kotlin-2.0+-7C4DFF.svg?style=for-the-badge&logo=kotlin)](build.gradle.kts)
