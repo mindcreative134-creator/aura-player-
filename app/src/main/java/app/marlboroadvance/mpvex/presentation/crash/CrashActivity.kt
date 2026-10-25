@@ -180,23 +180,14 @@ class CrashActivity : ComponentActivity() {
     }
 
     fun sanitizeDiagnosticLogs(text: String): String {
+      // Preserve genuine stack traces, engine identifiers (MPV, Media3, ExoPlayer, libplacebo, FFmpeg),
+      // and technical library versions for accurate debugging.
       return text
         .replace("app.marlboroadvance.mpvex", "com.cmstudio.auraplayer")
-        .replace("app.marlboroadvance", "com.cmstudio")
-        .replace("marlboroadvance", "auraplayer")
-        .replace("mpvex", "auraplayer", ignoreCase = true)
         .replace("mpvEx", "Aura Player")
-        .replace("MpvEx", "AuraPlayer")
-        .replace("Media3 ExoPlayer 1.5.1", "Aura Cinema Core")
-        .replace("Media3 ExoPlayer", "Aura Cinema Core")
-        .replace("Google Media3 Pipeline", "Aura Direct Hardware Pipeline")
-        .replace("MediaCodec HW", "Hardware Video Codec")
-        .replace("ExoPlayer", "AuraPlayerCore")
-        .replace("libplacebo", "AuraColorPipeline")
-        .replace("Media3", "AuraMedia")
-        .replace("MPVView", "PlayerSurfaceView")
-        .replace("PlayerBridge", "PlayerCoreLib")
-        .replace("MPV", "AuraPlayer")
+        .replace("MpvEx", "Aura Player")
+        .replace("Apna Player", "Aura Player")
+        .replace("ApnaPlayer", "AuraPlayer")
     }
 
     fun concatLogs(
@@ -230,10 +221,11 @@ class CrashActivity : ComponentActivity() {
     fun collectDeviceInfo(): String =
       """
       App: Aura Player
-      App version: ${BuildConfig.VERSION_NAME}
-      Engine: Aura Cinema Hardware Engine
-      Display Pipeline: Direct Surface (Hardware Accelerated)
-      Audio Pipeline: Direct MediaStream
+      Application ID: ${BuildConfig.APPLICATION_ID}
+      App version: ${BuildConfig.VERSION_NAME} (${BuildConfig.VERSION_CODE})
+      Playback Engine: Google AndroidX Media3 ExoPlayer 1.5.1 (MediaCodec HW)
+      Display Pipeline: TextureView / SurfaceView (Hardware Accelerated)
+      Audio Pipeline: Android AudioTrack / OpenSL / AAudio
       Android version: ${Build.VERSION.RELEASE} (API ${Build.VERSION.SDK_INT})
       Device brand: ${Build.BRAND}
       Device manufacturer: ${Build.MANUFACTURER}

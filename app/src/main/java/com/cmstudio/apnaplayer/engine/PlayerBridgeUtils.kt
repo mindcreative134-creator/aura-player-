@@ -26,8 +26,8 @@ object PlayerBridgeUtils {
   )
 
   data class Versions(
-    val playerEngine: String = "Apna Engine 1.3.1",
-    val mediaPipeline: String = "Google Media3 ExoPlayer",
+    val playerEngine: String = "Aura Cinema Engine 1.3.1",
+    val mediaPipeline: String = "Google Media3 ExoPlayer 1.5.1",
     val surfaceRenderer: String = "Hardware TextureSurface"
   )
 

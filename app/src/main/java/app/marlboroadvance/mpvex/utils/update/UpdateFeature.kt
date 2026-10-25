@@ -86,7 +86,7 @@ class UpdateManager(
             return null
         }
         
-        val prefs = context.getSharedPreferences("apna_player_prefs", Context.MODE_PRIVATE)
+        val prefs = context.getSharedPreferences("aura_player_prefs", Context.MODE_PRIVATE)
         val ignoredVersion = prefs.getString("ignored_version", null)
 
         // Remote updates from upstream repository are disabled for safe independent operation
@@ -99,7 +99,7 @@ class UpdateManager(
             return
         }
         
-        val prefs = context.getSharedPreferences("apna_player_prefs", Context.MODE_PRIVATE)
+        val prefs = context.getSharedPreferences("aura_player_prefs", Context.MODE_PRIVATE)
         prefs.edit()
             .putString("ignored_version", version)
             .apply()
@@ -256,7 +256,7 @@ class UpdateViewModel(application: Application) : AndroidViewModel(application) 
     private val _isDownloading = MutableStateFlow(false)
     val isDownloading: StateFlow<Boolean> = _isDownloading.asStateFlow()
 
-    private val prefs = application.getSharedPreferences("apna_player_prefs", Context.MODE_PRIVATE)
+    private val prefs = application.getSharedPreferences("aura_player_prefs", Context.MODE_PRIVATE)
     private val _isAutoUpdateEnabled = MutableStateFlow(
         if (BuildConfig.ENABLE_UPDATE_FEATURE) prefs.getBoolean("auto_update", false) else false
     )

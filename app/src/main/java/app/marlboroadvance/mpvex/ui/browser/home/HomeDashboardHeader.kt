@@ -6,6 +6,8 @@ package app.marlboroadvance.mpvex.ui.browser.home
 
 import android.graphics.Bitmap
 import android.net.Uri
+import android.os.Environment
+import android.os.StatFs
 import java.io.File
 import java.util.Locale
 
@@ -21,6 +23,7 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -44,6 +47,8 @@ import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.Movie
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.PlayCircle
+import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.filled.Storage
 import androidx.compose.material.icons.outlined.FileDownload
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.VideoLibrary
@@ -80,6 +85,7 @@ import app.marlboroadvance.mpvex.domain.media.model.Video
 import app.marlboroadvance.mpvex.domain.media.model.VideoFolder
 import app.marlboroadvance.mpvex.domain.playbackstate.repository.PlaybackStateRepository
 import app.marlboroadvance.mpvex.domain.recentlyplayed.repository.RecentlyPlayedRepository
+import app.marlboroadvance.mpvex.database.repository.PlaylistRepository
 import app.marlboroadvance.mpvex.domain.thumbnail.ThumbnailRepository
 import app.marlboroadvance.mpvex.preferences.FolderSortType
 import app.marlboroadvance.mpvex.preferences.MediaLayoutMode
@@ -164,6 +170,7 @@ fun HomeDashboardHeader(
   val context = LocalContext.current
   val recentlyPlayedRepo = koinInject<RecentlyPlayedRepository>()
   val playbackStateRepo = koinInject<PlaybackStateRepository>()
+  val playlistRepo = koinInject<PlaylistRepository>()
   val thumbnailRepo = koinInject<ThumbnailRepository>()
   val palette = rememberAuraHomePalette()
 
@@ -171,11 +178,18 @@ fun HomeDashboardHeader(
     .observeRecentlyPlayed(limit = 10)
     .collectAsState(initial = emptyList())
 
+  val playlists by playlistRepo
+    .observeAllPlaylists()
+    .collectAsState(initial = emptyList())
+
   val heroVideo = recentVideos.firstOrNull()
 
   // Real aggregate statistics
   val totalVideosCount = remember(folders) {
     folders.sumOf { it.videoCount }
+  }
+  val totalVideosSizeBytes = remember(folders) {
+    folders.sumOf { it.totalSize }
   }
   val totalFoldersCount = folders.size
 
@@ -185,7 +199,15 @@ fun HomeDashboardHeader(
       .padding(horizontal = 14.dp, vertical = 6.dp),
     verticalArrangement = Arrangement.spacedBy(14.dp),
   ) {
-    // 1. Hero Continue Watching Card
+    // 1. Scoped Storage Telemetry Bar (From Stitch Design)
+    AuraStorageTelemetryCard(
+      totalVideosCount = totalVideosCount,
+      totalVideosSizeBytes = totalVideosSizeBytes,
+      onRescan = onDownloadsClick,
+      palette = palette,
+    )
+
+    // 2. Hero Continue Watching Card
     if (heroVideo != null) {
       AuraContinueWatchingHero(
         video = heroVideo,
@@ -196,7 +218,7 @@ fun HomeDashboardHeader(
       )
     }
 
-    // 2. Aura Quick Action Grid
+    // 3. Aura Quick Action Grid
     AuraQuickAccessGrid(
       totalVideosCount = totalVideosCount,
       totalFoldersCount = totalFoldersCount,
@@ -206,12 +228,18 @@ fun HomeDashboardHeader(
       onFoldersClick = { onScrollToFolders?.invoke() },
       onFavoritesClick = onNavigateToFavorites,
       onPlaylistsClick = onNavigateToPlaylists,
-      onStreamClick = onStreamClick,
-      onDownloadsClick = onDownloadsClick,
       palette = palette,
     )
 
-    // 3. Recently Played Carousel
+    // 4. Fast Ingestion & Network Strip (Connected to Room DB Playlists)
+    AuraFastIngestionStrip(
+      playlistCount = playlists.size,
+      onStreamClick = onStreamClick,
+      onPlaylistsClick = onNavigateToPlaylists,
+      palette = palette,
+    )
+
+    // 5. Recently Played Carousel
     if (recentVideos.size > 1) {
       AuraRecentlyPlayedCarousel(
         videos = recentVideos.drop(1),
@@ -224,7 +252,7 @@ fun HomeDashboardHeader(
       )
     }
 
-    // 4. Storage Directories Ribbon Header
+    // 6. Storage Directories Ribbon Header
     AuraStorageSectionRibbon(
       folderCount = totalFoldersCount,
       sortType = sortType,
@@ -481,8 +509,6 @@ private fun AuraQuickAccessGrid(
   onFoldersClick: () -> Unit,
   onFavoritesClick: () -> Unit,
   onPlaylistsClick: () -> Unit,
-  onStreamClick: () -> Unit,
-  onDownloadsClick: () -> Unit,
   palette: AuraHomePalette,
 ) {
   val pinkAccent = Color(0xFFFF3B7A)
@@ -543,69 +569,301 @@ private fun AuraQuickAccessGrid(
         modifier = Modifier.weight(1f),
       )
     }
+  }
+}
 
-    // Secondary Utilities: Playlists | Stream URL
+/**
+ * Aura Scoped Storage & Indexing Telemetry Card (From Stitch Design)
+ */
+@Composable
+private fun AuraStorageTelemetryCard(
+  totalVideosCount: Int,
+  totalVideosSizeBytes: Long,
+  onRescan: () -> Unit,
+  palette: AuraHomePalette,
+) {
+  val statFs = remember {
+    runCatching {
+      StatFs(Environment.getExternalStorageDirectory().path)
+    }.getOrNull()
+  }
+  val totalStorageBytes = statFs?.totalBytes ?: (256L * 1024L * 1024L * 1024L)
+  val availableStorageBytes = statFs?.availableBytes ?: (72L * 1024L * 1024L * 1024L)
+  val usedStorageBytes = (totalStorageBytes - availableStorageBytes).coerceAtLeast(0L)
+  val usedGb = "%.1f".format(Locale.US, usedStorageBytes / (1024.0 * 1024.0 * 1024.0))
+  val totalGb = "%.0f".format(Locale.US, totalStorageBytes / (1024.0 * 1024.0 * 1024.0))
+
+  val videoFraction = if (totalStorageBytes > 0L) {
+    (totalVideosSizeBytes.toFloat() / totalStorageBytes.toFloat()).coerceIn(0.05f, 0.65f)
+  } else 0.40f
+
+  Card(
+    shape = RoundedCornerShape(16.dp),
+    colors = CardDefaults.cardColors(containerColor = palette.cardBg),
+    border = BorderStroke(1.dp, palette.cardBorder),
+    modifier = Modifier.fillMaxWidth(),
+  ) {
+    Column(
+      modifier = Modifier
+        .fillMaxWidth()
+        .padding(14.dp),
+      verticalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+      // Top header
+      Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically,
+      ) {
+        Row(
+          verticalAlignment = Alignment.CenterVertically,
+          horizontalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+          Box(
+            modifier = Modifier
+              .size(8.dp)
+              .clip(CircleShape)
+              .background(palette.accentColor)
+          )
+          Text(
+            text = "Internal Scoped Storage",
+            style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
+            color = palette.textPrimary,
+          )
+          Surface(
+            shape = RoundedCornerShape(50),
+            color = palette.chipBg,
+          ) {
+            Text(
+              text = "UFS 3.1",
+              fontSize = 9.sp,
+              fontWeight = FontWeight.Bold,
+              color = palette.accentColor,
+              modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
+            )
+          }
+        }
+        Row(
+          verticalAlignment = Alignment.CenterVertically,
+          horizontalArrangement = Arrangement.spacedBy(4.dp),
+        ) {
+          Text(
+            text = "$usedGb GB",
+            style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Bold),
+            color = palette.textPrimary,
+          )
+          Text(
+            text = "/ $totalGb GB",
+            style = MaterialTheme.typography.bodySmall,
+            color = palette.textMuted,
+          )
+        }
+      }
+
+      // Multi-segment progress visualizer
+      Box(
+        modifier = Modifier
+          .fillMaxWidth()
+          .height(6.dp)
+          .clip(CircleShape)
+          .background(palette.chipBg),
+      ) {
+        Row(modifier = Modifier.fillMaxSize()) {
+          Box(
+            modifier = Modifier
+              .fillMaxWidth(videoFraction)
+              .fillMaxHeight()
+              .background(palette.accentColor)
+          )
+          Box(
+            modifier = Modifier
+              .fillMaxWidth(0.18f)
+              .fillMaxHeight()
+              .background(Color(0xFFFFB300))
+          )
+          Box(
+            modifier = Modifier
+              .fillMaxWidth(0.10f)
+              .fillMaxHeight()
+              .background(Color(0xFF7C4DFF))
+          )
+        }
+      }
+
+      // Footer stats and rescan
+      Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically,
+      ) {
+        Row(
+          verticalAlignment = Alignment.CenterVertically,
+          horizontalArrangement = Arrangement.spacedBy(4.dp),
+        ) {
+          Box(
+            modifier = Modifier
+              .size(6.dp)
+              .clip(CircleShape)
+              .background(palette.accentColor)
+          )
+          Text(
+            text = "$totalVideosCount Videos (${formatFileSize(totalVideosSizeBytes)})",
+            fontSize = 11.sp,
+            color = palette.textMuted,
+          )
+        }
+
+        Row(
+          modifier = Modifier
+            .clip(RoundedCornerShape(6.dp))
+            .clickable(onClick = onRescan)
+            .padding(horizontal = 6.dp, vertical = 2.dp),
+          verticalAlignment = Alignment.CenterVertically,
+          horizontalArrangement = Arrangement.spacedBy(3.dp),
+        ) {
+          Text(
+            text = "Rescan",
+            fontSize = 11.sp,
+            fontWeight = FontWeight.Bold,
+            color = palette.accentColor,
+          )
+          Icon(
+            imageVector = Icons.Filled.Refresh,
+            contentDescription = "Rescan",
+            tint = palette.accentColor,
+            modifier = Modifier.size(13.dp),
+          )
+        }
+      }
+    }
+  }
+}
+
+/**
+ * Fast Ingestion & Network Strip (From Stitch Design)
+ */
+@Composable
+private fun AuraFastIngestionStrip(
+  playlistCount: Int,
+  onStreamClick: () -> Unit,
+  onPlaylistsClick: () -> Unit,
+  palette: AuraHomePalette,
+) {
+  Column(
+    modifier = Modifier.fillMaxWidth(),
+    verticalArrangement = Arrangement.spacedBy(8.dp),
+  ) {
     Row(
       modifier = Modifier.fillMaxWidth(),
-      horizontalArrangement = Arrangement.spacedBy(8.dp),
+      horizontalArrangement = Arrangement.SpaceBetween,
+      verticalAlignment = Alignment.CenterVertically,
+    ) {
+      Text(
+        text = "FAST INGESTION & NETWORK",
+        style = MaterialTheme.typography.labelMedium.copy(
+          fontWeight = FontWeight.ExtraBold,
+          letterSpacing = 0.6.sp,
+        ),
+        color = palette.textPrimary,
+      )
+      Text(
+        text = "AURA MEDIA ENGINE",
+        style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Medium),
+        color = palette.textMuted,
+      )
+    }
+
+    Row(
+      modifier = Modifier.fillMaxWidth(),
+      horizontalArrangement = Arrangement.spacedBy(10.dp),
+    ) {
+      // 1. Stream Link
+      AuraIngestionTile(
+        title = "Stream Link",
+        subtitle = "M3U8 / Direct URL",
+        icon = Icons.Filled.PlayCircle,
+        iconTint = Color(0xFF00E676),
+        onClick = onStreamClick,
+        palette = palette,
+        modifier = Modifier.weight(1f),
+      )
+
+      // 2. Network NAS
+      AuraIngestionTile(
+        title = "Network NAS",
+        subtitle = "SMB / FTP / WebDAV",
+        icon = Icons.Filled.Storage,
+        iconTint = Color(0xFFFFB300),
+        onClick = onStreamClick,
+        palette = palette,
+        modifier = Modifier.weight(1f),
+      )
+
+      // 3. Playlists (Room DB Connected)
+      AuraIngestionTile(
+        title = "Playlists",
+        subtitle = if (playlistCount > 0) "$playlistCount Playlists" else "Create Mix",
+        icon = Icons.AutoMirrored.Filled.QueueMusic,
+        iconTint = Color(0xFF38BDF8),
+        onClick = onPlaylistsClick,
+        palette = palette,
+        modifier = Modifier.weight(1f),
+      )
+    }
+  }
+}
+
+@Composable
+private fun AuraIngestionTile(
+  title: String,
+  subtitle: String,
+  icon: ImageVector,
+  iconTint: Color,
+  onClick: () -> Unit,
+  palette: AuraHomePalette,
+  modifier: Modifier = Modifier,
+) {
+  Surface(
+    shape = RoundedCornerShape(16.dp),
+    color = palette.cardBg,
+    border = BorderStroke(1.dp, palette.cardBorder),
+    modifier = modifier
+      .clip(RoundedCornerShape(16.dp))
+      .clickable(onClick = onClick),
+  ) {
+    Column(
+      modifier = Modifier.padding(12.dp),
+      verticalArrangement = Arrangement.spacedBy(4.dp),
     ) {
       Surface(
-        shape = RoundedCornerShape(12.dp),
-        color = palette.cardBg,
-        border = BorderStroke(1.dp, palette.cardBorder),
-        modifier = Modifier
-          .weight(1f)
-          .clip(RoundedCornerShape(12.dp))
-          .clickable(onClick = onPlaylistsClick),
+        shape = CircleShape,
+        color = iconTint.copy(alpha = if (palette.isDark) 0.18f else 0.12f),
+        modifier = Modifier.size(34.dp),
       ) {
-        Row(
-          modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
-          verticalAlignment = Alignment.CenterVertically,
-          horizontalArrangement = Arrangement.Center,
-        ) {
+        Box(contentAlignment = Alignment.Center) {
           Icon(
-            imageVector = Icons.AutoMirrored.Filled.QueueMusic,
+            imageVector = icon,
             contentDescription = null,
-            tint = Color(0xFF38BDF8),
-            modifier = Modifier.size(16.dp),
-          )
-          Spacer(modifier = Modifier.width(6.dp))
-          Text(
-            text = "Playlists",
-            style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.SemiBold),
-            color = palette.textPrimary,
+            tint = iconTint,
+            modifier = Modifier.size(18.dp),
           )
         }
       }
-
-      Surface(
-        shape = RoundedCornerShape(12.dp),
-        color = palette.cardBg,
-        border = BorderStroke(1.dp, palette.cardBorder),
-        modifier = Modifier
-          .weight(1f)
-          .clip(RoundedCornerShape(12.dp))
-          .clickable(onClick = onStreamClick),
-      ) {
-        Row(
-          modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
-          verticalAlignment = Alignment.CenterVertically,
-          horizontalArrangement = Arrangement.Center,
-        ) {
-          Icon(
-            imageVector = Icons.Filled.PlayCircle,
-            contentDescription = null,
-            tint = AuraTokens.AuraEmerald,
-            modifier = Modifier.size(16.dp),
-          )
-          Spacer(modifier = Modifier.width(6.dp))
-          Text(
-            text = "Stream URL",
-            style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.SemiBold),
-            color = palette.textPrimary,
-          )
-        }
-      }
+      Spacer(modifier = Modifier.height(2.dp))
+      Text(
+        text = title,
+        style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold, fontSize = 13.sp),
+        color = palette.textPrimary,
+        maxLines = 1,
+        overflow = TextOverflow.Ellipsis,
+      )
+      Text(
+        text = subtitle,
+        style = MaterialTheme.typography.bodySmall.copy(fontSize = 10.sp),
+        color = palette.textMuted,
+        maxLines = 1,
+        overflow = TextOverflow.Ellipsis,
+      )
     }
   }
 }

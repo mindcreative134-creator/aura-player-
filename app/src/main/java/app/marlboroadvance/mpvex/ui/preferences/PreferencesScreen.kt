@@ -305,7 +305,7 @@ object PreferencesScreen : Screen {
 
               CategoryTile(
                 title = "Private Vault & Security",
-                subtitle = "PIN protection, biometric access, hidden media vault",
+                subtitle = "PIN protection, encrypted media storage, hidden safe",
                 icon = Icons.Outlined.Lock,
                 onClick = { backstack.add(PrivateVaultScreen) },
                 tileColor = Color(0xFFE91E63),

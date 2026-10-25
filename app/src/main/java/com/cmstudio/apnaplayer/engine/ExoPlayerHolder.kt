@@ -51,7 +51,7 @@ import java.io.FileOutputStream
  * track selection, and video aspect ratios.
  */
 object ExoPlayerHolder {
-  private const val TAG = "ApnaPlayerEngine"
+  private const val TAG = "AuraPlayerEngine"
 
   private var exoPlayer: ExoPlayer? = null
   private var trackSelector: DefaultTrackSelector? = null
@@ -71,7 +71,7 @@ object ExoPlayerHolder {
     @Synchronized
     fun get(context: Context): SimpleCache {
       return cache ?: SimpleCache(
-        File(context.applicationContext.cacheDir, "apna_media3_cache"),
+        File(context.applicationContext.cacheDir, "aura_media3_cache"),
         LeastRecentlyUsedCacheEvictor(512L * 1024L * 1024L),
         StandaloneDatabaseProvider(context.applicationContext),
       ).also { cache = it }
@@ -671,7 +671,7 @@ object ExoPlayerHolder {
 
   fun createHttpDataSourceFactory(): DefaultHttpDataSource.Factory {
     val customUserAgent = PlayerBridge.propString["user-agent"]?.value?.takeIf { it.isNotBlank() }
-      ?: "Mozilla/5.0 (Linux; Android 14; Mobile) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Mobile Safari/537.36 ApnaPlayer/1.0"
+      ?: "Mozilla/5.0 (Linux; Android 14; Mobile) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Mobile Safari/537.36 AuraPlayer/1.0"
 
     val factory = DefaultHttpDataSource.Factory()
       .setUserAgent(customUserAgent)

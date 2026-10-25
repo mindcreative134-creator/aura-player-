@@ -281,7 +281,7 @@ object AboutScreen : Screen {
           PreferenceDivider()
           DetailRow(title = "Package", value = context.packageName)
           PreferenceDivider()
-          DetailRow(title = "Engine", value = "Aura Ultra-HD Engine (Media3)")
+          DetailRow(title = "Engine", value = "Aura Cinema Engine (Media3 ExoPlayer HW+)")
           PreferenceDivider()
           DetailRow(title = "Release Channel", value = "Production / Standard")
         }

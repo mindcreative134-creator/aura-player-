@@ -17,9 +17,9 @@
 
 ## 🌟 Overview
 
-**Aura Player** (`com.cmstudio.auraplayer`) is an original, state-of-the-art Android media playback powerhouse. Designed from the ground up for film enthusiasts, audiophiles, and power users, Aura Player marries the tactile elegance of the **Obsidian & Carbon Design System** with the raw computing performance of **Android Media3 Hardware Acceleration** and the precision of the **MPV Cinema Engine**.
+**Aura Player** (`com.cmstudio.auraplayer`) is an original, state-of-the-art Android media playback powerhouse. Designed from the ground up for film enthusiasts, audiophiles, and power users, Aura Player marries the tactile elegance of the **Obsidian & Carbon Design System** with the raw computing performance of **Android Media3 Hardware Acceleration (ExoPlayer)** and an ultra-responsive gesture control pipeline.
 
-Whether you are enjoying 4K HDR Blu-ray rips, organizing a vast FLAC/ALAC library, streaming live network feeds, or safeguarding personal clips in the biometric Vault, Aura Player delivers an uncompromising, privacy-first mobile experience.
+Whether you are enjoying 4K HDR Blu-ray rips, organizing a vast FLAC/ALAC library, streaming live network feeds, or safeguarding personal clips in the encrypted PIN-protected Vault, Aura Player delivers an uncompromising, privacy-first mobile experience.
 
 ---
 
@@ -46,6 +46,11 @@ graph TD
 ```
 
 ### 1. Home Dashboard — "nPlayer Pro" Aesthetic
+- **Storage Telemetry Visualizer:** Real-time scoped storage capacity calculator with multi-segment visualizer (Cyan for videos, Amber for audio, Violet for cache), real video count & size, and rescan trigger.
+- **Fast Ingestion Strip:** 3 dedicated elevated tiles:
+  - 🌐 **Stream Link:** Instant M3U8 / Direct URL network streaming and downloads.
+  - 🖧 **Network NAS:** SMB / FTP / WebDAV network storage browsing.
+  - 📑 **Playlists:** Real-time Room database playlist manager with live item counter.
 - **2×2 Tactile Squircle Grid:** Elevated rounded cards for immediate access:
   - 🌸 **Recent:** Pink/Coral clock squircle (`#FF3B7A`) with real-time history count.
   - ⭐ **Favorite:** Gold/Amber heart squircle (`#FFB300`) with pinned video count.
@@ -53,7 +58,7 @@ graph TD
   - 🎥 **Video:** Vibrant orange reels squircle (`#FF6D00`) for complete media library browsing.
 - **"Frequently Used" Smart Folder Section:**
   - Folders automatically receive category-colored squircles: Camera (Orange `#FF7A00`), Downloads (Amber `#FFB800`), Movies/Recordings (Emerald Green `#00E676`), and Audio (Violet `#7C4DFF`).
-  - Dedicated 3-dot action menu on every row for fast folder management, renaming, and exclusion.
+  - Dual action buttons on every folder row: Quick Play (1-tap playback) and 3-dot management menu.
 - **Hero "Continue Watching" Card:** Ambient glowing progress bar, file size metadata, and tactile 1-tap resume.
 - **View Mode Toggle:** Seamless animated switching between multi-column Grid and detailed List layouts.
 
@@ -86,8 +91,8 @@ graph TD
   - 🟣 **Appearance & Theming:** Curated color palettes, AMOLED pure black, typography.
   - 🔴 **Folders & Exclusions:** Scanned directories, `.nomedia` support, storage filters.
   - 🟦 **Hardware Decoder & Filters:** GPU MediaCodec decoding, debanding, deinterlacing presets.
-  - 🔴 **Private Vault & Security:** PIN lock, biometric fingerprint authentication, hidden media safe.
-  - 🔷 **Advanced Parameters & Diagnostics:** Custom buffer sizes, MPV properties, telemetry logs.
+  - 🔴 **Private Vault & Security:** PIN lock, encrypted local media safe, hidden vault.
+  - 🔷 **Advanced Parameters & Diagnostics:** Custom buffer sizes, player bridge properties, device diagnostics.
 
 ---
 
@@ -109,7 +114,7 @@ Aura Player is strictly engineered to safeguard user privacy and comply with Goo
 | :--- | :--- |
 | **Language & Framework** | Kotlin 2.0+, Jetpack Compose, Kotlin Coroutines, StateFlow |
 | **Design System** | Custom Aura Design Tokens (Obsidian `#060709`, Carbon `#14171F`, Cyan `#00E5FF`) |
-| **Playback Pipelines** | Google Media3 / ExoPlayer 1.5+, MPV Native C-Library Engine, MediaCodec HW+ |
+| **Playback Pipelines** | Google AndroidX Media3 / ExoPlayer 1.5+ with MediaCodec HW+ Acceleration |
 | **Dependency Injection** | Koin for Android & Compose |
 | **Local Persistence** | AndroidX Room Database, Datastore Preferences |
 | **Metadata & Subtitles** | MediaInfoLib Native, libass, LRCLib API |

@@ -102,7 +102,7 @@ fun DiagnosticsSheet(
           )
           Column(modifier = Modifier.weight(1f)) {
             Text(
-              text = "Apna Hardware Engine (Google Media3 Core)",
+              text = "Aura Cinema Engine (Media3 HW+ / ExoPlayer)",
               style = MaterialTheme.typography.bodyMedium,
               fontWeight = FontWeight.SemiBold,
               color = Color.White,

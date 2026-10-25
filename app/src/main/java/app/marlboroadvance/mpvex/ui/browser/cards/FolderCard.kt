@@ -4,6 +4,7 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -459,31 +460,43 @@ fun FolderCard(
           }
         }
 
-        if (onLongClick != null) {
-          IconButton(
-            onClick = onLongClick,
-            modifier = Modifier.size(36.dp),
-          ) {
-            Icon(
-              imageVector = Icons.Filled.MoreVert,
-              contentDescription = "Folder Options",
-              tint = AuraTheme.textSecondary.copy(alpha = 0.55f),
-              modifier = Modifier.size(20.dp),
-            )
+        Row(
+          verticalAlignment = Alignment.CenterVertically,
+          horizontalArrangement = Arrangement.spacedBy(4.dp),
+        ) {
+          if (onQuickPlay != null && folder.videoCount > 0) {
+            Surface(
+              shape = CircleShape,
+              color = folderColor.copy(alpha = if (AuraTheme.isDark) 0.16f else 0.10f),
+              border = BorderStroke(1.dp, folderColor.copy(alpha = 0.35f)),
+              modifier = Modifier
+                .size(34.dp)
+                .clip(CircleShape)
+                .clickable(onClick = onQuickPlay),
+            ) {
+              Box(contentAlignment = Alignment.Center) {
+                Icon(
+                  imageVector = Icons.Filled.PlayArrow,
+                  contentDescription = "Quick Play",
+                  tint = folderColor,
+                  modifier = Modifier.size(18.dp),
+                )
+              }
+            }
           }
-        } else if (onQuickPlay != null && folder.videoCount > 0) {
-          IconButton(
-            onClick = onQuickPlay,
-            modifier = Modifier
-              .size(36.dp)
-              .background(folderColor.copy(alpha = 0.12f), CircleShape),
-          ) {
-            Icon(
-              imageVector = Icons.Filled.PlayArrow,
-              contentDescription = "Quick Play",
-              tint = folderColor,
-              modifier = Modifier.size(20.dp),
-            )
+
+          if (onLongClick != null) {
+            IconButton(
+              onClick = onLongClick,
+              modifier = Modifier.size(34.dp),
+            ) {
+              Icon(
+                imageVector = Icons.Filled.MoreVert,
+                contentDescription = "Folder Options",
+                tint = AuraTheme.textSecondary.copy(alpha = 0.65f),
+                modifier = Modifier.size(19.dp),
+              )
+            }
           }
         }
       }
