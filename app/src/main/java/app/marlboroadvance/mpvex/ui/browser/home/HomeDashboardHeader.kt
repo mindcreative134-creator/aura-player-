@@ -573,7 +573,7 @@ private fun AuraQuickAccessGrid(
 }
 
 /**
- * Aura Scoped Storage & Indexing Telemetry Card (From Stitch Design)
+ * Aura Scoped Storage & Indexing Telemetry Card (Data-backed storage telemetry)
  */
 @Composable
 private fun AuraStorageTelemetryCard(
@@ -582,20 +582,37 @@ private fun AuraStorageTelemetryCard(
   onRescan: () -> Unit,
   palette: AuraHomePalette,
 ) {
+  val context = LocalContext.current
   val statFs = remember {
     runCatching {
       StatFs(Environment.getExternalStorageDirectory().path)
     }.getOrNull()
   }
+  val cacheBytes = remember(context) {
+    runCatching {
+      context.cacheDir.walkTopDown().filter { it.isFile }.map { it.length() }.sum()
+    }.getOrDefault(0L)
+  }
+
   val totalStorageBytes = statFs?.totalBytes ?: (256L * 1024L * 1024L * 1024L)
   val availableStorageBytes = statFs?.availableBytes ?: (72L * 1024L * 1024L * 1024L)
   val usedStorageBytes = (totalStorageBytes - availableStorageBytes).coerceAtLeast(0L)
   val usedGb = "%.1f".format(Locale.US, usedStorageBytes / (1024.0 * 1024.0 * 1024.0))
   val totalGb = "%.0f".format(Locale.US, totalStorageBytes / (1024.0 * 1024.0 * 1024.0))
 
-  val videoFraction = if (totalStorageBytes > 0L) {
-    (totalVideosSizeBytes.toFloat() / totalStorageBytes.toFloat()).coerceIn(0.05f, 0.65f)
-  } else 0.40f
+  val usedFraction = if (totalStorageBytes > 0L) {
+    (usedStorageBytes.toFloat() / totalStorageBytes.toFloat()).coerceIn(0.01f, 1f)
+  } else 0.5f
+
+  val videoFractionOfUsed = if (usedStorageBytes > 0L) {
+    (totalVideosSizeBytes.toFloat() / usedStorageBytes.toFloat()).coerceIn(0.01f, 0.95f)
+  } else 0.3f
+
+  val cacheFractionOfUsed = if (usedStorageBytes > 0L) {
+    (cacheBytes.toFloat() / usedStorageBytes.toFloat()).coerceIn(0.005f, 0.20f)
+  } else 0.05f
+
+  val otherFractionOfUsed = (1f - videoFractionOfUsed - cacheFractionOfUsed).coerceAtLeast(0.05f)
 
   Card(
     shape = RoundedCornerShape(16.dp),
@@ -626,7 +643,7 @@ private fun AuraStorageTelemetryCard(
               .background(palette.accentColor)
           )
           Text(
-            text = "Internal Scoped Storage",
+            text = "Storage Telemetry",
             style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
             color = palette.textPrimary,
           )
@@ -635,7 +652,7 @@ private fun AuraStorageTelemetryCard(
             color = palette.chipBg,
           ) {
             Text(
-              text = "UFS 3.1",
+              text = "Device Storage",
               fontSize = 9.sp,
               fontWeight = FontWeight.Bold,
               color = palette.accentColor,
@@ -653,14 +670,14 @@ private fun AuraStorageTelemetryCard(
             color = palette.textPrimary,
           )
           Text(
-            text = "/ $totalGb GB",
+            text = "/ $totalGb GB Used",
             style = MaterialTheme.typography.bodySmall,
             color = palette.textMuted,
           )
         }
       }
 
-      // Multi-segment progress visualizer
+      // Proportional progress visualizer representing actual used memory partition
       Box(
         modifier = Modifier
           .fillMaxWidth()
@@ -668,24 +685,31 @@ private fun AuraStorageTelemetryCard(
           .clip(CircleShape)
           .background(palette.chipBg),
       ) {
-        Row(modifier = Modifier.fillMaxSize()) {
+        Row(
+          modifier = Modifier
+            .fillMaxWidth(usedFraction)
+            .fillMaxHeight()
+        ) {
+          // Video segment (real calculated video size)
           Box(
             modifier = Modifier
-              .fillMaxWidth(videoFraction)
+              .weight(videoFractionOfUsed)
               .fillMaxHeight()
               .background(palette.accentColor)
           )
+          // App cache segment (real app cache size)
           Box(
             modifier = Modifier
-              .fillMaxWidth(0.18f)
-              .fillMaxHeight()
-              .background(Color(0xFFFFB300))
-          )
-          Box(
-            modifier = Modifier
-              .fillMaxWidth(0.10f)
+              .weight(cacheFractionOfUsed)
               .fillMaxHeight()
               .background(Color(0xFF7C4DFF))
+          )
+          // Other apps & system segment
+          Box(
+            modifier = Modifier
+              .weight(otherFractionOfUsed)
+              .fillMaxHeight()
+              .background(palette.textMuted.copy(alpha = 0.35f))
           )
         }
       }
@@ -698,19 +722,42 @@ private fun AuraStorageTelemetryCard(
       ) {
         Row(
           verticalAlignment = Alignment.CenterVertically,
-          horizontalArrangement = Arrangement.spacedBy(4.dp),
+          horizontalArrangement = Arrangement.spacedBy(8.dp),
         ) {
-          Box(
-            modifier = Modifier
-              .size(6.dp)
-              .clip(CircleShape)
-              .background(palette.accentColor)
-          )
-          Text(
-            text = "$totalVideosCount Videos (${formatFileSize(totalVideosSizeBytes)})",
-            fontSize = 11.sp,
-            color = palette.textMuted,
-          )
+          Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(4.dp),
+          ) {
+            Box(
+              modifier = Modifier
+                .size(6.dp)
+                .clip(CircleShape)
+                .background(palette.accentColor)
+            )
+            Text(
+              text = "$totalVideosCount Videos (${formatFileSize(totalVideosSizeBytes)})",
+              fontSize = 10.5.sp,
+              color = palette.textMuted,
+            )
+          }
+          if (cacheBytes > 0L) {
+            Row(
+              verticalAlignment = Alignment.CenterVertically,
+              horizontalArrangement = Arrangement.spacedBy(4.dp),
+            ) {
+              Box(
+                modifier = Modifier
+                  .size(6.dp)
+                  .clip(CircleShape)
+                  .background(Color(0xFF7C4DFF))
+              )
+              Text(
+                text = "Cache (${formatFileSize(cacheBytes)})",
+                fontSize = 10.5.sp,
+                color = palette.textMuted,
+              )
+            }
+          }
         }
 
         Row(

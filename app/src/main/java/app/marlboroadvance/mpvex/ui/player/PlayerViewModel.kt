@@ -1,4 +1,4 @@
-﻿package app.marlboroadvance.mpvex.ui.player
+package app.marlboroadvance.mpvex.ui.player
 
 import android.content.Context
 import android.content.Intent
@@ -143,6 +143,10 @@ class PlayerViewModel(
   val maxVolume = host.audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC)
 
   private fun parseTracks(node: PlayerNode?): List<TrackNode> {
+    val directList = (node?.value as? List<*>)?.filterIsInstance<TrackNode>()
+    if (!directList.isNullOrEmpty()) {
+      return directList
+    }
     val fromNode = runCatching { node?.toObject<List<TrackNode>>(json) }.getOrNull()
     if (!fromNode.isNullOrEmpty()) {
       return fromNode

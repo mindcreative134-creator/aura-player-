@@ -44,6 +44,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
 import java.io.FileOutputStream
+import java.util.Locale
 
 /**
  * Core Google Media3 ExoPlayer Engine Holder.
@@ -375,6 +376,8 @@ object ExoPlayerHolder {
             PlayerBridge.propDouble["duration"].value = player.duration.toDouble() / 1000.0
             PlayerBridge.notifyProperty("duration", durationSec.toLong())
 
+            syncTracks(player.currentTracks)
+
             if (!hasDispatchedFileLoaded) {
               hasDispatchedFileLoaded = true
               PlayerBridge.notifyEvent(PlayerBridge.MpvEvent.MPV_EVENT_FILE_LOADED)
@@ -488,52 +491,66 @@ object ExoPlayerHolder {
 
     for (group in tracks.groups) {
       val type = group.type
+      val trackTypeStr = when (type) {
+        C.TRACK_TYPE_AUDIO -> "audio"
+        C.TRACK_TYPE_TEXT -> "sub"
+        C.TRACK_TYPE_VIDEO -> "video"
+        else -> continue
+      }
+
       for (i in 0 until group.length) {
         val format = group.getTrackFormat(i)
         val isSelected = group.isTrackSelected(i)
         val trackId = trackCount + 1
 
-        val trackTypeStr = when (type) {
+        val rawLang = format.language?.lowercase()?.trim()
+        val lang = if (rawLang.isNullOrBlank() || rawLang == "und") "" else rawLang
+
+        when (type) {
           C.TRACK_TYPE_AUDIO -> {
             audioCount++
             if (isSelected) {
               PlayerBridge.propInt["aid"].value = trackId
               PlayerBridge.propString["aid"].value = trackId.toString()
+              PlayerBridge.notifyProperty("aid", trackId.toLong())
             }
-            "audio"
           }
           C.TRACK_TYPE_TEXT -> {
             subCount++
             if (isSelected) {
               PlayerBridge.propInt["sid"].value = trackId
               PlayerBridge.propString["sid"].value = trackId.toString()
+              PlayerBridge.notifyProperty("sid", trackId.toLong())
             }
-            "sub"
           }
           C.TRACK_TYPE_VIDEO -> {
             if (isSelected) {
               PlayerBridge.propInt["vid"].value = trackId
               PlayerBridge.propString["vid"].value = trackId.toString()
+              PlayerBridge.notifyProperty("vid", trackId.toLong())
             }
-            "video"
           }
-          else -> continue
         }
 
-        val lang = format.language ?: ""
-        val title = format.label ?: format.id ?: "$trackTypeStr #$trackId"
+        val displayTitle = when {
+          !format.label.isNullOrBlank() -> format.label!!
+          lang.isNotBlank() -> Locale(lang).getDisplayLanguage(Locale.getDefault()).ifBlank { lang.uppercase(Locale.US) }
+          type == C.TRACK_TYPE_AUDIO -> "Audio Track $audioCount"
+          type == C.TRACK_TYPE_TEXT -> "Subtitle Track $subCount"
+          else -> "$trackTypeStr #$trackId"
+        }
 
         PlayerBridge.propInt["track-list/$trackCount/id"].value = trackId
         PlayerBridge.propString["track-list/$trackCount/type"].value = trackTypeStr
         PlayerBridge.propString["track-list/$trackCount/lang"].value = lang
-        PlayerBridge.propString["track-list/$trackCount/title"].value = title
+        PlayerBridge.propString["track-list/$trackCount/title"].value = displayTitle
         PlayerBridge.propBoolean["track-list/$trackCount/selected"].value = isSelected
 
         trackNodes.add(
           TrackNode(
             id = trackId,
             type = trackTypeStr,
-            title = title,
+            title = displayTitle,
             lang = lang,
             selected = isSelected,
             codec = format.sampleMimeType,
@@ -541,9 +558,21 @@ object ExoPlayerHolder {
             demuxH = format.height.takeIf { it > 0 }?.toLong(),
             demuxFps = format.frameRate.takeIf { it > 0f }?.toDouble(),
             demuxBitrate = format.bitrate.takeIf { it > 0 }?.toLong(),
+            demuxChannelCount = format.channelCount.takeIf { it > 0 }?.toLong(),
+            demuxSampleRate = format.sampleRate.takeIf { it > 0 }?.toLong(),
+            audioChannels = format.channelCount.takeIf { it > 0 }?.toLong(),
           )
         )
         trackCount++
+      }
+    }
+
+    if (audioCount > 0 && PlayerBridge.propInt["aid"].value == null) {
+      val firstAudio = trackNodes.firstOrNull { it.type == "audio" }
+      if (firstAudio != null) {
+        PlayerBridge.propInt["aid"].value = firstAudio.id
+        PlayerBridge.propString["aid"].value = firstAudio.id.toString()
+        PlayerBridge.notifyProperty("aid", firstAudio.id.toLong())
       }
     }
 
@@ -557,6 +586,7 @@ object ExoPlayerHolder {
       "[]"
     }
     PlayerBridge.propNode["track-list"].value = PlayerNode(trackNodes, jsonStr)
+    PlayerBridge.notifyProperty("track-list", jsonStr)
     PlayerBridge.notifyEvent(PlayerBridge.MpvEvent.MPV_EVENT_TRACKS_CHANGED)
   }
 
@@ -993,16 +1023,20 @@ object ExoPlayerHolder {
           "sub" -> {
             PlayerBridge.propInt["sid"].value = id
             PlayerBridge.propString["sid"].value = id.toString()
+            PlayerBridge.notifyProperty("sid", id.toLong())
           }
           "audio" -> {
             PlayerBridge.propInt["aid"].value = id
             PlayerBridge.propString["aid"].value = id.toString()
+            PlayerBridge.notifyProperty("aid", id.toLong())
           }
           "video" -> {
             PlayerBridge.propInt["vid"].value = id
             PlayerBridge.propString["vid"].value = id.toString()
+            PlayerBridge.notifyProperty("vid", id.toLong())
           }
         }
+        syncTracks(player.currentTracks)
       }
     }
   }
