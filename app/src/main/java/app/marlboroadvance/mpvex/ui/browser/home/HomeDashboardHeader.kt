@@ -483,18 +483,18 @@ private fun AuraQuickAccessGrid(
 ) {
   val isDark = palette.isDark
   val cyanAccent = AuraTokens.AuraCyan
-  val violetAccent = AuraTokens.AuraViolet
-  val emeraldAccent = AuraTokens.AuraEmerald
   val sunsetAccent = AuraTokens.AuraSunset
+  val skyAccent = Color(0xFF38BDF8)
+  val emeraldAccent = AuraTokens.AuraEmerald
 
   Column(
     modifier = Modifier.fillMaxWidth(),
-    verticalArrangement = Arrangement.spacedBy(10.dp),
+    verticalArrangement = Arrangement.spacedBy(8.dp),
   ) {
-    // Row 1: All Videos | Directories
+    // Row 1: All Media | Favorites
     Row(
       modifier = Modifier.fillMaxWidth(),
-      horizontalArrangement = Arrangement.spacedBy(10.dp),
+      horizontalArrangement = Arrangement.spacedBy(8.dp),
     ) {
       AuraQuickActionCard(
         title = "All Media",
@@ -506,22 +506,6 @@ private fun AuraQuickAccessGrid(
         modifier = Modifier.weight(1f),
       )
       AuraQuickActionCard(
-        title = "Folders",
-        subtitle = "$totalFoldersCount dirs",
-        icon = Icons.Filled.Folder,
-        iconTint = if (isDark) violetAccent else Color(0xFF6D28D9),
-        onClick = onFoldersClick,
-        palette = palette,
-        modifier = Modifier.weight(1f),
-      )
-    }
-
-    // Row 2: Favorites | Playlists
-    Row(
-      modifier = Modifier.fillMaxWidth(),
-      horizontalArrangement = Arrangement.spacedBy(10.dp),
-    ) {
-      AuraQuickActionCard(
         title = "Favorites",
         subtitle = "$pinnedCount pinned",
         icon = Icons.Filled.Star,
@@ -530,37 +514,28 @@ private fun AuraQuickAccessGrid(
         palette = palette,
         modifier = Modifier.weight(1f),
       )
+    }
+
+    // Row 2: Playlists | Stream URL
+    Row(
+      modifier = Modifier.fillMaxWidth(),
+      horizontalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
       AuraQuickActionCard(
         title = "Playlists",
         subtitle = "Custom queues",
         icon = Icons.AutoMirrored.Filled.QueueMusic,
-        iconTint = if (isDark) Color(0xFF38BDF8) else Color(0xFF0284C7),
+        iconTint = if (isDark) skyAccent else Color(0xFF0284C7),
         onClick = onPlaylistsClick,
         palette = palette,
         modifier = Modifier.weight(1f),
       )
-    }
-
-    // Row 3: Online Stream | Downloads
-    Row(
-      modifier = Modifier.fillMaxWidth(),
-      horizontalArrangement = Arrangement.spacedBy(10.dp),
-    ) {
       AuraQuickActionCard(
         title = "Stream URL",
-        subtitle = "IPTV & Network",
+        subtitle = "Direct stream",
         icon = Icons.Filled.PlayCircle,
         iconTint = if (isDark) emeraldAccent else Color(0xFF059669),
         onClick = onStreamClick,
-        palette = palette,
-        modifier = Modifier.weight(1f),
-      )
-      AuraQuickActionCard(
-        title = "Downloads",
-        subtitle = "Offline manager",
-        icon = Icons.Outlined.FileDownload,
-        iconTint = if (isDark) Color(0xFFFF7043) else Color(0xFFE64A19),
-        onClick = onDownloadsClick,
         palette = palette,
         modifier = Modifier.weight(1f),
       )
@@ -579,61 +554,55 @@ private fun AuraQuickActionCard(
   modifier: Modifier = Modifier,
 ) {
   Card(
-    shape = AuraTokens.ShapeCard,
+    shape = RoundedCornerShape(12.dp),
     colors = CardDefaults.cardColors(containerColor = palette.cardBg),
     border = BorderStroke(1.dp, palette.cardBorder),
     modifier = modifier
-      .clip(AuraTokens.ShapeCard)
+      .clip(RoundedCornerShape(12.dp))
       .clickable(onClick = onClick),
   ) {
     Row(
       modifier = Modifier
         .fillMaxWidth()
-        .padding(horizontal = 14.dp, vertical = 12.dp),
-      horizontalArrangement = Arrangement.SpaceBetween,
+        .padding(horizontal = 10.dp, vertical = 8.dp),
       verticalAlignment = Alignment.CenterVertically,
+      horizontalArrangement = Arrangement.spacedBy(8.dp),
     ) {
-      Row(
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(10.dp),
-        modifier = Modifier.weight(1f),
+      Surface(
+        shape = RoundedCornerShape(8.dp),
+        color = iconTint.copy(alpha = 0.14f),
+        modifier = Modifier.size(32.dp),
       ) {
-        Surface(
-          shape = RoundedCornerShape(12.dp),
-          color = iconTint.copy(alpha = 0.16f),
-          modifier = Modifier.size(40.dp),
-        ) {
-          Box(contentAlignment = Alignment.Center) {
-            Icon(
-              imageVector = icon,
-              contentDescription = null,
-              tint = iconTint,
-              modifier = Modifier.size(20.dp),
-            )
-          }
-        }
-        Column(modifier = Modifier.weight(1f)) {
-          Text(
-            text = title,
-            style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
-            color = palette.textPrimary,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
-          )
-          Text(
-            text = subtitle,
-            style = MaterialTheme.typography.bodySmall,
-            color = palette.textMuted,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
+        Box(contentAlignment = Alignment.Center) {
+          Icon(
+            imageVector = icon,
+            contentDescription = null,
+            tint = iconTint,
+            modifier = Modifier.size(17.dp),
           )
         }
+      }
+      Column(modifier = Modifier.weight(1f)) {
+        Text(
+          text = title,
+          style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.SemiBold, fontSize = 12.5.sp),
+          color = palette.textPrimary,
+          maxLines = 1,
+          overflow = TextOverflow.Ellipsis,
+        )
+        Text(
+          text = subtitle,
+          style = MaterialTheme.typography.bodySmall.copy(fontSize = 10.sp),
+          color = palette.textMuted,
+          maxLines = 1,
+          overflow = TextOverflow.Ellipsis,
+        )
       }
       Icon(
         imageVector = Icons.AutoMirrored.Filled.ArrowForwardIos,
         contentDescription = null,
-        tint = palette.textMuted.copy(alpha = 0.45f),
-        modifier = Modifier.size(14.dp),
+        tint = palette.textMuted.copy(alpha = 0.35f),
+        modifier = Modifier.size(11.dp),
       )
     }
   }

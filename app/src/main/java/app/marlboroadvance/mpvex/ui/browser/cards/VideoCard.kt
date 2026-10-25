@@ -42,6 +42,7 @@ import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.text.style.TextAlign
 import app.marlboroadvance.mpvex.R
 import app.marlboroadvance.mpvex.domain.media.model.Video
@@ -54,6 +55,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.withContext
+import app.marlboroadvance.mpvex.ui.theme.aura.AuraTheme
 import app.marlboroadvance.mpvex.ui.theme.aura.AuraTokens
 import org.koin.compose.koinInject
 import kotlin.math.roundToInt
@@ -118,20 +120,20 @@ fun VideoCard(
         onClick = onClick,
         onLongClick = onLongClick,
       ),
-    shape = RoundedCornerShape(18.dp),
+    shape = RoundedCornerShape(16.dp),
     colors = CardDefaults.cardColors(
       containerColor = if (isSelected) {
-        AuraTokens.AuraCyan.copy(alpha = 0.16f)
+        AuraTheme.selectedContainer
       } else {
-        AuraTokens.CarbonCard
+        AuraTheme.cardBackground
       }
     ),
     border = BorderStroke(
       width = if (isSelected) 1.5.dp else 1.dp,
       color = if (isSelected) {
-        AuraTokens.AuraCyan
+        AuraTheme.selectedBorder
       } else {
-        AuraTokens.CarbonBorder
+        AuraTheme.cardBorder
       }
     ),
   ) {
@@ -309,11 +311,11 @@ fun VideoCard(
             if (isRecentlyPlayed) baseStyle.copy(fontStyle = FontStyle.Italic) else baseStyle
           },
           color = if (isRecentlyPlayed) {
-            MaterialTheme.colorScheme.tertiary 
+            AuraTheme.accent 
           } else if (isWatched) {
-            MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+            AuraTheme.textSecondary
           } else {
-            MaterialTheme.colorScheme.onSurface
+            AuraTheme.textPrimary
           },
           maxLines = maxLines,
           overflow = TextOverflow. Ellipsis,
@@ -617,11 +619,11 @@ fun VideoCard(
               if (isRecentlyPlayed) baseStyle.copy(fontStyle = FontStyle.Italic) else baseStyle
             },
             color = if (isRecentlyPlayed) {
-              MaterialTheme.colorScheme.tertiary 
+              AuraTheme.accent 
             } else if (isWatched) {
-              MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+              AuraTheme.textSecondary
             } else {
-              MaterialTheme.colorScheme.onSurface
+              AuraTheme.textPrimary
             },
             maxLines = maxLines,
             overflow = TextOverflow.Ellipsis,
@@ -664,15 +666,15 @@ fun VideoCard(
             if (showSizeChip && video.sizeFormatted != "0 B" && video.sizeFormatted != "--") {
               Text(
                 video.sizeFormatted,
-                style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Medium),
+                style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Medium, fontSize = 11.sp),
                 modifier =
                   Modifier
                     .background(
-                      MaterialTheme.colorScheme.surfaceContainerHighest.copy(alpha = 0.7f),
+                      AuraTheme.chipBackground,
                       RoundedCornerShape(50),
                     )
-                    .padding(horizontal = 8.dp, vertical = 3.dp),
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    .padding(horizontal = 8.dp, vertical = 2.dp),
+                color = AuraTheme.chipContent,
               )
             }
             // Resolution and Framerate logic (List view)
@@ -689,45 +691,45 @@ fun VideoCard(
 
                 Text(
                   displayResolution,
-                  style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
+                  style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold, fontSize = 11.sp),
                   modifier =
                     Modifier
                       .background(
-                        MaterialTheme.colorScheme.primary.copy(alpha = 0.14f),
+                        AuraTheme.accent.copy(alpha = 0.14f),
                         RoundedCornerShape(50),
                       )
-                      .padding(horizontal = 8.dp, vertical = 3.dp),
-                  color = MaterialTheme.colorScheme.primary,
+                      .padding(horizontal = 8.dp, vertical = 2.dp),
+                  color = AuraTheme.accent,
                 )
               }
             } else if (showFramerateInResolution && hasFps) {
               // Resolution is hidden, but framerate is enabled -> show only framerate
               Text(
                 "$fpsOnly FPS",
-                style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Medium),
+                style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Medium, fontSize = 11.sp),
                 modifier =
                   Modifier
                     .background(
-                      MaterialTheme.colorScheme.surfaceContainerHighest.copy(alpha = 0.7f),
+                      AuraTheme.chipBackground,
                       RoundedCornerShape(50),
                     )
-                    .padding(horizontal = 8.dp, vertical = 3.dp),
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    .padding(horizontal = 8.dp, vertical = 2.dp),
+                color = AuraTheme.chipContent,
               )
             }
             
             if (showDateChip && video.dateModified > 0) {
               Text(
                 formatDate(video.dateModified),
-                style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Medium),
+                style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Medium, fontSize = 11.sp),
                 modifier =
                   Modifier
                     .background(
-                      MaterialTheme.colorScheme.surfaceContainerHighest.copy(alpha = 0.7f),
+                      AuraTheme.chipBackground,
                       RoundedCornerShape(50),
                     )
-                    .padding(horizontal = 8.dp, vertical = 3.dp),
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    .padding(horizontal = 8.dp, vertical = 2.dp),
+                color = AuraTheme.chipContent,
               )
             }
           }

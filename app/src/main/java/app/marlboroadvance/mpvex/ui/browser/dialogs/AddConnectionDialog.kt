@@ -267,7 +267,7 @@ fun AddConnectionSheet(
         )
       }
     },
-    containerColor = app.marlboroadvance.mpvex.ui.theme.aura.AuraTokens.CarbonCard,
+    containerColor = app.marlboroadvance.mpvex.ui.theme.aura.AuraTheme.cardBackground,
     tonalElevation = 0.dp,
     shape = androidx.compose.foundation.shape.RoundedCornerShape(24.dp),
   )

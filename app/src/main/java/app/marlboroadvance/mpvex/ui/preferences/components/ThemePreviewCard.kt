@@ -33,6 +33,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import app.marlboroadvance.mpvex.ui.theme.AppTheme
 import app.marlboroadvance.mpvex.ui.theme.aura.AuraTokens
+import app.marlboroadvance.mpvex.ui.theme.aura.AuraTheme
 
 /**
  * A theme preview card that displays a mini preview of the app UI with the theme's colors.
@@ -47,11 +48,11 @@ fun ThemePreviewCard(
 ) {
     val colorScheme = if (isDarkMode) theme.getDarkColorScheme() else theme.getLightColorScheme()
     
-    val selectionColor = AuraTokens.AuraCyan
+    val selectionColor = AuraTheme.accent
     
     val borderWidth = if (isSelected) 2.5.dp else 1.dp
 
-    val borderColor = if (isSelected) selectionColor else AuraTokens.CarbonBorder
+    val borderColor = if (isSelected) selectionColor else AuraTheme.cardBorder
 
     val elevation = if (isSelected) 8.dp else 2.dp
 

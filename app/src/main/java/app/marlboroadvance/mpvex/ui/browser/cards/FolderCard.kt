@@ -67,6 +67,7 @@ import app.marlboroadvance.mpvex.repository.MediaFileRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.koin.compose.koinInject
+import app.marlboroadvance.mpvex.ui.theme.aura.AuraTheme
 import app.marlboroadvance.mpvex.ui.theme.aura.AuraTokens
 import kotlin.math.pow
 import kotlin.math.roundToInt
@@ -116,20 +117,20 @@ fun FolderCard(
         onClick = onClick,
         onLongClick = onLongClick,
       ),
-    shape = RoundedCornerShape(18.dp),
+    shape = RoundedCornerShape(16.dp),
     colors = CardDefaults.cardColors(
       containerColor = if (isSelected) {
-        AuraTokens.AuraCyan.copy(alpha = 0.16f)
+        AuraTheme.selectedContainer
       } else {
-        AuraTokens.CarbonCard
+        AuraTheme.cardBackground
       }
     ),
     border = BorderStroke(
       width = if (isSelected) 1.5.dp else 1.dp,
       color = if (isSelected) {
-        AuraTokens.AuraCyan
+        AuraTheme.selectedBorder
       } else {
-        AuraTokens.CarbonBorder
+        AuraTheme.cardBorder
       }
     ),
   ) {
@@ -255,7 +256,7 @@ fun FolderCard(
         Text(
           folder.name,
           style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.SemiBold),
-          color = if (isRecentlyPlayed) MaterialTheme.colorScheme.tertiary else MaterialTheme.colorScheme.onSurface,
+          color = if (isRecentlyPlayed) AuraTheme.accent else AuraTheme.textPrimary,
           maxLines = maxLines,
           overflow = TextOverflow.Ellipsis,
           textAlign = TextAlign.Center,
@@ -266,10 +267,10 @@ fun FolderCard(
           Text(
             if (folder.videoCount == 1) "1 Video" else "${folder.videoCount} Videos",
             style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.SemiBold),
-            color = MaterialTheme.colorScheme.primary,
+            color = AuraTheme.accent,
             modifier = Modifier
               .background(
-                MaterialTheme.colorScheme.primary.copy(alpha = 0.12f),
+                AuraTheme.accent.copy(alpha = 0.14f),
                 RoundedCornerShape(50)
               )
               .padding(horizontal = 8.dp, vertical = 2.dp)
@@ -280,30 +281,18 @@ fun FolderCard(
       Row(
         modifier = Modifier
           .fillMaxWidth()
-          .padding(12.dp),
+          .padding(horizontal = 12.dp, vertical = 10.dp),
         verticalAlignment = Alignment.CenterVertically,
       ) {
         Box(
-          modifier = Modifier.size(68.dp),
+          modifier = Modifier.size(54.dp),
           contentAlignment = Alignment.Center,
         ) {
-          // Stacked back sheet when folder contains multiple files
-          if (folder.videoCount > 1) {
-            Surface(
-              modifier = Modifier
-                .size(52.dp)
-                .offset(x = 3.dp, y = (-2).dp),
-              shape = RoundedCornerShape(12.dp),
-              color = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.5f),
-              border = BorderStroke(1.dp, MaterialTheme.colorScheme.secondary.copy(alpha = 0.25f)),
-            ) {}
-          }
-
           Box(
             modifier = Modifier
-              .size(60.dp)
-              .clip(RoundedCornerShape(14.dp))
-              .background(MaterialTheme.colorScheme.surfaceContainerHigh)
+              .size(48.dp)
+              .clip(RoundedCornerShape(12.dp))
+              .background(AuraTheme.accent.copy(alpha = if (AuraTheme.isDark) 0.16f else 0.10f))
               .combinedClickable(
                 onClick = onThumbClick,
                 onLongClick = onLongClick,
@@ -313,8 +302,8 @@ fun FolderCard(
             Icon(
               customIcon ?: Icons.Filled.Folder,
               contentDescription = "Folder",
-              modifier = Modifier.size(44.dp),
-              tint = MaterialTheme.colorScheme.secondary,
+              modifier = Modifier.size(28.dp),
+              tint = AuraTheme.accent,
             )
 
           if (isPinned) {
@@ -341,15 +330,16 @@ fun FolderCard(
             Box(
               modifier = Modifier
                 .align(Alignment.TopEnd)
-                .padding(4.dp)
+                .padding(3.dp)
                 .clip(RoundedCornerShape(6.dp))
                 .background(Color(0xFFD32F2F))
-                .padding(horizontal = 6.dp, vertical = 2.dp),
+                .padding(horizontal = 5.dp, vertical = 1.dp),
             ) {
               Text(
                 text = newVideoCount.toString(),
                 style = MaterialTheme.typography.labelSmall.copy(
                   fontWeight = FontWeight.Bold,
+                  fontSize = 10.sp,
                 ),
                 color = Color.White,
               )
@@ -357,28 +347,28 @@ fun FolderCard(
           }
         }
       }
-      Spacer(modifier = Modifier.width(14.dp))
+      Spacer(modifier = Modifier.width(12.dp))
         Column(
           modifier = Modifier.weight(1f),
         ) {
           Text(
             folder.name,
-            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold),
-            color = if (isRecentlyPlayed) MaterialTheme.colorScheme.tertiary else MaterialTheme.colorScheme.onSurface,
+            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold, fontSize = 15.sp),
+            color = if (isRecentlyPlayed) AuraTheme.accent else AuraTheme.textPrimary,
             maxLines = maxLines,
             overflow = TextOverflow.Ellipsis,
           )
           if (showFolderPath && parentPath.isNotEmpty()) {
             Text(
               parentPath,
-              style = MaterialTheme.typography.bodySmall,
-              color = MaterialTheme.colorScheme.onSurfaceVariant,
-              maxLines = maxLines,
+              style = MaterialTheme.typography.bodySmall.copy(fontSize = 12.sp),
+              color = AuraTheme.textSecondary,
+              maxLines = 1,
               overflow = TextOverflow.Ellipsis,
             )
-            Spacer(modifier = Modifier.height(4.dp))
+            Spacer(modifier = Modifier.height(3.dp))
           } else {
-            Spacer(modifier = Modifier.height(4.dp))
+            Spacer(modifier = Modifier.height(3.dp))
           }
           FlowRow(
             horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(6.dp),
@@ -395,14 +385,14 @@ fun FolderCard(
             if (showTotalVideosChip && folder.videoCount > 0) {
               Text(
                 if (folder.videoCount == 1) "1 Video" else "${folder.videoCount} Videos",
-                style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.SemiBold),
+                style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.SemiBold, fontSize = 11.sp),
                 modifier = Modifier
                   .background(
-                    MaterialTheme.colorScheme.primary.copy(alpha = 0.14f),
+                    AuraTheme.accent.copy(alpha = 0.14f),
                     RoundedCornerShape(50),
                   )
-                  .padding(horizontal = 10.dp, vertical = 3.dp),
-                color = MaterialTheme.colorScheme.primary,
+                  .padding(horizontal = 9.dp, vertical = 2.dp),
+                color = AuraTheme.accent,
               )
               hasChip = true
             }
@@ -410,14 +400,14 @@ fun FolderCard(
             if (showTotalSizeChip && folder.totalSize > 0) {
               Text(
                 formatFileSize(folder.totalSize),
-                style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Medium),
+                style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Medium, fontSize = 11.sp),
                 modifier = Modifier
                   .background(
-                    MaterialTheme.colorScheme.surfaceContainerHighest.copy(alpha = 0.7f),
+                    AuraTheme.chipBackground,
                     RoundedCornerShape(50),
                   )
-                  .padding(horizontal = 10.dp, vertical = 3.dp),
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                  .padding(horizontal = 9.dp, vertical = 2.dp),
+                color = AuraTheme.chipContent,
               )
               hasChip = true
             }
@@ -425,14 +415,14 @@ fun FolderCard(
             if (showTotalDurationChip && folder.totalDuration > 0) {
               Text(
                 formatDuration(folder.totalDuration),
-                style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Medium),
+                style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Medium, fontSize = 11.sp),
                 modifier = Modifier
                   .background(
-                    MaterialTheme.colorScheme.surfaceContainerHighest.copy(alpha = 0.7f),
+                    AuraTheme.chipBackground,
                     RoundedCornerShape(50),
                   )
-                  .padding(horizontal = 10.dp, vertical = 3.dp),
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                  .padding(horizontal = 9.dp, vertical = 2.dp),
+                color = AuraTheme.chipContent,
               )
               hasChip = true
             }
@@ -440,14 +430,14 @@ fun FolderCard(
             if (showDateChip && folder.lastModified > 0) {
               Text(
                 formatDate(folder.lastModified),
-                style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Medium),
+                style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Medium, fontSize = 11.sp),
                 modifier = Modifier
                   .background(
-                    MaterialTheme.colorScheme.surfaceContainerHighest.copy(alpha = 0.7f),
+                    AuraTheme.chipBackground,
                     RoundedCornerShape(50),
                   )
-                  .padding(horizontal = 10.dp, vertical = 3.dp),
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                  .padding(horizontal = 9.dp, vertical = 2.dp),
+                color = AuraTheme.chipContent,
               )
               hasChip = true
             }
@@ -457,13 +447,15 @@ fun FolderCard(
         if (onQuickPlay != null && folder.videoCount > 0) {
           IconButton(
             onClick = onQuickPlay,
-            modifier = Modifier.size(36.dp),
+            modifier = Modifier
+              .size(36.dp)
+              .background(AuraTheme.accent.copy(alpha = 0.12f), CircleShape),
           ) {
             Icon(
-              imageVector = Icons.Filled.PlayCircleFilled,
+              imageVector = Icons.Filled.PlayArrow,
               contentDescription = "Quick Play",
-              tint = MaterialTheme.colorScheme.primary,
-              modifier = Modifier.size(28.dp),
+              tint = AuraTheme.accent,
+              modifier = Modifier.size(20.dp),
             )
           }
         }

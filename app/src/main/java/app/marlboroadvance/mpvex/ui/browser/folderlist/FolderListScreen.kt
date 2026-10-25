@@ -894,7 +894,7 @@ private fun GridContent(
       contentPadding = PaddingValues(
         start = 8.dp,
         end = 8.dp,
-        bottom = navigationBarHeight
+        bottom = navigationBarHeight + 96.dp
       ),
       horizontalArrangement = Arrangement.spacedBy(4.dp),
       verticalArrangement = Arrangement.spacedBy(4.dp),
@@ -1002,7 +1002,7 @@ private fun ListContent(
       contentPadding = PaddingValues(
         start = 8.dp,
         end = 8.dp,
-        bottom = navigationBarHeight
+        bottom = navigationBarHeight + 96.dp
       ),
     ) {
       if (!selectionManager.isInSelectionMode) {
@@ -1263,7 +1263,7 @@ private fun SearchResultsContent(
           start = 8.dp,
           end = 8.dp,
           top = 8.dp,
-          bottom = navigationBarHeight + 8.dp
+          bottom = navigationBarHeight + 96.dp
         ),
         horizontalArrangement = Arrangement.spacedBy(4.dp),
         verticalArrangement = Arrangement.spacedBy(4.dp),
@@ -1301,7 +1301,7 @@ private fun SearchResultsContent(
           start = 8.dp,
           end = 8.dp,
           top = 8.dp,
-          bottom = navigationBarHeight + 8.dp
+          bottom = navigationBarHeight + 96.dp
         ),
       ) {
         items(folders.size) { index ->

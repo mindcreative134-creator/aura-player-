@@ -18,10 +18,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import app.marlboroadvance.mpvex.ui.theme.aura.AuraTokens
+import app.marlboroadvance.mpvex.ui.theme.aura.AuraTheme
 
 /**
  * Signature Aura preference card container for grouping related settings.
- * Designed with carbon elevation and refined hairline borders.
+ * Designed with theme-adaptive background and refined hairline borders.
  */
 @Composable
 fun PreferenceCard(
@@ -34,9 +35,9 @@ fun PreferenceCard(
       .padding(horizontal = 16.dp, vertical = 6.dp),
     shape = RoundedCornerShape(22.dp),
     colors = CardDefaults.cardColors(
-      containerColor = AuraTokens.CarbonCard,
+      containerColor = AuraTheme.cardBackground,
     ),
-    border = BorderStroke(1.dp, AuraTokens.CarbonBorder),
+    border = BorderStroke(1.dp, AuraTheme.cardBorder),
     elevation = CardDefaults.cardElevation(
       defaultElevation = 0.dp,
     ),
@@ -59,7 +60,7 @@ fun PreferenceDivider(
 ) {
   HorizontalDivider(
     modifier = modifier.padding(horizontal = 16.dp),
-    color = AuraTokens.CarbonBorder.copy(alpha = 0.6f),
+    color = AuraTheme.cardBorder.copy(alpha = 0.5f),
   )
 }
 
@@ -77,7 +78,7 @@ fun PreferenceSectionHeader(
       fontWeight = FontWeight.Bold,
       letterSpacing = 0.3.sp,
     ),
-    color = AuraTokens.AuraCyan,
+    color = AuraTheme.accent,
     modifier = modifier.padding(horizontal = 24.dp, vertical = 14.dp),
   )
 }

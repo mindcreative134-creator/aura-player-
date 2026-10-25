@@ -25,6 +25,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.shape.RoundedCornerShape
 import app.marlboroadvance.mpvex.ui.theme.aura.AuraTokens
+import app.marlboroadvance.mpvex.ui.theme.aura.AuraTheme
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
@@ -76,10 +77,10 @@ fun DeleteConfirmationDialog(
           Card(
             colors =
               CardDefaults.cardColors(
-                containerColor = AuraTokens.CarbonElevated,
+                containerColor = AuraTheme.cardBackgroundElevated,
               ),
             shape = RoundedCornerShape(16.dp),
-            border = BorderStroke(1.dp, AuraTokens.CarbonBorder),
+            border = BorderStroke(1.dp, AuraTheme.cardBorder),
             modifier = Modifier.fillMaxWidth(),
           ) {
             Column(
@@ -145,7 +146,7 @@ fun DeleteConfirmationDialog(
         Text("Cancel", fontWeight = FontWeight.Medium)
       }
     },
-    containerColor = AuraTokens.CarbonCard,
+    containerColor = AuraTheme.cardBackground,
     tonalElevation = 0.dp,
     shape = RoundedCornerShape(24.dp),
   )

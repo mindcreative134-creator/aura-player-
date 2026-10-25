@@ -154,7 +154,7 @@ fun SortDialog(
       }
     },
     confirmButton = {},
-    containerColor = app.marlboroadvance.mpvex.ui.theme.aura.AuraTokens.CarbonCard,
+    containerColor = app.marlboroadvance.mpvex.ui.theme.aura.AuraTheme.cardBackground,
     tonalElevation = 0.dp,
     shape = RoundedCornerShape(24.dp),
     modifier = modifier,

@@ -58,6 +58,8 @@ import app.marlboroadvance.mpvex.preferences.AppearancePreferences
 import app.marlboroadvance.mpvex.preferences.preference.collectAsState
 import app.marlboroadvance.mpvex.ui.theme.LocalLiquidGlassEnabled
 import app.marlboroadvance.mpvex.ui.theme.aura.AuraTokens
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
@@ -214,8 +216,9 @@ object MainScreen : Screen {
                   Modifier.clip(navBarShape)
                 }
 
+                val isDarkTheme = MaterialTheme.colorScheme.background.luminance() < 0.5f
                 val navBarContainerColor = if (isLiquidGlass) {
-                  AuraTokens.CarbonElevated.copy(alpha = 0.90f)
+                  if (isDarkTheme) AuraTokens.CarbonElevated.copy(alpha = 0.90f) else Color.White.copy(alpha = 0.92f)
                 } else {
                   MaterialTheme.colorScheme.surfaceContainer
                 }

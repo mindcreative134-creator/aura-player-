@@ -2,14 +2,130 @@ package app.marlboroadvance.mpvex.ui.theme.aura
 
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Typography
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+
+/**
+ * AuraTheme provides dynamic, high-contrast, theme-aware semantic color resolution
+ * ensuring flawless readability across Light, Dark, and AMOLED themes without hardcoded clashes.
+ */
+object AuraTheme {
+    val isDark: Boolean
+        @Composable get() = MaterialTheme.colorScheme.background.luminance() < 0.5f
+
+    /**
+     * Card background:
+     * - Dark: Carbon Elevated / SurfaceContainer (#14171F)
+     * - Light: Pure White (#FFFFFF) matching the header surfaces
+     */
+    val cardBackground: Color
+        @Composable get() = if (isDark) {
+            Color(0xFF14171F)
+        } else {
+            Color(0xFFFFFFFF)
+        }
+
+    /**
+     * Secondary / nested container background:
+     */
+    val cardBackgroundElevated: Color
+        @Composable get() = if (isDark) {
+            Color(0xFF1B202A)
+        } else {
+            Color(0xFFF1F4F9)
+        }
+
+    /**
+     * Card border:
+     * - Dark: Subtle carbon border (#282E3D)
+     * - Light: Crisp soft outline
+     */
+    val cardBorder: Color
+        @Composable get() = if (isDark) {
+            Color(0xFF282E3D)
+        } else {
+            Color(0x18000000)
+        }
+
+    /**
+     * Primary text:
+     * - Dark: Crisp off-white (#F0F4F8)
+     * - Light: High-contrast dark charcoal (#12161E)
+     */
+    val textPrimary: Color
+        @Composable get() = if (isDark) {
+            Color(0xFFF0F4F8)
+        } else {
+            Color(0xFF12161E)
+        }
+
+    /**
+     * Secondary / metadata text:
+     * - Dark: Muted slate (#9BA3B5)
+     * - Light: Readable medium slate (#5E6678)
+     */
+    val textSecondary: Color
+        @Composable get() = if (isDark) {
+            Color(0xFF9BA3B5)
+        } else {
+            Color(0xFF5E6678)
+        }
+
+    /**
+     * Tertiary / micro text:
+     */
+    val textTertiary: Color
+        @Composable get() = if (isDark) {
+            Color(0xFF6B7285)
+        } else {
+            Color(0xFF7A8499)
+        }
+
+    /**
+     * Primary accent color:
+     * In Dark mode: Electric Cyan (#00E5FF)
+     * In Light mode: MaterialTheme.colorScheme.primary
+     */
+    val accent: Color
+        @Composable get() = if (isDark) AuraTokens.AuraCyan else MaterialTheme.colorScheme.primary
+
+    /**
+     * Selected container background:
+     */
+    val selectedContainer: Color
+        @Composable get() = accent.copy(alpha = if (isDark) 0.16f else 0.12f)
+
+    /**
+     * Selected border:
+     */
+    val selectedBorder: Color
+        @Composable get() = accent
+
+    /**
+     * Chip / Badge background:
+     * - Dark: SlateSurface (#1B202A)
+     * - Light: Soft light pill (#E9EDF5)
+     */
+    val chipBackground: Color
+        @Composable get() = if (isDark) Color(0xFF1B202A) else Color(0xFFE9EDF5)
+
+    /**
+     * Chip / Badge content color:
+     * - Dark: Off-white (#D6DBE5)
+     * - Light: Dark slate (#3B4455)
+     */
+    val chipContent: Color
+        @Composable get() = if (isDark) Color(0xFFD6DBE5) else Color(0xFF3B4455)
+}
 
 /**
  * Aura Design System Tokens

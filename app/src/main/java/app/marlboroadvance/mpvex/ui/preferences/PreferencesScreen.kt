@@ -63,6 +63,7 @@ import app.marlboroadvance.mpvex.presentation.Screen
 import app.marlboroadvance.mpvex.ui.utils.LocalBackStack
 import kotlinx.serialization.Serializable
 import app.marlboroadvance.mpvex.ui.theme.aura.AuraTokens
+import app.marlboroadvance.mpvex.ui.theme.aura.AuraTheme
 import me.zhanghai.compose.preference.ProvidePreferenceLocals
 import me.zhanghai.compose.preference.SwitchPreference
 import org.koin.compose.koinInject
@@ -129,8 +130,8 @@ object PreferencesScreen : Screen {
                 .padding(horizontal = 16.dp, vertical = 6.dp)
                 .clickable { backstack.add(SettingsSearchScreen) },
               shape = RoundedCornerShape(18.dp),
-              color = AuraTokens.CarbonCard,
-              border = BorderStroke(1.dp, AuraTokens.CarbonBorder),
+              color = AuraTheme.cardBackground,
+              border = BorderStroke(1.dp, AuraTheme.cardBorder),
             ) {
               Row(
                 modifier = Modifier
@@ -141,7 +142,7 @@ object PreferencesScreen : Screen {
                 Icon(
                   imageVector = Icons.Outlined.Search,
                   contentDescription = null,
-                  tint = AuraTokens.AuraCyan,
+                  tint = AuraTheme.accent,
                   modifier = Modifier.size(20.dp),
                 )
                 Spacer(modifier = Modifier.width(12.dp))
